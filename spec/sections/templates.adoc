@@ -1,0 +1,31 @@
+== Templates
+
+A *template* is a pre-packaged symbol definition bundled with an SVG asset. Templates allow common patterns to be reused across projects.
+
+=== Template Declaration
+
+[literal]
+....
+IMPORT TEMPLATE "path/to/template.ldlt" AS name
+....
+
+This loads a template file which contains one or more symbol definitions.
+
+=== Template File Format
+
+A template file (`.ldlt`) contains symbol definitions:
+
+[literal]
+....
+SYMBOL TIMER
+  SVG = "timer.svg"
+  PORT INPUT in
+  PORT OUTPUT out
+  ATTRIBUTE PICKUP = "0 s"
+  ATTRIBUTE DROPOUT = "0 s"
+END SYMBOL
+....
+
+=== Template Resolution
+
+The renderer resolves SVG paths relative to the template's directory. Built-in symbols (`builtin:*`) are resolved by the renderer itself.

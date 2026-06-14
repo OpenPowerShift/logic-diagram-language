@@ -1,0 +1,64 @@
+== Grammar
+
+The following is the formal grammar for LDL in EBNF notation:
+
+[source,ebnf]
+----
+diagram        ::= ( statement )* EOF ;
+
+statement      ::= object_decl
+                 | port_meta
+                 | attribute_decl
+                 | option_decl
+                 | link_decl
+                 | style_block
+                 | stylesheet_decl
+                 | import_decl
+                 | symbol_def
+                 | expression
+                 | connect_stmt
+                 | comment
+                 ;
+
+object_decl    ::= SYMBOL_NAME ( '#' IDENTIFIER )? ;
+port_meta      ::= ( IDENTIFIER | SYMBOL_NAME ) '.' ( 'Name' | 'Description' | 'Style' ) '=' STRING ;
+attribute_decl ::= OBJECT_REF '.' IDENTIFIER '=' literal ;
+option_decl    ::= 'OPTION' IDENTIFIER '=' IDENTIFIER ;
+link_decl      ::= OBJECT_REF ( '.' PORT_NAME )? '.LINK' '=' STRING ;
+
+OBJECT_REF     ::= SYMBOL_NAME ( '#' IDENTIFIER )? ;
+
+expression     ::= or_expr ;
+or_expr        ::= and_expr ( 'OR' and_expr )* ;
+and_expr       ::= not_expr ( 'AND' not_expr )* ;
+not_expr       ::= 'NOT' not_expr | primary ;
+primary        ::= '(' expression ')' | IDENTIFIER | OBJECT_REF '.' PORT_NAME ;
+
+connect_stmt   ::= 'CONNECT' port_ref port_ref ;
+port_ref       ::= OBJECT_REF '.' PORT_NAME ;
+
+style_block    ::= 'STYLE' ( CSS_CONTENT ) 'END' 'STYLE' ;
+stylesheet_decl::= 'STYLESHEET' STRING ;
+
+import_decl    ::= 'IMPORT' 'TEMPLATE' STRING ( 'AS' IDENTIFIER )? ;
+
+symbol_def     ::= 'SYMBOL' SYMBOL_NAME
+                    ( 'SVG' '=' STRING )?
+                    ( port_decl )*
+                    ( attr_decl_in_symbol )*
+                    ( 'LOGIC' '=' expression )?
+                    'END' 'SYMBOL' ;
+port_decl      ::= 'PORT' ( 'INPUT' | 'OUTPUT' | 'BIDI' ) IDENTIFIER
+                    ( ':' ( 'LEFT' | 'RIGHT' | 'TOP' | 'BOTTOM' ) )? ;
+attr_decl_in_symbol ::= 'ATTRIBUTE' IDENTIFIER '=' literal ;
+
+literal        ::= INTEGER | FLOAT | STRING | DURATION | BOOL ;
+DURATION       ::= NUMBER ( 'ms' | 's' | 'm' ) ;
+IDENTIFIER     ::= [a-zA-Z_][a-zA-Z0-9_]* ;
+SYMBOL_NAME    ::= [A-Z][A-Z0-9_]* ;
+STRING         ::= '"' [^"]* '"' ;
+
+comment        ::= line_comment | block_comment ;
+line_comment   ::= '//' ~NEWLINE ;
+block_comment  ::= '/*' ( block_comment | ~('*/') )* '*/' ;
+----

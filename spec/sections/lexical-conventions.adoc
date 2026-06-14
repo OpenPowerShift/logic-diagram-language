@@ -1,0 +1,57 @@
+== Lexical Conventions
+
+=== Character Set
+
+LDL source files are UTF-8 text.
+
+=== Keywords
+
+The following keywords are reserved and MUST NOT be used as identifiers:
+
+[cols="1m,1m,1m,1m,1m,1m"]
+|===
+| AND | OR | NOT | NAND | NOR | XOR
+| XNOR | IMPORT | SYMBOL | PORT | INPUT | OUTPUT
+| BIDI | ATTRIBUTE | TEMPLATE | LINK | AS | FROM
+| OPTION | STYLE | END | STYLESHEET | CONNECT |
+|===
+
+=== Identifiers
+
+An identifier is a sequence of letters, digits, and underscores, beginning with a letter or underscore.
+
+[literal]
+....
+IDENTIFIER := [a-zA-Z_][a-zA-Z0-9_]*
+....
+
+=== Literals
+
+[cols="2m,3m,2m"]
+|===
+| Kind | Syntax | Example
+| Integer | `[0-9]+` | `30`
+| Float | `[0-9]+\.[0-9]+` | `1.5`
+| String | `"..."` | `"Main Trip"`
+| Duration | `<number> <unit>` | `30 s`, `100 ms`
+| Boolean | `TRUE` \| `FALSE` | `TRUE`
+|===
+
+Duration units: `ms` (milliseconds), `s` (seconds), `m` (minutes).
+
+=== Comments
+
+A line comment begins with `//` and extends to end of line.
+
+[literal]
+....
+// This is a comment
+....
+
+A block comment begins with `/*` and ends with `*/`. Block comments nest.
+
+[literal]
+....
+/* This is a
+   block comment */
+....

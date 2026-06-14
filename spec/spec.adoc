@@ -1,0 +1,47 @@
+= Logic Diagram Language (LDL) Specification
+:toc: macro
+:toclevels: 4
+:sectnums:
+:sectlinks
+:version: 0.3.0-draft
+:revdate: 2026-06-14
+
+toc::[]
+
+include::sections/introduction.adoc[]
+
+include::sections/lexical-conventions.adoc[]
+
+include::sections/options.adoc[]
+
+include::sections/expressions.adoc[]
+
+include::sections/objects.adoc[]
+
+include::sections/ports.adoc[]
+
+include::sections/attributes.adoc[]
+
+include::sections/symbol-definitions.adoc[]
+
+include::sections/templates.adoc[]
+
+include::sections/svg-symbol-specification.adoc[]
+
+include::sections/styling.adoc[]
+
+include::sections/layout-rules.adoc[]
+
+include::sections/hyperlinks.adoc[]
+
+include::sections/connections.adoc[]
+
+include::sections/examples.adoc[]
+
+include::sections/grammar.adoc[]
+
+include::sections/file-extension.adoc[]
+
+include::sections/rendering-contract.adoc[]
+
+include::sections/revision-history.adoc[]

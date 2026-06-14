@@ -1,0 +1,18 @@
+== Hyperlinks
+
+Any object or port may carry a hyperlink:
+
+[literal]
+....
+OBJECT#ID.LINK = "https://example.com/doc"
+PORT OBJECT#ID.PORT_NAME.LINK = "https://example.com/signal"
+....
+
+In the rendered SVG, the symbol or port is wrapped in an `<a>` element:
+
+[source,xml]
+----
+<a xlink:href="https://example.com/doc" target="_blank">
+  <g class="ldl-symbol" id="G1">...</g>
+</a>
+----

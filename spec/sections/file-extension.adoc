@@ -1,0 +1,5 @@
+== File Extension
+
+LDL source files use the extension `.ldl`.
+
+Template files use the extension `.ldlt`.

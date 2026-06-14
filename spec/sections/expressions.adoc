@@ -1,0 +1,131 @@
+== Expressions
+
+=== Boolean Expressions
+
+A boolean expression defines the logical relationship between inputs and an output.
+
+[literal]
+....
+OUTPUT = EXPR
+....
+
+Where `EXPR` is composed of identifiers and the operators `AND`, `OR`, `NOT`, with parenthetical grouping.
+
+=== Operator Precedence
+
+Operators are listed from highest to lowest precedence:
+
+[cols="1m,4m,2m"]
+|===
+| Precedence | Operator | Arity
+| 1 (highest) | `NOT` | Unary prefix
+| 2 | `AND` | Binary infix
+| 3 (lowest) | `OR` | Binary infix
+|===
+
+Parentheses override precedence.
+
+=== Examples
+
+[literal]
+....
+CBFPS = AB AND DC OR (NOT DC AND GF)
+....
+
+Parses as:
+
+[literal]
+....
+CBFPS = (AB AND DC) OR ((NOT DC) AND GF)
+....
+
+=== Expanded Form
+
+For readability, an expression may be written across multiple lines using continuation:
+
+[literal]
+....
+CBFPS = AB AND DC
+     OR (NOT DC AND GF)
+....
+
+A continuation line is one that begins with whitespace and follows a prior expression line. The leading operator on a continuation line is treated as part of the expression.
+
+=== Derived Operators
+
+The following compound operators are syntactic sugar:
+
+[cols="2m,4m,4m"]
+|===
+| Operator | Expansion | Description
+| `NAND` | `NOT (... AND ...)` | Negated AND
+| `NOR` | `NOT (... OR ...)` | Negated OR
+| `XOR` | Exclusive OR | One but not both
+| `XNOR` | `NOT (... XOR ...)` | Equivalence
+|===
+
+=== Inversion Rendering
+
+When `OPTION INVERSION = BUBBLES` is set, all `NOT` operations in expressions are rendered as inversion bubbles rather than as separate NOT gate symbols.
+
+==== Input-Side Bubbles
+
+When a `NOT` operation feeds into a gate input, the bubble appears on that input port:
+
+[literal]
+....
+O1 = I1 AND NOT I2
+....
+
+With `OPTION INVERSION = GATES`: `I2 → [NOT] → [AND] ← I1 → O1`
+
+With `OPTION INVERSION = BUBBLES`: `I2 → ○[AND] ← I1 → O1`
+
+==== Output-Side Bubbles
+
+When a `NOT` operation wraps a gate's output, the bubble appears on that gate's output port:
+
+[literal]
+....
+O1 = NOT (I1 AND I2)
+....
+
+With `OPTION INVERSION = GATES`: `[AND] → [NOT] → O1`
+
+With `OPTION INVERSION = BUBBLES`: `[AND]○ → O1`
+
+When a `NOT` operation feeds directly into an output, the bubble appears on the output port's input:
+
+[literal]
+....
+O1 = NOT I1
+....
+
+With `OPTION INVERSION = GATES`: `I1 → [NOT] → O1`
+
+With `OPTION INVERSION = BUBBLES`: `I1 → ○O1`
+
+==== Double-Inversion Cancellation
+
+Consecutive `NOT` operations are algebraically simplified:
+
+* `NOT NOT X = X` (even number of inversions cancels out; no bubble)
+* `NOT NOT NOT X = NOT X` (odd number reduces to a single inversion; one bubble)
+
+For example:
+
+[literal]
+....
+O1 = NOT NOT I1
+....
+
+Renders as: `I1 → O1` (no bubble; both inversions cancel)
+
+[literal]
+....
+O1 = NOT NOT NOT I1
+....
+
+Renders as: `I1 → ○O1` (triple inversion reduces to single inversion)
+
+The NOT gate is never placed as a separate column when `OPTION INVERSION = BUBBLES`. Instead, the downstream port (input or output) is marked with a bubble, and the wire from the NOT's source connects directly to that bubbled port.

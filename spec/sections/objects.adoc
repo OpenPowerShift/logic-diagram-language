@@ -1,0 +1,31 @@
+== Objects
+
+An *object* is an instance of a symbol. Every gate and composite element in a diagram is an object.
+
+=== Object Declaration
+
+An object is declared by referencing its symbol type, optionally with an identifier:
+
+[literal]
+....
+SYMBOL_NAME#ID
+....
+
+[cols="2m,5m,3m"]
+|===
+| Part | Meaning | Required
+| `SYMBOL_NAME` | The symbol type | Yes
+| `#ID` | A unique identifier for CSS targeting and cross-reference | No
+|===
+
+If `#ID` is omitted, the renderer assigns an anonymous identifier.
+
+=== Examples
+
+[literal]
+....
+AND#G1
+NOT#INV3
+SVT#1
+TIMER#T2
+....

@@ -1,0 +1,77 @@
+== Ports
+
+A *port* is a named connection point on an object. Ports are either inputs, outputs, or bidirectional.
+
+=== Port Types
+
+[cols="1m,3m,3m"]
+|===
+| Keyword | Direction | Semantics
+| `INPUT` | Inward | Receives a signal
+| `OUTPUT` | Outward | Emits a signal
+| `BIDI` | Both | Bidirectional (for Bus or analog)
+|===
+
+=== Port Declarations
+
+Ports are declared within a symbol definition (see <<symbol-definitions>>) or explicitly on an object:
+
+[literal]
+....
+SVT#1.INPUT = A OR B
+SVT#1.OUTPUT = C
+....
+
+The dot notation `OBJECT.PORT` references a specific port.
+
+=== Port Metadata
+
+Ports may carry human-readable metadata using `.Name` and `.Description` attributes:
+
+[literal]
+....
+I1.Name = "CBQ 00 Open"
+I1.Description = "(BI 3.1)"
+O1.Name = "Output"
+O1.Description = "(BO 3.2)"
+....
+
+* `.Name` -- A human-readable label for the port. Displayed as the primary label on the diagram when the labels layer is active.
+* `.Description` -- Supplementary text (e.g. a signal reference). Displayed as a secondary annotation when the labels layer is active.
+
+When labels are **not** shown, the bare identifier (e.g. `I1`, `O1`) is used as a compact reference. When labels **are** shown, the `.Name` replaces the identifier on the diagram, and `.Description` is shown in a smaller font below it.
+
+=== Implicit Ports
+
+For built-in gate symbols, ports are implicit based on position:
+
+* **AND**, **NAND**, **OR**, **NOR**, **XOR**, **XNOR**: Left-side inputs, right-side output.
+* **NOT**: Left-side input, right-side output.
+
+The number of inputs on gate symbols is determined by the expression arity.
+
+=== Port Naming Convention
+
+When the expression `CBFPS = A AND B` is given, the renderer creates an AND gate with two implicit inputs labeled `A` and `B` and one implicit output labeled `CBFPS`.
+
+When a port has a `.Name` attribute, that name replaces the identifier as the display label:
+
+[literal]
+....
+I1.Name = "Close Switch"
+O1 = I1 AND I2
+....
+
+In this case the input port is shown as "Close Switch" rather than `I1`.
+
+=== Port Style Attribute
+
+An individual port's marker shape can be overridden from the document default set by `OPTION PORT_STYLE`:
+
+[literal]
+....
+I1.Style = SQUARE
+O1.Style = CIRCLE
+....
+
+When set, this overrides the `OPTION PORT_STYLE` for that specific port. Valid values are `CIRCLE` and `SQUARE`.

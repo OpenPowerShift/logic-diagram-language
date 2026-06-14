@@ -1,0 +1,143 @@
+[[symbol-definitions]]
+== Symbol Definitions
+
+=== Overview
+
+A symbol definition describes a reusable SVG component. It specifies the SVG asset, its ports, its default attributes, and any logic it encapsulates.
+
+=== Symbol Definition Syntax
+
+[literal]
+....
+SYMBOL SYMBOL_NAME
+  SVG = "path/to/symbol.svg"
+  PORT INPUT name1
+  PORT INPUT name2
+  PORT OUTPUT name3
+  ATTRIBUTE name1 = default_value1
+  ATTRIBUTE name2 = default_value2
+  LOGIC = boolean_expression
+END SYMBOL
+....
+
+=== Fields
+
+[cols="1m,4m,3m"]
+|===
+| Field | Description | Required
+| `SVG` | Path to the SVG file for this symbol | Yes
+| `PORT` | A port declaration with direction and name | Yes (at least one)
+| `ATTRIBUTE` | A default attribute with name and value | No
+| `LOGIC` | An embedded boolean expression defining the symbol's internal logic | No
+|===
+
+=== Port Declaration in Symbol
+
+[literal]
+....
+PORT DIRECTION NAME [: POSITION]
+....
+
+Where:
+
+* `DIRECTION` is `INPUT`, `OUTPUT`, or `BIDI`.
+* `NAME` is the port identifier.
+* `POSITION` is an optional side descriptor: `LEFT`, `RIGHT`, `TOP`, `BOTTOM`. Default is `LEFT` for inputs, `RIGHT` for outputs.
+
+=== Built-in Symbols
+
+The following symbols do not require explicit definition; they are always available.
+
+==== AND Gate
+
+[literal]
+....
+SYMBOL AND
+  SVG = "builtin:and"
+  PORT INPUT in
+  PORT OUTPUT out
+  LOGIC = out = in_0 AND in_1 AND ... AND in_n
+END SYMBOL
+....
+
+The AND symbol supports variable fan-in. The SVG is scaled accordingly.
+
+==== OR Gate
+
+[literal]
+....
+SYMBOL OR
+  SVG = "builtin:or"
+  PORT INPUT in
+  PORT OUTPUT out
+  LOGIC = out = in_0 OR in_1 OR ... OR in_n
+END SYMBOL
+....
+
+==== NOT Gate
+
+[literal]
+....
+SYMBOL NOT
+  SVG = "builtin:not"
+  PORT INPUT in
+  PORT OUTPUT out
+  LOGIC = out = NOT in
+END SYMBOL
+....
+
+==== NAND, NOR, XOR, XNOR Gates
+
+Each has the same port convention as AND/OR, with the corresponding logic.
+
+=== Inversion Bubbles
+
+When `OPTION INVERSION = BUBBLES` is set, `NOT` operations are rendered as inversion bubbles instead of separate NOT gate symbols. Bubbles may appear on **input ports** or **output ports** depending on where the inversion occurs in the expression.
+
+==== Input-Side Bubbles
+
+Any input port that receives the output of a `NOT` operation is marked with an inversion circle (bubble). The bubble is drawn at the input port position with a radius of `BUBBLE_R` (4px). The NOT gate symbol is not rendered; instead, the wire from the NOT's source connects directly to the bubbled input.
+
+For AND and OR gates with bubbled inputs, the gate body remains unchanged. The bubble is rendered as an open circle (stroke only, no fill) overlapping the input port position on the left side of the gate.
+
+==== Output-Side Bubbles
+
+When a `NOT` operation wraps a gate's output (e.g., `O1 = NOT (I1 AND I2)`), the bubble appears on the gate's output port. The bubble is drawn at the output port position with radius `BUBBLE_R` (4px), offset to the right of the gate body edge. The wire from the bubbled output connects directly to the downstream port.
+
+Similarly, when a `NOT` operation feeds directly into an output (e.g., `O1 = NOT I1`), the bubble appears on the output node's input port.
+
+The bubble on an output port is rendered as an open circle (stroke only, no fill) to the right of the gate body.
+
+==== Double-Inversion Cancellation
+
+Consecutive `NOT` operations are simplified before rendering:
+
+* An even number of `NOT` operations cancels out entirely (no bubble rendered).
+* An odd number of `NOT` operations reduces to a single inversion (one bubble rendered).
+
+=== Input Bars
+
+When `OPTION GATE_INPUT_STYLE = BARS` is set, gates with more than two inputs render as follows:
+
+. The gate body stays at the 2-input base height (44px for AND/OR).
+. The first two inputs render as normal input ports on the left side of the gate.
+. Additional inputs connect via a *vertical input bar* drawn along the left edge of the gate body.
+. The vertical bar extends from the top of the gate body to the bottom.
+. Additional input wires tap into the bar at evenly-spaced Y positions along the bar.
+. The bar is drawn as a vertical line segment (stroke-width 2.5) with short horizontal stubs connecting it to the gate body edge.
+
+The vertical bar is a visual convenience: it allows multi-input logic without expanding the gate symbol. The logical wiring is unchanged -- each input still connects to its source signal.
+
+=== Custom Symbol Example
+
+[literal]
+....
+SYMBOL SVT
+  SVG = "symbols/svt.svg"
+  PORT INPUT in
+  PORT OUTPUT out
+  ATTRIBUTE PICKUP = "0 s"
+  ATTRIBUTE DROPOUT = "0 s"
+  LOGIC = out = TIMER(in, PICKUP, DROPOUT)
+END SYMBOL
+....

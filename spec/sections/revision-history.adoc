@@ -1,0 +1,9 @@
+== Revision History
+
+[cols="1m,3m,5m"]
+|===
+| Version | Date | Description
+| 0.1.0-draft | 2026-06-13 | Initial specification
+| 0.2.0-draft | 2026-06-13 | Added port metadata (.Name, .Description), layout rules, layer visibility
+| 0.3.0-draft | 2026-06-14 | Added OPTION directives, inversion bubbles, input bars, port styles, minimum dogleg height, wire-wire crossing avoidance
+|===

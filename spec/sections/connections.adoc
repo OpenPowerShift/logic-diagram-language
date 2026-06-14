@@ -1,0 +1,39 @@
+== Connections
+
+=== Implicit Connections
+
+When an expression assigns an output, the connections are implied:
+
+[literal]
+....
+CBFPS = A AND B
+....
+
+Creates:
+
+* Input port `A` on the diagram boundary.
+* Input port `B` on the diagram boundary.
+* An AND gate with inputs connected to `A` and `B`.
+* Output port `CBFPS` on the diagram boundary, connected to the AND gate output.
+
+=== Explicit Connections
+
+A `CONNECT` statement creates a wire between two ports:
+
+[literal]
+....
+CONNECT AND#G1.out AND#G2.in1
+....
+
+Or using simplified dot notation:
+
+[literal]
+....
+CONNECT G1.out G2.in1
+....
+
+When the object symbol is unambiguous, the symbol type may be omitted.
+
+=== Output Fan-Out
+
+A single output port may connect to multiple input ports. The renderer handles wire routing automatically.

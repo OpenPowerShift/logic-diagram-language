@@ -1,0 +1,82 @@
+== Styling
+
+=== ID-Based Selection
+
+Every object declared with `#ID` can be styled via CSS:
+
+[literal]
+....
+AND#G1 { stroke: red; }
+SVT#1  { fill: yellow; }
+....
+
+=== CSS Injection
+
+Style rules are provided in the LDL source:
+
+[literal]
+....
+STYLE
+  #G1 { stroke: red; stroke-width: 3; }
+  #T2 { fill: #ffffcc; }
+END STYLE
+....
+
+Or loaded from an external stylesheet:
+
+[literal]
+....
+STYLESHEET "path/to/styles.css"
+....
+
+=== Default CSS Classes
+
+The renderer MUST apply the following CSS classes:
+
+[cols="1m,3m"]
+|===
+| Class | Applied to
+| `ldl-symbol` | Every symbol `<g>` element
+| `ldl-port` | Every port marker
+| `ldl-input` | Input port markers
+| `ldl-output` | Output port markers
+| `ldl-attribute` | Attribute text elements
+| `ldl-id` | ID/identifier label text elements (ids layer)
+| `ldl-label` | `.Name` and `.Description` text elements (labels layer)
+| `ldl-name` | Port `.Name` text elements
+| `ldl-description` | Port `.Description` text elements
+| `ldl-wire` | Wire/connection path elements
+| `ldl-gate-and` | AND gate symbols
+| `ldl-gate-or` | OR gate symbols
+| `ldl-gate-not` | NOT gate symbols
+| `ldl-bubble` | Inversion circle on a gate input port (BUBBLES mode)
+| `ldl-input-bar` | Vertical input bar on a multi-input gate (BARS mode)
+| `ldl-bar-stub` | Horizontal stub connecting a bar tap to the gate body (BARS mode)
+| `ldl-port-circle` | Circular port marker (PORT_STYLE = CIRCLE)
+| `ldl-port-square` | Square port marker (PORT_STYLE = SQUARE)
+|===
+
+Selectors combining these classes with `#ID` provide fine-grained control:
+
+[source,css]
+----
+.ldl-gate-and#G1 { fill: blue; }
+.ldl-port.ldl-output { fill: green; }
+----
+
+=== Layer Visibility
+
+Layers are toggled via CSS on the root `<svg>` element:
+
+[source,css]
+----
+/* Show labels, hide bare IDs */
+svg.ldl-layer-labels .ldl-label { display: block; }
+svg.ldl-layer-labels .ldl-id { display: none; }
+
+/* Hide labels, show bare IDs */
+svg:not(.ldl-layer-labels) .ldl-label { display: none; }
+svg:not(.ldl-layer-labels) .ldl-id { display: block; }
+----
+
+The renderer provides UI controls to toggle these layers.

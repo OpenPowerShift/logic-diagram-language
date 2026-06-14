@@ -1,0 +1,76 @@
+== Options
+
+*Options* are document-level directives that control rendering behaviour.
+They MUST appear before any expressions, object declarations, or style blocks.
+
+=== Syntax
+
+[source]
+OPTION NAME = VALUE
+
+Options are set once per document. If the same option appears multiple times,
+the last occurrence wins.
+
+=== Available Options
+
+[cols="1m,2m,2m,1m"]
+|===
+| Option | Values | Description | Default
+
+| INVERSION
+| GATES
+| NOT operations render as separate NOT gate symbols (current behaviour)
+| GATES
+
+| INVERSION
+| BUBBLES
+| NOT operations render as inversion circles (bubbles) on the input port of the downstream gate
+| --
+
+| PORT_STYLE
+| CIRCLE
+| Port markers are rendered as circles (r=3)
+| CIRCLE
+
+| PORT_STYLE
+| SQUARE
+| Port markers are rendered as squares (5×5)
+| --
+
+| GATE_INPUT_STYLE
+| EXPAND
+| Multi-input gates expand vertically to accommodate all input ports with even spacing
+| EXPAND
+
+| GATE_INPUT_STYLE
+| BARS
+| Multi-input gates remain at base size (2-input height). Inputs beyond the first two connect via vertical input bars on the left side of the gate body
+| --
+
+| LABEL_STYLE
+| SIDE
+| Input labels appear to the left of the input port; output labels to the right (current behaviour)
+| SIDE
+
+| LABEL_STYLE
+| ABOVE_BELOW
+| Input labels appear above/below the port, closer to the gate body
+| --
+|===
+
+=== Examples
+
+[source]
+OPTION INVERSION = BUBBLES
+OPTION PORT_STYLE = SQUARE
+OPTION GATE_INPUT_STYLE = BARS
+
+An LDL file may combine options freely:
+
+[source]
+OPTION INVERSION = BUBBLES
+OPTION GATE_INPUT_STYLE = BARS
+I1.Name = "Start"
+I2.Name = "Stop"
+I3.Name = "Reset"
+O1 = I1 AND I2 AND NOT I3

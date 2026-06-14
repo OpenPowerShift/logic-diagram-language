@@ -1,0 +1,149 @@
+== SVG Symbol Specification
+
+=== Structure
+
+Each SVG symbol file MUST contain:
+
+. A `<g>` element with class `ldl-symbol`.
+. One `<circle>` or `<rect>` per port, with class `ldl-port` and a `data-port` attribute matching the port name.
+. Optional `<text>` elements with `{{PLACEHOLDER}}` for attribute substitution.
+. A `<text>` element with `{{ID}}` to show the object's identifier label.
+
+=== Port Markers
+
+Port markers indicate where connections attach:
+
+[literal]
+....
+<circle class="ldl-port ldl-input" data-port="in" cx="0" cy="20" r="3"/>
+<circle class="ldl-port ldl-output" data-port="out" cx="80" cy="20" r="3"/>
+....
+
+=== Attribute Placeholders
+
+[literal]
+....
+<text class="ldl-attribute" x="40" y="30">{{PICKUP}}</text>
+<text class="ldl-attribute" x="40" y="45">{{DROPOUT}}</text>
+....
+
+=== ID Label Placeholder
+
+[literal]
+....
+<text class="ldl-id" x="40" y="10">{{ID}}</text>
+....
+
+=== Name and Description Labels
+
+For input and output ports, the renderer generates labels from `.Name` and `.Description` attributes:
+
+[literal]
+....
+<text class="ldl-label ldl-name" x="0" y="-5">{{NAME}}</text>
+<text class="ldl-label ldl-description" x="0" y="12" font-size="9">{{DESCRIPTION}}</text>
+....
+
+Elements with class `ldl-label` are part of the *labels layer* and controlled by the `ldl-layer-labels` CSS class.
+Elements with class `ldl-id` are part of the *ids layer* and controlled by the `ldl-layer-ids` CSS class.
+
+=== SVG File Example
+
+A minimal AND gate symbol (`symbols/and.svg`):
+
+[source,xml]
+----
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 60">
+  <g class="ldl-symbol">
+    <path d="M0,0 L40,0 A30,30 0 0,1 40,60 L0,60 Z"
+          fill="white" stroke="black" stroke-width="2"/>
+    <text class="ldl-id" x="20" y="-5">{{ID}}</text>
+    <circle class="ldl-port ldl-input" data-port="in1" cx="0" cy="15" r="3"/>
+    <circle class="ldl-port ldl-input" data-port="in2" cx="0" cy="45" r="3"/>
+    <circle class="ldl-port ldl-output" data-port="out" cx="100" cy="30" r="3"/>
+  </g>
+</svg>
+----
+
+=== Inversion Bubble Rendering
+
+When `OPTION INVERSION = BUBBLES` is set, each bubbled port renders as an open circle with radius `BUBBLE_R` (4px).
+
+==== Input-Side Bubble
+
+An input-side bubble (on a gate input port or output node's input port) renders as:
+
+. An open circle (stroke, no fill) with radius `BUBBLE_R`.
+. Position: centered on the port Y, offset left of the gate body edge. The bubbled input port shifts left by `BUBBLE_R * 2` so that the bubble sits between the wire endpoint and the gate body.
+. The wire connects to the left edge of the bubble.
+. The bubble's right edge touches the gate body edge.
+
+SVG example (input-side bubble on a gate):
+
+[source,xml]
+----
+<circle class="ldl-bubble ldl-input" data-port="in_1"
+        cx="-8" cy="30" r="4"
+        fill="none" stroke="#2c3e50" stroke-width="1.5"/>
+----
+
+==== Output-Side Bubble
+
+An output-side bubble (on a gate output port) renders as:
+
+. An open circle (stroke, no fill) with radius `BUBBLE_R`.
+. Position: centered on the port Y, offset right of the gate body edge. The bubbled output port shifts right by `BUBBLE_R * 2` so that the bubble sits between the gate body and the wire start point.
+. The gate body's right edge connects to the bubble's left edge (conceptually; the wire starts from the bubble's right edge).
+. The wire starts from the right edge of the bubble.
+
+SVG example (output-side bubble on a gate):
+
+[source,xml]
+----
+<circle class="ldl-bubble ldl-output" data-port="out"
+        cx="108" cy="30" r="4"
+        fill="none" stroke="#2c3e50" stroke-width="1.5"/>
+----
+
+The wire from a bubbled output port starts at the bubble's right edge (`cx + BUBBLE_R`), not at the gate body edge.
+
+=== Input Bar Rendering
+
+When `OPTION GATE_INPUT_STYLE = BARS` is set, multi-input gates (3+ inputs) render a vertical input bar:
+
+. A vertical line from `(barX, gateTop)` to `(barX, gateBottom)`, where `barX = gateX - 12`.
+. Stroke-width: 2.5, stroke: `#2c3e50`.
+. Horizontal stubs at each bar tap Y position, from `barX` to `gateX - 6`.
+. Input wires connect at the left end of each stub (`barX`, tapY).
+
+SVG example:
+
+[source,xml]
+----
+<!-- Vertical input bar -->
+<line class="ldl-input-bar" x1="-12" y1="0" x2="-12" y2="60"
+      stroke="#2c3e50" stroke-width="2.5"/>
+<!-- Horizontal stub for 3rd input -->
+<line class="ldl-bar-stub" x1="-12" y1="30" x2="-6" y2="30"
+      stroke="#34495e" stroke-width="2.5"/>
+----
+
+=== Port Style Rendering
+
+When `OPTION PORT_STYLE = CIRCLE` (default), ports render as circles with `r=3`:
+
+[source,xml]
+----
+<circle class="ldl-port ldl-input ldl-port-circle" cx="0" cy="30" r="3"
+        fill="#2c3e50"/>
+----
+
+When `OPTION PORT_STYLE = SQUARE`, ports render as 5×5 squares:
+
+[source,xml]
+----
+<rect class="ldl-port ldl-input ldl-port-square" x="-2.5" y="27.5" width="5" height="5"
+      fill="#2c3e50"/>
+----
+
+Individual ports can override the document default via `.Style = SQUARE` or `.Style = CIRCLE`.

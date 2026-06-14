@@ -1,0 +1,187 @@
+== Layout Rules
+
+The renderer MUST follow these layout rules to produce clear, non-overlapping diagrams.
+
+=== Column Assignment
+
+Gates are assigned to columns based on their depth in the expression tree:
+
+* **Column 0**: Input ports (leftmost).
+* **Column N**: Output ports (rightmost).
+* **Intermediate columns**: Gates at depth *d* are placed in column *d*.
+
+Outputs of a gate at column *c* align horizontally with the inputs of gates at column *c+1*. The renderer MUST NOT introduce horizontal doglegs (jogs) in a wire between a gate output and a downstream gate input unless there is an obstruction requiring it.
+
+=== Vertical Alignment
+
+* Gate inputs MUST be vertically spaced so that each input sits on the same vertical grid row as its upstream source.
+* When multiple inputs connect to the same source, they implicitly fan out. Fan-out wires MUST be spaced apart vertically so they do not overlap.
+* Horizontal wire segments MUST NOT overlap. If two horizontal wires would occupy the same row, the renderer MUST increment the row of one wire to resolve the conflict.
+
+[#row-optimisation]
+==== Row Optimisation (Sugiyama Barycentre Method)
+
+Input nodes are initially assigned rows in natural sort order (I1, I2, ..., I10). The renderer MUST then apply the Sugiyama barycentre crossing-minimisation algorithm to reorder input nodes so that wires between levels cross as little as possible.
+
+The algorithm iterates up to 3 times:
+
+. For each input node, compute its barycentre: the average row position of all gates that reference it as an input.
+. Sort the input nodes by their barycentre values.
+. Re-assign sequential row indices (0, 1, 2, ...) based on the sorted order.
+. Recompute the row positions of gates at deeper depths using `(minRow + maxRow) / 2` of their inputs.
+
+Gate row positions are NOT compressed within depth groups — each gate stays at the barycentre of its inputs, even if this leaves gaps between gates at the same depth. This ensures gates are visually close to their inputs.
+
+[#input-reordering]
+==== Gate Input Port Assignment
+
+Within each gate, input ports MUST be assigned to source signals in ascending order of source Y position. The source with the smallest Y connects to the topmost input port, and the source with the largest Y connects to the bottommost input port.
+
+=== Layout Pipeline
+
+All gate position adjustments MUST be completed before wire routing begins. This ensures that wire obstacle data (gate bounding boxes) reflects the final gate positions.
+
+The pipeline executes in this order:
+
+. Row assignment (Sugiyama barycentre)
+. Column and grid placement
+. Gate-input overlap resolution (push gates below overlapping input labels)
+. Single-input alignment (NOT gates: input port aligned with source output Y)
+. Gate height adjustment (expand gates to align ports with sources)
+. Position optimisation (shift non-expanded gates to minimise small doglegs)
+. Dogleg enforcement (ensure all doglegs are either straight-through or at least `MIN_DOGLEG` tall)
+. Output re-alignment (output ports aligned with source gate output Y)
+. Wire routing (obstacle-aware, with gate bounding boxes from final positions)
+
+=== Wire Routing
+
+Wires between ports follow these rules:
+
+. A wire exits a source port horizontally to the right.
+. At a channel between the source column and the destination column, the wire turns vertically.
+. The wire then travels vertically to align with the destination port.
+. The wire enters the destination port horizontally from the left.
+. Wires MUST NOT backtrack; a vertical segment's X position MUST be >= the source port's X position + 15px.
+. The renderer MUST avoid routing wires through gate bodies. When a preferred channel would intersect a gate body, the renderer MUST search for a clear channel to the right.
+. When the vertical distance between source and destination Y is less than 1px, the wire MUST be drawn as a straight line with no dogleg.
+. Wire routing MUST consider previously-routed wires as obstacles. A horizontal wire segment MUST NOT cross a vertical wire segment from a different source, and a vertical wire segment MUST NOT cross a horizontal wire segment from a different source, unless the crossing is unavoidable.
+
+[#minimum-dogleg-height]
+==== Minimum Dogleg Height (`MIN_DOGLEG`)
+
+When a wire must dogleg (its source Y differs from its target port Y), the vertical segment of the dogleg MUST be at least `MIN_DOGLEG` (30px) tall. Doglegs shorter than `MIN_DOGLEG` are visually ambiguous and MUST be avoided.
+
+The renderer enforces this by:
+
+. **Position optimisation**: Shifting gates vertically to align ports with their sources (eliminating doglegs entirely) or ensuring at least `MIN_DOGLEG` of vertical distance.
+. **Dogleg enforcement**: After position optimisation, any remaining small dogleg (where `0 < |sourceY - portY| < MIN_DOGLEG`) triggers a gate height expansion for that specific port, placing it at the source Y position (straight-through) or at source Y ± MIN_DOGLEG (minimum-height dogleg).
+
+A dogleg of 0px (source Y matches target Y exactly) is a straight-through wire and is always acceptable.
+
+[#gate-height-adjustment]
+==== Gate Height Adjustment
+
+When a multi-input gate (AND, OR) has input ports that are close to their upstream source Y positions, the gate height is expanded so that the input ports align with their sources. This eliminates small doglegs on incoming wires.
+
+The algorithm:
+
+. Sort the gate's input sources by their output Y position (ascending).
+. Compute ideal port Y positions, enforcing a minimum vertical gap (`MIN_PORT_GAP` = 22px) between adjacent ports.
+. Calculate the required gate height to contain all ideal ports with top and bottom padding of `MIN_PORT_GAP`.
+. If the required height does not exceed the base gate height by more than `MIN_PORT_GAP × numInputs`, expand the gate and place ports at their ideal Y positions.
+. If the expansion would be too large (sources span many rows), the gate keeps its base evenly-spaced ports.
+
+For gates that were not expanded, a position optimisation pass shifts the gate vertically (within ±`MIN_DOGLEG`) to minimise doglegs. The optimisation uses a weighted score:
+
+* A wire where source Y matches port Y (|diff| < 1px) scores **0** — this is a straight-through wire, the ideal outcome.
+* A wire where 1px ≤ |diff| < `MIN_DOGLEG` scores **(MIN_DOGLEG - |diff|)²** — small doglegs are heavily penalised.
+* A wire where |diff| ≥ `MIN_DOGLEG` scores **0** — large doglegs are visually clear and acceptable.
+
+The optimisation finds the vertical shift that minimises the total score across all input ports of the gate.
+
+For single-input gates (NOT, single-input AND/OR), the entire gate is shifted so that its input port aligns exactly with its source's output Y, producing a straight-through wire with no dogleg.
+
+After all gate position adjustments, output nodes are re-aligned to their source gate outputs to maintain straight-through output wires.
+
+[#straight-outputs]
+==== Output Straight-Through
+
+Output ports MUST be positioned so that their input Y aligns with the source gate's output Y. This ensures that the wire from a gate to its output port is always a straight horizontal line with no dogleg.
+
+[#symmetric-channels]
+==== Symmetric Dogleg Channels
+
+When multiple wires connect to the same gate, wires that originate from the same side (all above, or all below the gate) MUST share a single vertical channel X. This creates a symmetrical "trunk" pattern where all wires from one side enter the gate through a common vertical line.
+
+When wires originate from both above and below the gate, the above-side wires share one channel and the below-side wires share a separate channel. The above-side channel is positioned closer to the midpoint between source and destination columns, and the below-side channel is positioned accordingly.
+
+[#crossover-minimisation]
+==== Crossover Minimisation
+
+When wires from opposite sides of a gate converge, the renderer MUST assign channel positions to minimise crossings. Wires whose source ports are higher (smaller Y) SHOULD use the rightmost channel, and wires whose source ports are lower (larger Y) SHOULD use the leftmost channel.
+
+[#wire-wire-crossings]
+==== Wire-Wire Crossing Avoidance
+
+Wire routing MUST consider previously-routed wires as obstacles. When routing a horizontal segment, the renderer MUST avoid crossing vertical segments of wires from different sources. When routing a vertical segment, the renderer MUST avoid crossing horizontal segments of wires from different sources.
+
+When a crossing is unavoidable (the wire must pass through a region occupied by another wire), the renderer MUST prioritise clean straight-through wires over doglegs — a straight line crossing a vertical segment is visually clearer than a small dogleg crossing the same segment.
+
+[#inversion-bubble-layout]
+==== Inversion Bubble Layout
+
+When `OPTION INVERSION = BUBBLES` is set:
+
+. NOT gates are not placed as separate columns. Instead, the affected port is marked with a bubble.
+. The wire from the NOT's source connects directly to the bubbled port.
+. **Input-side bubbles**: When a NOT operation feeds into a gate input, the bubbled input port shifts left by `BUBBLE_R * 2` (8px) so the wire endpoint lands at the bubble's left edge, and the bubble's right edge touches the gate body.
+. **Output-side bubbles**: When a NOT operation wraps a gate's output, the bubbled output port shifts right by `BUBBLE_R * 2` (8px) so the bubble sits between the gate body's right edge and the wire. The bubble's left edge touches the gate body, and the wire starts from the bubble's right edge.
+. **Output node bubbles**: When a NOT operation feeds directly into an output node, the output node's input port shifts left by `BUBBLE_R * 2` (8px), similar to a gate input-side bubble.
+. The bubble does not affect the vertical position of any port -- Y positions are computed as normal.
+. The NOT gate's column is eliminated, and the source signal is treated as if it directly connects to the target port (with inversion). This reduces the total column count when many NOT operations are present.
+
+===== Double-Inversion Cancellation
+
+Consecutive `NOT` operations are algebraically simplified before bubble placement:
+
+* An even number of consecutive `NOT` operations cancels entirely. No bubble is rendered, and the source signal connects directly without inversion.
+* An odd number of consecutive `NOT` operations reduces to a single inversion, rendered as one bubble.
+
+Examples:
+
+* `NOT NOT I1` → `I1` (no bubble)
+* `NOT NOT NOT I1` → `NOT I1` (one bubble)
+
+[#input-bar-layout]
+==== Input Bar Layout
+
+When `OPTION GATE_INPUT_STYLE = BARS` is set for a multi-input gate (3+ inputs):
+
+. The gate body height remains the 2-input base height (44px for AND/OR).
+. A vertical bar is drawn 12px to the left of the gate body edge, spanning the full height of the gate body.
+. Bar stroke-width: 2.5px, colour: `#2c3e50`.
+. The first two inputs render as normal ports at their usual positions on the left side of the gate body.
+. Additional inputs (3rd, 4th, ...) tap into the vertical bar at evenly-spaced Y positions within the gate body bounds.
+. Each bar tap has a short horizontal stub (6px) from the bar to the gate edge.
+. Wires from source signals connect at the left end of the bar tap stubs.
+. Wire routing treats the bar + stubs as part of the gate bounding box for obstacle avoidance.
+. Row optimisation, gate height adjustment, position optimisation, and dogleg enforcement all apply to bar input ports the same as regular input ports.
+
+=== Layer Visibility
+
+The rendered diagram supports multiple *layers* that can be independently shown or hidden:
+
+[cols="1m,3m,2m"]
+|===
+| Layer | Content | Default
+| `gates` | Gate bodies, wires, and port markers | Visible
+| `labels` | `.Name` and `.Description` text on input and output ports | Visible
+| `ids` | Bare identifiers (e.g. `I1`, `O1`) when labels layer is hidden, or as supplementary identifiers | Hidden
+|===
+
+Layers are toggled via CSS classes on the root `<svg>` element:
+
+* `ldl-layer-labels` -- controls visibility of `.ldl-label` elements.
+* `ldl-layer-ids` -- controls visibility of `.ldl-id` elements.
+
+When the labels layer is active, `.ldl-label` elements are visible and `.ldl-id` elements are hidden by default. When the labels layer is inactive, `.ldl-id` elements are shown as the primary reference.

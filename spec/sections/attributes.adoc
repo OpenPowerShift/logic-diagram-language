@@ -1,0 +1,52 @@
+== Attributes
+
+Attributes are named values associated with an object or port. They are rendered inside the symbol's SVG using placeholder substitution.
+
+=== Attribute Declaration
+
+[literal]
+....
+OBJECT.ATTRIBUTE_NAME = VALUE
+....
+
+=== Name and Description Attributes
+
+Ports and expression outputs may carry `.Name` and `.Description` metadata:
+
+[literal]
+....
+I1.Name = "CBQ 00 Open"
+I1.Description = "(BI 3.1)"
+O1.Name = "Output"
+O1.Description = "(BO 3.2)"
+....
+
+* `.Name` -- A human-readable label. Replaces the bare identifier on the diagram when the labels layer is active.
+* `.Description` -- Supplementary annotation text, shown in a smaller font below the name.
+
+These attributes are rendered as `ldl-label` class elements within the SVG and are controlled by the labels layer (see <<layout-rules>>).
+
+=== Other Attribute Examples
+
+[literal]
+....
+SVT#1.PICKUP = 30 s
+SVT#1.DROPOUT = 10 s
+TIMER#T2.SETPOINT = 1.5 s
+RELAY#R5.NAME = "Main Trip"
+....
+
+=== Substitution in Symbols
+
+Inside an SVG symbol definition, attribute placeholders use double-brace syntax:
+
+[literal]
+....
+<text>{{PICKUP}}</text>
+....
+
+When the object is instantiated, `{{PICKUP}}` is replaced with the attribute value `30 s`.
+
+If an attribute is declared but no placeholder exists in the symbol SVG, the value is discarded silently.
+
+If a placeholder exists in the symbol SVG but no attribute is provided, the placeholder is replaced with an empty string.

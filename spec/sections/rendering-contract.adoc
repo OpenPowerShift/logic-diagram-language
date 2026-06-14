@@ -1,0 +1,11 @@
+== Rendering Contract
+
+The renderer (TypeScript toolchain) is responsible for:
+
+. Parsing LDL source.
+. Instantiating objects and resolving expressions into gate networks.
+. Loading SVG symbols and performing attribute substitution.
+. Routing wires between ports.
+. Emitting SVG and PDF output.
+
+The renderer is NOT specified by this document; only the language it consumes.

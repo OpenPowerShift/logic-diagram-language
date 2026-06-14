@@ -1,0 +1,212 @@
+== Complete Examples
+
+=== Simple Logic
+
+[source,ldl]
+----
+// Protection logic for CBFPS
+CBFPS = AB AND DC OR (NOT DC AND GF)
+
+// Style overrides
+STYLE
+  #G1 { stroke: red; }
+END STYLE
+----
+
+This expands to:
+
+. A NOT gate (anonymous) with input `DC` and output to the right AND gate.
+. An AND gate (`G1`) with inputs `AB`, `DC`.
+. An AND gate (anonymous) with inputs `(NOT DC)`, `GF`.
+. An OR gate (anonymous) combining the two AND gates' outputs.
+. Final output `CBFPS`.
+
+=== Timer Object
+
+[source,ldl]
+----
+// Timer-based protection
+SVT#1
+SVT#1.INPUT = A OR B
+SVT#1.PICKUP = 30 s
+SVT#1.DROPOUT = 10 s
+
+SVT#1.LINK = "https://docs.example.com/svt-timer"
+----
+
+=== Interlocking Example
+
+A realistic protection interlocking for a collector feeder close operation:
+
+[source,ldl]
+----
+// Interlocking Example for Collector Feeder Q01 (Close)
+
+I1.Name = "CBQ 00 Open"
+I1.Description = "(BI 3.1)"
+
+I2.Name = "BB Not Earthed"
+I2.Description = "(BI 3.24)"
+
+I3.Name = "D/S Q01 Open"
+I3.Description = "(BI 3.3)"
+
+I4.Name = "E/S Q05 Open"
+I4.Description = "(BI 3.5)"
+
+I5.Name = "KF1 Release"
+I5.Description = "(BI 3.15)"
+
+I6.Name = "In Remote"
+I6.Description = "(BI 3.11)"
+
+I7.Name = "SCADA ON"
+I7.Description = "(BI 3.23)"
+
+I8.Name = "DNP Close Command"
+I8.Description = "(via RTU)"
+
+I9.Name = "In Local"
+I9.Description = "(BI 3.12)"
+
+I10.Name = "Close Switch"
+I10.Description = "(BI 3.20)"
+
+O1 = (I1 AND I2) AND (I3 AND I4 AND NOT I5) AND ((I6 AND I7 AND I8) OR (I9 AND I10))
+
+O1.Name = "Output"
+O1.Description = "(BO 3.2)"
+----
+
+This expands to:
+
+. Ten input ports (`I1` through `I10`) with human-readable names and descriptions.
+. A NOT gate for `NOT I5`.
+. An AND gate combining `I3`, `I4`, and the output of `NOT I5`.
+. An AND gate combining `I1` and `I2`.
+. An AND gate combining `I6`, `I7`, and `I8`.
+. An AND gate combining `I9` and `I10`.
+. An OR gate combining the two sub-expressions.
+. A final AND gate combining all three AND outputs.
+. One output port `O1` with name "Output" and description "(BO 3.2)".
+
+=== Inversion Bubbles
+
+Using `OPTION INVERSION = BUBBLES` renders NOT operations as inversion circles on the downstream gate's input port, eliminating the separate NOT gate column:
+
+[source,ldl]
+----
+OPTION INVERSION = BUBBLES
+
+I1.Name = "Start Permitted"
+I1.Description = "(BI 1.1)"
+I2.Name = "Stop Condition"
+I2.Description = "(BI 1.2)"
+I3.Name = "Reset"
+I3.Description = "(BI 1.3)"
+
+O1 = I1 AND NOT I2 AND I3
+O1.Name = "Run"
+O1.Description = "(BO 1.1)"
+----
+
+With `GATES` mode, this would render as: `I2 → [NOT] → [AND] ← I1, I3 → O1`.
+
+With `BUBBLES` mode, the NOT gate is eliminated and a bubble (○) appears on the AND gate's input that receives `I2`: `I2 → ○[AND] ← I1, I3 → O1`.
+
+=== Input Bars
+
+Using `OPTION GATE_INPUT_STYLE = BARS` keeps multi-input gates at their 2-input base size with vertical input bars for additional inputs:
+
+[source,ldl]
+----
+OPTION GATE_INPUT_STYLE = BARS
+
+I1.Name = "CBQ 00 Open"
+I2.Name = "BB Not Earthed"
+I3.Name = "D/S Q01 Open"
+I4.Name = "E/S Q05 Open"
+I5.Name = "KF1 Release"
+
+O1 = I1 AND I2 AND I3 AND I4 AND I5
+O1.Name = "Output"
+----
+
+With `EXPAND` mode, the AND gate expands vertically to accommodate five input ports. With `BARS` mode, the AND gate stays at 2-input height and inputs 3-5 connect via a vertical bar on the left side.
+
+=== Square Ports
+
+Using `OPTION PORT_STYLE = SQUARE` renders all port markers as squares instead of circles:
+
+[source,ldl]
+----
+OPTION PORT_STYLE = SQUARE
+
+A.Name = "Signal A"
+B.Name = "Signal B"
+O1 = A AND B
+O1.Name = "Result"
+----
+
+Individual ports can override the document default:
+
+[source,ldl]
+----
+OPTION PORT_STYLE = CIRCLE
+I1.Style = SQUARE
+
+O1 = I1 AND I2
+----
+
+In this case, all ports are circles except `I1` which is a square.
+
+=== Combined Options
+
+Options can be combined freely:
+
+[source,ldl]
+----
+OPTION INVERSION = BUBBLES
+OPTION GATE_INPUT_STYLE = BARS
+OPTION PORT_STYLE = SQUARE
+
+I1.Name = "Start"
+I2.Name = "Stop"
+I3.Name = "Reset"
+I4.Name = "Enable"
+I5.Name = "Supervision"
+I6.Name = "Override"
+
+O1 = (I1 AND NOT I2) AND (I3 AND I4 AND I5 AND I6)
+O1.Name = "Master Trip"
+O1.Description = "(BO 1.1)"
+----
+
+This renders with:
+. Inversion bubbles instead of NOT gates (the `NOT I2` input shows as a bubble on the AND gate).
+. Input bars on the 4-input AND gate (I3 through I6 connect via a vertical bar).
+. Square port markers throughout.
+
+=== Full Diagram
+
+[source,ldl]
+----
+// Trip Logic Diagram
+// File: trip_logic.ldl
+
+IMPORT TEMPLATE "templates/timer.ldlt" AS T
+
+SVT#1
+SVT#1.INPUT = OVERCURRENT_A OR OVERCURRENT_B
+SVT#1.PICKUP = 30 s
+SVT#1.DROPOUT = 10 s
+
+TRIP = SVT#1.OUTPUT AND MANUAL_TRIP
+
+STYLESHEET "styles/protection.css"
+
+STYLE
+  #1 { fill: #ffe0e0; }
+  SVT { stroke: #cc0000; }
+END STYLE
+----

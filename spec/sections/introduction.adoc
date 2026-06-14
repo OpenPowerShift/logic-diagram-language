@@ -1,0 +1,16 @@
+== Introduction
+
+The Logic Diagram Language (LDL) is a domain-specific language for describing logic diagrams composed of boolean gates, composite symbols, and their interconnections. LDL targets rendering to SVG and PDF via a TypeScript toolchain.
+
+The language has two primary concerns:
+
+. **Expression logic** -- declaring boolean relationships between inputs and outputs.
+. **Symbol definition** -- describing reusable SVG-based components with typed ports and configurable attributes.
+
+=== Design Principles
+
+* *Expression-first*: A simple boolean expression should produce a complete diagram.
+* *Symbol-oriented*: Every rendered element is an SVG symbol; gates are just symbols with predefined logic.
+* *Declarative*: The language describes *what*, not *how* -- routing and layout are the renderer's concern.
+* *Extensible*: New symbols can be defined or imported without changing the language.
+* *Stylable*: Every element can carry an identifier for CSS-based styling.
