@@ -131,6 +131,103 @@ I6.Name = "Override"
 O1 = (I1 AND NOT I2) AND (I3 AND I4 AND I5 AND I6)
 O1.Name = "Master Trip"
 O1.Description = "(BO 1.1)"`,
+
+  'Overcurrent Protection': `// Overcurrent protection with math labels
+I1.Name = "$I_a$"
+I1.Description = "Phase A current"
+
+I2.Name = "$I_b$"
+I2.Description = "Phase B current"
+
+I3.Name = "$I_c$"
+I3.Description = "Phase C current"
+
+I4.Name = "$I_{set}$"
+I4.Description = "Setting $= 5.0 \\$ A$"
+
+O1.Name = "$I > I_{set}$"
+O1.Description = "Overcurrent trip"
+
+O2.Name = "$I_a + I_b + I_c$"
+O2.Description = "Residual current"
+
+O1 = I1 AND I4
+O2 = I1 OR I2 OR I3`,
+
+  'Differential Protection': `// Differential protection: $I_{diff} = I_{in} - I_{out}$
+
+I1.Name = "$I_{in}$"
+I1.Description = "CT primary current"
+
+I2.Name = "$I_{out}$"
+I2.Description = "CT secondary current"
+
+I3.Name = "Block"
+I3.Description = "Blocking signal"
+
+O1.Name = "$I_{diff} > I_{bias}$"
+O1.Description = "Differential trip"
+
+O2.Name = "Restricted Earth Fault"
+O2.Description = "$I_0 > I_{0\\_set}$"
+
+O1 = (I1 AND NOT I2) AND NOT I3
+O2 = NOT I3`,
+
+  'Boolean Algebra': `// Boolean algebra with math notation
+A.Name = "$A$"
+A.Description = "Input A"
+
+B.Name = "$B$"
+B.Description = "Input B"
+
+C.Name = "$C$"
+C.Description = "Input C"
+
+O1.Name = "$A \\cdot B$"
+O1.Description = "Logical AND"
+
+O2.Name = "$A + B$"
+O2.Description = "Logical OR"
+
+O3.Name = "$\\overline{A}$"
+O3.Description = "Logical NOT"
+
+O4.Name = "$\\overline{A \\cdot B}$"
+O4.Description = "NAND: $\\overline{AB}$"
+
+O1 = A AND B
+O2 = A OR B
+O3 = NOT A
+O4 = NOT (A AND B)`,
+
+  'Motor Control Circuit': `// Motor starting circuit with math notation
+
+I1.Name = "Start PB"
+I1.Description = "$NO\\ contact$"
+
+I2.Name = "Stop PB"
+I2.Description = "$NC\\ contact$"
+
+I3.Name = "OL Trip"
+I3.Description = "$I^2 > I_{rated}^2$"
+
+I4.Name = "Thermal"
+I4.Description = "$\\Theta > \\Theta_{trip}$"
+
+I5.Name = "$I_s$"
+I5.Description = "Start current"
+
+O1.Name = "Contactor"
+O1.Description = "$K_1$"
+
+O2.Name = "Trip"
+O2.Description = "$\\Delta I > \\Delta I_{set}$"
+
+OPTION INVERSION = BUBBLES
+
+O1 = I1 AND NOT I2 AND NOT I3 AND NOT I4
+O2 = I3 OR I4 OR NOT I5`,
 };
 
 export const EXAMPLE_NAMES = Object.keys(EXAMPLES);

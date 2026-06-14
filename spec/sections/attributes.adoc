@@ -26,6 +26,35 @@ O1.Description = "(BO 3.2)"
 
 These attributes are rendered as `ldl-label` class elements within the SVG and are controlled by the labels layer (see <<layout-rules>>).
 
+=== AsciiMath in Labels
+
+Both `.Name` and `.Description` values support inline AsciiMath notation enclosed in dollar signs:
+
+[literal]
+....
+I1.Name = "$I_a$"
+I1.Description = "Phase A current"
+O1.Name = "$I > I_{set}$"
+O1.Description = "Overcurrent trip"
+....
+
+* Inline math is delimited by `$...$` within the attribute value string.
+* A literal `$` character may be escaped as `\\$` — this renders as a dollar sign, not a math delimiter.
+* Supported AsciiMath constructs:
+  ** Subscripts: `$I_{set}$` → I set subscript
+  ** Superscripts: `$I^2$` → I squared
+  ** Greek letters: `$\\Delta$`, `$\\Theta$`, `$\\alpha$`, `$\\omega$`, etc.
+  ** Mathematical operators: `$\\cdot$` (·), `$\\geq$` (≥), `$\\leq$` (≤), `$\\neq$` (≠), etc.
+  ** Overline (negation bar): `$\\overline{A}$` → A with bar above
+  ** Mixed content: `"Phase $I_a$ + $I_b$"` → plain text interspersed with math
+
+* Rendering:
+  ** Input port labels are right-aligned (text-anchor: end).
+  ** Output port labels are left-aligned (text-anchor: start).
+  ** Math content is rendered as inline SVG `<text>` elements with subscripts and superscripts positioned using `dy` offsets.
+  ** The math font family is `'Times New Roman', 'STIXTwoMath', 'STIX Two Math', serif` with italic style for variable names.
+  ** When a label contains math, the node height expands to accommodate the taller math content.
+
 === Other Attribute Examples
 
 [literal]

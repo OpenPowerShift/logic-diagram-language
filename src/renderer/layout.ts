@@ -1,5 +1,6 @@
 import type { LogicNode, GateNode, PortNode, Diagram, DiagramOutput, PortMeta, RenderOptions } from '../parser/ast.js';
 import { DEFAULT_OPTIONS, resolveOptions } from '../parser/ast.js';
+import { hasMathContent } from './math-renderer.js';
 
 export interface LayoutPort {
   name: string;
@@ -220,9 +221,8 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     const notNodes = Array.from(nodes.values())
       .filter(n => n.kind === 'gate' && n.gateType === 'NOT');
 
-    // Build NOT chains: for each NOT, follow its input chain of NOTs to find
-    // the ultimate (non-NOT) source and the total inversion depth.
-    // This avoids mutation-while-iterating issues with chained NOT resolution.
+    // Build NOT chain info: for each NOT, walk to the ultimate non-NOT source
+    // and record the cumulative inversion depth.
     const notChainInfo = new Map<string, { sourceId: string; inversionDepth: number }>();
 
     for (const notNode of notNodes) {
@@ -230,7 +230,6 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
       let sourceId = notNode.inputIds[0];
       let depth = 1;
 
-      // Walk the chain of NOTs to find the ultimate source
       while (true) {
         const sourceNode = nodes.get(sourceId);
         if (sourceNode && sourceNode.kind === 'gate' && sourceNode.gateType === 'NOT' && sourceNode.inputIds.length === 1) {
@@ -244,56 +243,53 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
       notChainInfo.set(notNode.id, { sourceId, inversionDepth: depth });
     }
 
-    // Identify outermost NOTs: a NOT is outermost if no other NOT has it as input.
-    // Only process outermost NOTs — each chain is handled once.
-    const outermostNots = notNodes.filter(n => {
-      for (const other of notNodes) {
-        if (other.id !== n.id && other.inputIds.includes(n.id)) return false;
-      }
-      return true;
-    });
+    // For each non-NOT node, walk each input through NOT chains to find
+    // the ultimate source. Track inversion depth per input for bubble marking.
+    const inputInversionDepth = new Map<string, Map<number, number>>();
 
-    for (const notNode of outermostNots) {
-      const info = notChainInfo.get(notNode.id);
-      if (!info) continue;
-      const { sourceId, inversionDepth } = info;
+    for (const otherNode of nodes.values()) {
+      if (otherNode.kind === 'gate' && otherNode.gateType === 'NOT') continue;
 
-      // Replace all NOT node references in this chain with the ultimate source
-      for (const otherNode of nodes.values()) {
-        if (otherNode.kind === 'gate' && otherNode.gateType === 'NOT') continue;
-        for (let i = 0; i < otherNode.inputIds.length; i++) {
-          // Walk up the NOT chain to see if this input references any NOT in this chain
-          let ref = otherNode.inputIds[i];
-          while (notChainInfo.has(ref)) {
-            otherNode.inputIds[i] = sourceId;
-            const chainInfo = notChainInfo.get(ref)!;
-            ref = chainInfo.sourceId;
+      for (let i = 0; i < otherNode.inputIds.length; i++) {
+        let ref = otherNode.inputIds[i];
+        let totalInversion = 0;
+
+        while (notChainInfo.has(ref)) {
+          totalInversion += notChainInfo.get(ref)!.inversionDepth;
+          otherNode.inputIds[i] = notChainInfo.get(ref)!.sourceId;
+          ref = notChainInfo.get(ref)!.sourceId;
+        }
+
+        if (totalInversion > 0) {
+          if (!inputInversionDepth.has(otherNode.id)) {
+            inputInversionDepth.set(otherNode.id, new Map());
           }
-          // Also directly replace the outermost NOT id
-          if (otherNode.inputIds[i] === notNode.id) {
-            otherNode.inputIds[i] = sourceId;
-          }
+          inputInversionDepth.get(otherNode.id)!.set(i, totalInversion);
         }
       }
+    }
 
-      // Odd inversions produce a bubble; even inversions cancel out
-      if (inversionDepth % 2 === 1) {
-        const sourceNode = nodes.get(sourceId);
-        if (sourceNode && sourceNode.kind === 'gate' && sourceNode.gateType !== 'NOT') {
-          sourceNode.bubbledOutput = true;
-        } else {
-          for (const otherNode of nodes.values()) {
-            if (otherNode.kind === 'gate' && otherNode.gateType === 'NOT') continue;
-            for (let i = 0; i < otherNode.inputIds.length; i++) {
-              if (otherNode.inputIds[i] === sourceId) {
-                if (otherNode.kind === 'gate' || otherNode.kind === 'output') {
-                  if (!otherNode.invertedInputs) otherNode.invertedInputs = new Set();
-                  otherNode.invertedInputs.add(i);
-                }
-              }
-            }
+    // Mark bubbled inputs/outputs based on inversion depth
+    // Odd inversion → bubble; even → cancel out
+    for (const [nodeId, depthMap] of inputInversionDepth) {
+      const node = nodes.get(nodeId);
+      if (!node) continue;
+
+      for (const [inputIdx, depth] of depthMap) {
+        if (depth % 2 === 1) {
+          const sourceId = node.inputIds[inputIdx];
+          const sourceNode = nodes.get(sourceId);
+
+          if (sourceNode && sourceNode.kind === 'gate' && sourceNode.gateType !== 'NOT') {
+            // Source is a gate: output-side bubble on the source gate
+            sourceNode.bubbledOutput = true;
+          } else {
+            // Source is an input port or output node: input-side bubble on this node
+            if (!node.invertedInputs) node.invertedInputs = new Set();
+            node.invertedInputs.add(inputIdx);
           }
         }
+        // Even inversion: both NOTs cancel, no bubble needed
       }
     }
 
@@ -413,6 +409,8 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     if (node.kind === 'input') {
       w = INPUT_LABEL_W;
       h = node.description ? 28 : 20;
+      if (node.name && hasMathContent(node.name)) h = Math.max(h, 28);
+      if (node.description && hasMathContent(node.description)) h = Math.max(h, 32);
       const outX = absX + w + INPUT_STUB;
       const outY = absY + h / 2;
 
@@ -428,6 +426,8 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     } else if (node.kind === 'output') {
       w = OUTPUT_LABEL_W;
       h = node.description ? 28 : 20;
+      if (node.name && hasMathContent(node.name)) h = Math.max(h, 28);
+      if (node.description && hasMathContent(node.description)) h = Math.max(h, 32);
       let inX = absX;
       const inY = absY + h / 2;
       let bubbledInput = false;

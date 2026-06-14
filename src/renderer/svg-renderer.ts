@@ -9,6 +9,7 @@ import {
   STROKE_COLOR, FILL_COLOR, WIRE_COLOR, PORT_SIZE,
 } from './gates.js';
 import { renderWire } from './wires.js';
+import { hasMathContent, splitIntoSegments, renderAsciiMath, estimateTextWidth } from './math-renderer.js';
 
 const INPUT_BAR_OFFSET = 12;
 const INPUT_BAR_STUB = 6;
@@ -163,13 +164,25 @@ function renderNodeLabels(node: LayoutNode, showLabels: boolean, labels: string[
     const port = node.outputs[0];
     if (port) {
       const labelRight = node.absX + node.width - 10;
-      labels.push(renderInputPortLabel(labelRight, port.absY, node.label ?? '', node.name, node.description));
+      const nameHasMath = node.name ? hasMathContent(node.name) : false;
+      const descHasMath = node.description ? hasMathContent(node.description) : false;
+      if (nameHasMath || descHasMath) {
+        labels.push(renderInputMathLabel(labelRight, port.absY, node.label ?? '', node.name, node.description));
+      } else {
+        labels.push(renderInputPortLabel(labelRight, port.absY, node.label ?? '', node.name, node.description));
+      }
     }
   } else if (node.gateType === 'OUTPUT') {
     const port = node.inputs[0];
     if (port) {
       const labelLeft = port.absX + 10;
-      labels.push(renderOutputPortLabel(labelLeft, port.absY, node.label ?? '', node.name, node.description));
+      const nameHasMath = node.name ? hasMathContent(node.name) : false;
+      const descHasMath = node.description ? hasMathContent(node.description) : false;
+      if (nameHasMath || descHasMath) {
+        labels.push(renderOutputMathLabel(labelLeft, port.absY, node.label ?? '', node.name, node.description));
+      } else {
+        labels.push(renderOutputPortLabel(labelLeft, port.absY, node.label ?? '', node.name, node.description));
+      }
     }
   }
 }
@@ -271,4 +284,97 @@ function renderNotNodeBody(node: LayoutNode, bodies: string[]): void {
   parts.push('</g>');
 
   bodies.push(parts.join('\n'));
+}
+
+const NAME_FILL = '#1a237e';
+const NAME_OUT_FILL = '#1a237e';
+const DESC_FILL = '#607d8b';
+const ID_FILL = '#90a4ae';
+
+function renderMixedLabelContent(
+  segments: { type: 'plain' | 'math'; text: string }[],
+  baseX: number,
+  baseY: number,
+  anchor: 'start' | 'end',
+  fontSize: number,
+  fill: string,
+  isDescription: boolean,
+): string {
+  const parts: string[] = [];
+  const classSuffix = isDescription ? 'ldl-description' : 'ldl-name';
+  const fontWeight = isDescription ? '' : ' font-weight="500"';
+
+  const measured: { type: 'plain' | 'math'; text: string; width: number; svg?: string }[] = [];
+  let totalWidth = 0;
+
+  for (const seg of segments) {
+    if (seg.type === 'plain') {
+      const w = estimateTextWidth(seg.text, fontSize);
+      measured.push({ type: 'plain', text: seg.text, width: w });
+      totalWidth += w;
+    } else {
+      const result = renderAsciiMath(seg.text, fontSize);
+      measured.push({ type: 'math', text: seg.text, width: result.width, svg: result.svg });
+      totalWidth += result.width;
+    }
+  }
+
+  let currentX = anchor === 'end' ? baseX - totalWidth : baseX;
+
+  for (const seg of measured) {
+    if (seg.type === 'plain') {
+      parts.push(`<text class="ldl-label ${classSuffix}" x="${currentX}" y="${baseY}" text-anchor="start" fill="${fill}" font-size="${fontSize}" font-family="sans-serif"${fontWeight}>${esc(seg.text)}</text>`);
+      currentX += seg.width;
+    } else if (seg.svg) {
+      const mathY = baseY - fontSize * 0.75;
+      parts.push(`<g class="ldl-math" transform="translate(${currentX}, ${mathY})" color="${fill}">${seg.svg}</g>`);
+      currentX += seg.width;
+    }
+  }
+
+  return parts.join('\n');
+}
+
+function renderInputMathLabel(absX: number, absY: number, label: string, name?: string, description?: string): string {
+  const displayName = name || label;
+  const labelGap = 6;
+  const textX = absX - labelGap;
+  const nameY = description ? absY - 4 : absY + 4;
+  const descY = description ? absY + 10 : 0;
+
+  const parts: string[] = [];
+
+  const nameSegments = splitIntoSegments(displayName);
+  parts.push(renderMixedLabelContent(nameSegments, textX, nameY, 'end', 12, NAME_FILL, false));
+
+  if (description) {
+    const descSegments = splitIntoSegments(description);
+    parts.push(renderMixedLabelContent(descSegments, textX, descY, 'end', 9, DESC_FILL, true));
+  }
+
+  parts.push(`<text class="ldl-id" x="${textX}" y="${absY - PORT_SIZE / 2 - 4}" text-anchor="end" fill="${ID_FILL}" font-size="10" font-family="sans-serif" font-weight="600">${esc(label)}</text>`);
+
+  return parts.join('\n');
+}
+
+function renderOutputMathLabel(absX: number, absY: number, label: string, name?: string, description?: string): string {
+  const displayName = name || label;
+  const labelGap = 6;
+  const textX = absX + labelGap;
+  const nameY = description ? absY - 4 : absY + 4;
+  const descY = description ? absY + 10 : 0;
+
+  const parts: string[] = [];
+
+  const nameSegments = splitIntoSegments(displayName);
+  parts.push(renderMixedLabelContent(nameSegments, textX, nameY, 'start', 12, NAME_OUT_FILL, false));
+
+  if (description) {
+    const descSegments = splitIntoSegments(description);
+    parts.push(renderMixedLabelContent(descSegments, textX, descY, 'start', 9, DESC_FILL, true));
+  }
+
+  parts.push(`<text class="ldl-id" x="${textX}" y="${absY - PORT_SIZE / 2 - 4}" text-anchor="start" fill="${ID_FILL}" font-size="10" font-family="sans-serif" font-weight="600">${esc(label)}</text>`);
+
+  return parts.join('\n');
 }
