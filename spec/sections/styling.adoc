@@ -54,7 +54,7 @@ The renderer MUST apply the following CSS classes:
 | `ldl-bar-stub` | Horizontal stub connecting a bar tap to the gate body (BARS mode)
 | `ldl-port-circle` | Circular port marker (PORT_STYLE = CIRCLE)
 | `ldl-port-square` | Square port marker (PORT_STYLE = SQUARE)
-| `ldl-math` | Inline AsciiMath `<g>` group within a label
+| `ldl-math` | Inline TeX math `<g>` group within a label
 |===
 
 Selectors combining these classes with `#ID` provide fine-grained control:

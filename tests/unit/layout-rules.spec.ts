@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parser/index.js';
 import { layoutDiagram, findWireCrossings } from '../../src/renderer/layout.js';
-import type { LayoutWire, LayoutJunction } from '../../src/renderer/layout.js';
+import type { LayoutWire } from '../../src/renderer/layout.js';
 import { MIN_DOGLEG } from '../../src/renderer/layout.js';
 
 interface Segment { x1: number; y1: number; x2: number; y2: number; fromId: string; toId: string; }

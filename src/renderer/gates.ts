@@ -1,26 +1,12 @@
-export interface GateShapeResult {
-  bodyPath: string;
-  labelText: string;
-  labelX: number;
-  labelY: number;
-  width: number;
-  height: number;
-}
-
 const STROKE = '#2c3e50';
-const STROKE_W = 2.5;
 const FILL = '#ffffff';
 export const PORT_SIZE = 5;
 export const PORT_R = 3;
 const WIRE = '#34495e';
-const PORT_FILL = '#ffffff';
-const PORT_STROKE = '#2c3e50';
-const INPUT_PORT_STROKE = '#2c3e50';
-const OUTPUT_PORT_STROKE = '#2c3e50';
-const NAME_FILL = '#1a237e';
-const NAME_OUT_FILL = '#1a237e';
-const DESC_FILL = '#607d8b';
-const ID_FILL = '#90a4ae';
+export const NAME_FILL = '#1a237e';
+export const NAME_OUT_FILL = '#1a237e';
+export const DESC_FILL = '#607d8b';
+export const ID_FILL = '#90a4ae';
 
 export const GATE_W = 60;
 export const GATE_W_MULTI = 72;
@@ -56,11 +42,6 @@ export function notGateBody(w: number, h: number): string {
   return `M 0,0 L ${w},${h / 2} L 0,${h} Z`;
 }
 
-export function renderPortSquare(absX: number, absY: number, portName: string, direction: 'input' | 'output'): string {
-  const cls = direction === 'input' ? 'ldl-input' : 'ldl-output';
-  return `<circle class="ldl-port ${cls}" data-port="${esc(portName)}" cx="${absX}" cy="${absY}" r="${PORT_R}" fill="${PORT_FILL}" stroke="${direction === 'input' ? INPUT_PORT_STROKE : OUTPUT_PORT_STROKE}" stroke-width="${STROKE_W}"/>`;
-}
-
 export function renderJunctionDot(x: number, y: number): string {
   return `<circle class="ldl-junction" cx="${x}" cy="${y}" r="4" fill="#34495e" stroke="#34495e" stroke-width="1"/>`;
 }
@@ -69,8 +50,8 @@ export function renderInputPortLabel(absX: number, absY: number, label: string, 
   const displayName = name || label;
   const labelGap = 6;
   const textX = absX - labelGap;
-  const nameY = description ? absY - 4 : absY + 4;
-  const descY = description ? absY + 10 : 0;
+  const nameY = description ? absY - 6 : absY + 4;
+  const descY = description ? absY + 12 : 0;
 
   const parts: string[] = [];
   parts.push(`<text class="ldl-label ldl-name" x="${textX}" y="${nameY}" text-anchor="end" fill="${NAME_FILL}" font-size="12" font-family="sans-serif" font-weight="500">${esc(displayName)}</text>`);
@@ -86,8 +67,8 @@ export function renderOutputPortLabel(absX: number, absY: number, label: string,
   const displayName = name || label;
   const labelGap = 6;
   const textX = absX + labelGap;
-  const nameY = description ? absY - 4 : absY + 4;
-  const descY = description ? absY + 10 : 0;
+  const nameY = description ? absY - 6 : absY + 4;
+  const descY = description ? absY + 12 : 0;
 
   const parts: string[] = [];
   parts.push(`<text class="ldl-label ldl-name" x="${textX}" y="${nameY}" text-anchor="start" fill="${NAME_OUT_FILL}" font-size="12" font-family="sans-serif" font-weight="600">${esc(displayName)}</text>`);

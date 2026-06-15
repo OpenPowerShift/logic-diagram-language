@@ -80,15 +80,13 @@ function tokenize(source: string): { tokens: Token[]; errors: ParseError[] } {
       pos++;
       let value = '';
       while (pos < source.length && source[pos] !== '"') {
-        if (source[pos] === '\\') {
-          pos++;
-          if (pos < source.length) {
-            value += source[pos];
-          }
+        if (source[pos] === '\\' && pos + 1 < source.length && source[pos + 1] === '"') {
+          value += '"';
+          pos += 2;
         } else {
           value += source[pos];
+          pos += 1;
         }
-        pos++;
         col++;
       }
       if (pos >= source.length) {

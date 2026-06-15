@@ -8,6 +8,13 @@ export default defineConfig({
       '@ldl': '/src',
     },
   },
+  optimizeDeps: {
+    esbuildOptions: {
+      define: {
+        global: 'globalThis',
+      },
+    },
+  },
   build: {
     outDir: 'dist',
   },

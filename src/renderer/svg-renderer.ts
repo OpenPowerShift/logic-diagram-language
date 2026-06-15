@@ -4,12 +4,12 @@ import { layoutDiagram } from './layout.js';
 import type { LayoutNode, LayoutPort } from './layout.js';
 import {
   andGateBody, orGateBody, notGateBody,
-  renderPortSquare, renderInputPortLabel, renderOutputPortLabel, renderJunctionDot,
+  renderInputPortLabel, renderOutputPortLabel, renderJunctionDot,
   GATE_W, GATE_W_MULTI, NOT_TRIANGLE_W, BUBBLE_R, NOT_GATE_TOTAL_W, NOT_GATE_H,
-  STROKE_COLOR, FILL_COLOR, WIRE_COLOR, PORT_SIZE,
+  STROKE_COLOR, FILL_COLOR, WIRE_COLOR, PORT_SIZE, NAME_FILL, NAME_OUT_FILL, DESC_FILL, ID_FILL,
 } from './gates.js';
 import { renderWire } from './wires.js';
-import { hasMathContent, splitIntoSegments, renderAsciiMath, estimateTextWidth } from './math-renderer.js';
+import { hasMathContent, splitIntoSegments, renderMath, estimateTextWidth } from './math-renderer.js';
 
 const INPUT_BAR_OFFSET = 12;
 const INPUT_BAR_STUB = 6;
@@ -114,8 +114,6 @@ function renderNodePorts(node: LayoutNode, ports: string[], opts: RenderOptions)
     const port = node.inputs[0];
     if (port) {
       if (port.bubbled) {
-        // Output node with bubbled input: bubble between wire endpoint and output port
-        // Port absX was shifted left by BUBBLE_R*2; bubble right edge touches output port's natural position
         const bubbleCenterX = port.absX + BUBBLE_R;
         ports.push(`<circle class="ldl-bubble ldl-input" data-port="${esc(port.name)}" cx="${bubbleCenterX}" cy="${port.absY}" r="${BUBBLE_R}" fill="${FILL_COLOR}" stroke="${STROKE_COLOR}" stroke-width="1.5"/>`);
       } else {
@@ -125,9 +123,6 @@ function renderNodePorts(node: LayoutNode, ports: string[], opts: RenderOptions)
   } else {
     for (const p of node.inputs) {
       if (p.bubbled) {
-        // Input-side bubble: Port absX = gate edge - BUBBLE_R*2
-        // Wire ends at p.absX (= bubble left edge), bubble center at p.absX + BUBBLE_R,
-        // bubble right edge at p.absX + BUBBLE_R*2 (= gate edge).
         const bubbleCenterX = p.absX + BUBBLE_R;
         ports.push(`<circle class="ldl-bubble ldl-input" data-port="${esc(p.name)}" cx="${bubbleCenterX}" cy="${p.absY}" r="${BUBBLE_R}" fill="${FILL_COLOR}" stroke="${STROKE_COLOR}" stroke-width="1.5"/>`);
       } else {
@@ -137,8 +132,6 @@ function renderNodePorts(node: LayoutNode, ports: string[], opts: RenderOptions)
     if (node.outputs.length > 0) {
       const p = node.outputs[0];
       if (p.bubbledOutput) {
-        // Output-side bubble: Port absX was shifted right by BUBBLE_R*2 from gate edge
-        // Bubble center at (gate edge + BUBBLE_R), wire starts at (gate edge + BUBBLE_R*2) = p.absX
         const gateEdgeX = p.absX - BUBBLE_R * 2;
         const bubbleCenterX = gateEdgeX + BUBBLE_R;
         ports.push(`<circle class="ldl-bubble ldl-output" data-port="${esc(p.name)}" cx="${bubbleCenterX}" cy="${p.absY}" r="${BUBBLE_R}" fill="${FILL_COLOR}" stroke="${STROKE_COLOR}" stroke-width="1.5"/>`);
@@ -286,11 +279,6 @@ function renderNotNodeBody(node: LayoutNode, bodies: string[]): void {
   bodies.push(parts.join('\n'));
 }
 
-const NAME_FILL = '#1a237e';
-const NAME_OUT_FILL = '#1a237e';
-const DESC_FILL = '#607d8b';
-const ID_FILL = '#90a4ae';
-
 function renderMixedLabelContent(
   segments: { type: 'plain' | 'math'; text: string }[],
   baseX: number,
@@ -304,31 +292,49 @@ function renderMixedLabelContent(
   const classSuffix = isDescription ? 'ldl-description' : 'ldl-name';
   const fontWeight = isDescription ? '' : ' font-weight="500"';
 
-  const measured: { type: 'plain' | 'math'; text: string; width: number; svg?: string }[] = [];
-  let totalWidth = 0;
+  const measured: { type: 'plain' | 'math'; text: string; width: number; svg?: string; baselineOffset: number }[] = [];
 
   for (const seg of segments) {
     if (seg.type === 'plain') {
-      const w = estimateTextWidth(seg.text, fontSize);
-      measured.push({ type: 'plain', text: seg.text, width: w });
-      totalWidth += w;
+      measured.push({ type: 'plain', text: seg.text, width: estimateTextWidth(seg.text, fontSize), baselineOffset: 0 });
     } else {
-      const result = renderAsciiMath(seg.text, fontSize);
-      measured.push({ type: 'math', text: seg.text, width: result.width, svg: result.svg });
-      totalWidth += result.width;
+      const result = renderMath(seg.text, fontSize);
+      measured.push({
+        type: 'math',
+        text: seg.text,
+        width: result?.width ?? estimateTextWidth(seg.text, fontSize),
+        svg: result?.svg,
+        baselineOffset: result?.baselineOffset ?? 0,
+      });
     }
   }
 
-  let currentX = anchor === 'end' ? baseX - totalWidth : baseX;
+  if (anchor === 'end') {
+    const rightEdges: number[] = [];
+    let currentRight = baseX;
+    for (let i = measured.length - 1; i >= 0; i--) {
+      rightEdges[i] = currentRight;
+      currentRight -= measured[i].width;
+    }
 
-  for (const seg of measured) {
-    if (seg.type === 'plain') {
-      parts.push(`<text class="ldl-label ${classSuffix}" x="${currentX}" y="${baseY}" text-anchor="start" fill="${fill}" font-size="${fontSize}" font-family="sans-serif"${fontWeight}>${esc(seg.text)}</text>`);
-      currentX += seg.width;
-    } else if (seg.svg) {
-      const mathY = baseY - fontSize * 0.75;
-      parts.push(`<g class="ldl-math" transform="translate(${currentX}, ${mathY})" color="${fill}">${seg.svg}</g>`);
-      currentX += seg.width;
+    for (let i = 0; i < measured.length; i++) {
+      const seg = measured[i];
+      const rightEdge = rightEdges[i];
+      if (seg.type === 'plain') {
+        parts.push(`<text class="ldl-label ${classSuffix}" x="${rightEdge}" y="${baseY}" text-anchor="end" fill="${fill}" font-size="${fontSize}" font-family="sans-serif"${fontWeight}>${esc(seg.text)}</text>`);
+      } else if (seg.svg) {
+        parts.push(`<g class="ldl-math" transform="translate(${rightEdge - seg.width}, ${baseY - seg.baselineOffset})">${seg.svg}</g>`);
+      }
+    }
+  } else {
+    let leftX = baseX;
+    for (const seg of measured) {
+      if (seg.type === 'plain') {
+        parts.push(`<text class="ldl-label ${classSuffix}" x="${leftX}" y="${baseY}" text-anchor="start" fill="${fill}" font-size="${fontSize}" font-family="sans-serif"${fontWeight}>${esc(seg.text)}</text>`);
+      } else if (seg.svg) {
+        parts.push(`<g class="ldl-math" transform="translate(${leftX}, ${baseY - seg.baselineOffset})">${seg.svg}</g>`);
+      }
+      leftX += seg.width;
     }
   }
 
@@ -339,8 +345,8 @@ function renderInputMathLabel(absX: number, absY: number, label: string, name?: 
   const displayName = name || label;
   const labelGap = 6;
   const textX = absX - labelGap;
-  const nameY = description ? absY - 4 : absY + 4;
-  const descY = description ? absY + 10 : 0;
+  const nameY = description ? absY - 6 : absY + 4;
+  const descY = description ? absY + 12 : 0;
 
   const parts: string[] = [];
 
@@ -361,8 +367,8 @@ function renderOutputMathLabel(absX: number, absY: number, label: string, name?:
   const displayName = name || label;
   const labelGap = 6;
   const textX = absX + labelGap;
-  const nameY = description ? absY - 4 : absY + 4;
-  const descY = description ? absY + 10 : 0;
+  const nameY = description ? absY - 6 : absY + 4;
+  const descY = description ? absY + 12 : 0;
 
   const parts: string[] = [];
 
