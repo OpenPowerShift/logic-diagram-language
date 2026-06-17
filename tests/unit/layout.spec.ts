@@ -113,7 +113,7 @@ describe('Bubbles Mode - Input Bubbles', () => {
     const normalInput = andGate!.inputs.find(p => !p.bubbled)!;
     const bubbledInput = andGate!.inputs.find(p => p.bubbled)!;
 
-    expect(normalInput.absX - bubbledInput.absX).toBe(8);
+    expect(normalInput.absX - bubbledInput.absX).toBe(10);
   });
 });
 
@@ -151,7 +151,7 @@ describe('Bubbles Mode - Output Bubbles', () => {
 
     const andGate = l.nodes.find(n => n.gateType === 'AND');
     const andRightEdge = andGate!.absX + andGate!.width;
-    expect(andGate!.outputs[0].absX).toBe(andRightEdge + 8);
+    expect(andGate!.outputs[0].absX).toBe(andRightEdge + 10);
   });
 });
 

@@ -6,20 +6,23 @@ import {
   andGateBody, orGateBody, notGateBody,
   renderInputPortLabel, renderOutputPortLabel, renderJunctionDot,
   GATE_W, GATE_W_MULTI, NOT_TRIANGLE_W, BUBBLE_R, NOT_GATE_TOTAL_W, NOT_GATE_H,
-  STROKE_COLOR, FILL_COLOR, WIRE_COLOR, PORT_SIZE, NAME_FILL, NAME_OUT_FILL, DESC_FILL, ID_FILL,
+  PORT_SIZE,
 } from './gates.js';
+import type { DiagramTheme } from '../theme/themes.js';
+import { LIGHT_DIAGRAM } from '../theme/themes.js';
 import { renderWire } from './wires.js';
 import { hasMathContent, splitIntoSegments, renderMath, estimateTextWidth } from './math-renderer.js';
 
-const INPUT_BAR_OFFSET = 12;
-const INPUT_BAR_STUB = 6;
+const INPUT_BAR_OFFSET = 10;
+const INPUT_BAR_STUB = 5;
 
 function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-export function renderDiagram(diagram: Diagram, portMeta?: PortMeta[], showLabels: boolean = true, showIds: boolean = false, options?: RenderOptions): string {
+export function renderDiagram(diagram: Diagram, portMeta?: PortMeta[], showLabels: boolean = true, showIds: boolean = false, options?: RenderOptions, diagramTheme?: DiagramTheme): string {
   const opts = options ?? DEFAULT_OPTIONS;
+  const theme = diagramTheme ?? LIGHT_DIAGRAM;
   const layout = layoutDiagram(diagram, portMeta, opts);
 
   const svgWires: string[] = [];
@@ -34,14 +37,14 @@ export function renderDiagram(diagram: Diagram, portMeta?: PortMeta[], showLabel
   }
 
   for (const node of layout.nodes) {
-    renderNodeBody(node, svgBodies, layout.options);
-    renderNodePorts(node, svgPorts, layout.options);
-    renderNodeLabels(node, showLabels, svgLabels);
-    renderNodeIds(node, showIds, svgIds);
+    renderNodeBody(node, svgBodies, layout.options, theme);
+    renderNodePorts(node, svgPorts, layout.options, theme);
+    renderNodeLabels(node, showLabels, svgLabels, theme);
+    renderNodeIds(node, showIds, svgIds, theme);
   }
 
   for (const junction of layout.junctions) {
-    svgJunctions.push(renderJunctionDot(junction.x, junction.y));
+    svgJunctions.push(renderJunctionDot(junction.x, junction.y, theme));
   }
 
   const pad = 30;
@@ -54,11 +57,11 @@ export function renderDiagram(diagram: Diagram, portMeta?: PortMeta[], showLabel
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${svgW} ${svgH}" class="ldl-diagram ${labelsClass} ${idsClass}" style="max-width:100%;max-height:100%;">
   <defs>
     <style>
-      .ldl-wire { stroke: ${WIRE_COLOR}; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.2s; }
-      .ldl-wire:hover { stroke: #1b5e20; stroke-width: 3.5; }
+      .ldl-wire { stroke: ${theme.wire}; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.2s; }
+      .ldl-wire:hover { stroke: ${theme.wireHover}; stroke-width: 3.5; }
       .ldl-symbol:hover { filter: brightness(1.3); }
-      .ldl-input-port text { fill: #1a237e; }
-      .ldl-output-port text { fill: #1a237e; }
+      .ldl-input-port text { fill: ${theme.nameFill}; }
+      .ldl-output-port text { fill: ${theme.nameOutFill}; }
       .ldl-port { transition: filter 0.15s; }
       .ldl-port:hover { filter: brightness(1.5); }
       .ldl-diagram:not(.ldl-show-labels) .ldl-label { display: none; }
@@ -67,7 +70,7 @@ export function renderDiagram(diagram: Diagram, portMeta?: PortMeta[], showLabel
       .ldl-diagram.ldl-show-ids .ldl-id { display: block; }
     </style>
   </defs>
-  <rect x="0" y="0" width="${svgW}" height="${svgH}" fill="#ffffff" rx="4"/>
+  <rect x="0" y="0" width="${svgW}" height="${svgH}" fill="${theme.background}" rx="4"/>
   <g transform="translate(${pad}, ${pad})">
     ${svgWires.join('\n    ')}
     ${svgBodies.join('\n    ')}
@@ -79,90 +82,108 @@ export function renderDiagram(diagram: Diagram, portMeta?: PortMeta[], showLabel
 </svg>`;
 }
 
-function renderNodeBody(node: LayoutNode, bodies: string[], opts: RenderOptions): void {
+function renderNodeBody(node: LayoutNode, bodies: string[], opts: RenderOptions, theme: DiagramTheme): void {
   if (opts.inversion === 'BUBBLES' && node.gateType === 'NOT') {
     return;
   }
   switch (node.gateType) {
     case 'INPUT':
-      renderInputNodeBody(node, bodies);
+      renderInputNodeBody(node, bodies, theme);
       break;
     case 'OUTPUT':
-      renderOutputNodeBody(node, bodies);
+      renderOutputNodeBody(node, bodies, theme);
       break;
     case 'AND':
-      renderGateNodeBody(node, 'and', '&', bodies);
+      renderGateNodeBody(node, 'and', '&', bodies, theme);
       break;
     case 'OR':
-      renderGateNodeBody(node, 'or', '\u22651', bodies);
+      renderGateNodeBody(node, 'or', '\u22651', bodies, theme);
       break;
     case 'NOT':
-      renderNotNodeBody(node, bodies);
+      renderNotNodeBody(node, bodies, theme);
       break;
     default:
-      renderGateNodeBody(node, 'and', '&', bodies);
+      renderGateNodeBody(node, 'and', '&', bodies, theme);
   }
 }
 
-function renderNodePorts(node: LayoutNode, ports: string[], opts: RenderOptions): void {
+function renderNodePorts(node: LayoutNode, ports: string[], opts: RenderOptions, theme: DiagramTheme): void {
   if (node.gateType === 'INPUT') {
     const port = node.outputs[0];
     if (port) {
-      ports.push(renderPort(port.absX, port.absY, port, 'out', 'output', opts));
+      const x = port.absX;
+      const y = port.absY;
+      if (opts.portStyle === 'SQUARE') {
+        const size = PORT_SIZE;
+        ports.push(`<rect class="ldl-port ldl-output ldl-port-square" data-port="out" x="${x - size / 2}" y="${y - size / 2}" width="${size}" height="${size}" fill="${theme.portFill}"/>`);
+      } else {
+        ports.push(`<circle class="ldl-port ldl-output ldl-port-circle" data-port="out" cx="${x}" cy="${y}" r="${3}" fill="${theme.portFill}"/>`);
+      }
     }
   } else if (node.gateType === 'OUTPUT') {
     const port = node.inputs[0];
     if (port) {
-      if (port.bubbled) {
-        const bubbleCenterX = port.absX + BUBBLE_R;
-        ports.push(`<circle class="ldl-bubble ldl-input" data-port="${esc(port.name)}" cx="${bubbleCenterX}" cy="${port.absY}" r="${BUBBLE_R}" fill="${FILL_COLOR}" stroke="${STROKE_COLOR}" stroke-width="1.5"/>`);
+      const x = port.absX;
+      const y = port.absY;
+      if (opts.portStyle === 'SQUARE') {
+        const size = PORT_SIZE;
+        ports.push(`<rect class="ldl-port ldl-input ldl-port-square" data-port="in" x="${x - size / 2}" y="${y - size / 2}" width="${size}" height="${size}" fill="${theme.portFill}"/>`);
       } else {
-        ports.push(renderPort(port.absX, port.absY, port, 'in', 'input', opts));
+        ports.push(`<circle class="ldl-port ldl-input ldl-port-circle" data-port="in" cx="${x}" cy="${y}" r="${3}" fill="${theme.portFill}"/>`);
       }
     }
   } else {
-    for (const p of node.inputs) {
-      if (p.bubbled) {
-        const bubbleCenterX = p.absX + BUBBLE_R;
-        ports.push(`<circle class="ldl-bubble ldl-input" data-port="${esc(p.name)}" cx="${bubbleCenterX}" cy="${p.absY}" r="${BUBBLE_R}" fill="${FILL_COLOR}" stroke="${STROKE_COLOR}" stroke-width="1.5"/>`);
-      } else {
-        ports.push(renderPort(p.absX, p.absY, p, p.name, 'input', opts));
+    if (opts.inversion === 'BUBBLES') {
+      for (let i = 0; i < node.inputs.length; i++) {
+        const port = node.inputs[i];
+        const bubbleCenterX = port.absX + BUBBLE_R;
+        ports.push(`<circle class="ldl-bubble ldl-input" data-port="${esc(port.name)}" cx="${bubbleCenterX}" cy="${port.absY}" r="${BUBBLE_R}" fill="${theme.fill}" stroke="${theme.stroke}" stroke-width="1.5"/>`);
+        const stubEnd = port.absX - INPUT_BAR_STUB;
+        ports.push(`<line class="ldl-wire" x1="${port.absX}" y1="${port.absY}" x2="${stubEnd}" y2="${port.absY}"/>`);
       }
-    }
-    if (node.outputs.length > 0) {
-      const p = node.outputs[0];
-      if (p.bubbledOutput) {
-        const gateEdgeX = p.absX - BUBBLE_R * 2;
-        const bubbleCenterX = gateEdgeX + BUBBLE_R;
-        ports.push(`<circle class="ldl-bubble ldl-output" data-port="${esc(p.name)}" cx="${bubbleCenterX}" cy="${p.absY}" r="${BUBBLE_R}" fill="${FILL_COLOR}" stroke="${STROKE_COLOR}" stroke-width="1.5"/>`);
-      } else {
-        ports.push(renderPort(p.absX, p.absY, p, p.name, 'output', opts));
+      if (node.gateType === 'NOT' && node.outputs.length > 0) {
+        const outPort = node.outputs[0];
+        const bubbleCenterX = outPort.absX - BUBBLE_R;
+        ports.push(`<circle class="ldl-bubble ldl-output" data-port="${esc(outPort.name)}" cx="${bubbleCenterX}" cy="${outPort.absY}" r="${BUBBLE_R}" fill="${theme.fill}" stroke="${theme.stroke}" stroke-width="1.5"/>`);
+      }
+    } else {
+      for (const port of node.inputs) {
+        const x = port.absX;
+        const y = port.absY;
+        if (opts.portStyle === 'SQUARE') {
+          const size = PORT_SIZE;
+          ports.push(`<rect class="ldl-port ldl-input ldl-port-square" data-port="${esc(port.name)}" x="${x - size / 2}" y="${y - size / 2}" width="${size}" height="${size}" fill="${theme.portFill}"/>`);
+        } else {
+          ports.push(`<circle class="ldl-port ldl-input ldl-port-circle" data-port="${esc(port.name)}" cx="${x}" cy="${y}" r="${3}" fill="${theme.portFill}"/>`);
+        }
+      }
+      for (const port of node.outputs) {
+        const x = port.absX;
+        const y = port.absY;
+        if (opts.portStyle === 'SQUARE') {
+          const size = PORT_SIZE;
+          ports.push(`<rect class="ldl-port ldl-output ldl-port-square" data-port="${esc(port.name)}" x="${x - size / 2}" y="${y - size / 2}" width="${size}" height="${size}" fill="${theme.portFill}"/>`);
+        } else {
+          ports.push(`<circle class="ldl-port ldl-output ldl-port-circle" data-port="${esc(port.name)}" cx="${x}" cy="${y}" r="${3}" fill="${theme.portFill}"/>`);
+        }
       }
     }
   }
 }
 
-function renderPort(x: number, y: number, port: LayoutPort, name: string, direction: 'input' | 'output', opts: RenderOptions): string {
-  const style = port.style ?? opts.portStyle;
-  const dirClass = direction === 'input' ? 'ldl-input' : 'ldl-output';
-  if (style === 'SQUARE') {
-    const size = PORT_SIZE;
-    return `<rect class="ldl-port ${dirClass} ldl-port-square" data-port="${esc(name)}" x="${x - size / 2}" y="${y - size / 2}" width="${size}" height="${size}" fill="${STROKE_COLOR}"/>`;
-  }
-  return `<circle class="ldl-port ${dirClass} ldl-port-circle" data-port="${esc(name)}" cx="${x}" cy="${y}" r="${3}" fill="${STROKE_COLOR}"/>`;
-}
+function renderNodeLabels(node: LayoutNode, showLabels: boolean, labels: string[], theme: DiagramTheme): void {
+  if (!showLabels) return;
 
-function renderNodeLabels(node: LayoutNode, showLabels: boolean, labels: string[]): void {
   if (node.gateType === 'INPUT') {
     const port = node.outputs[0];
     if (port) {
-      const labelRight = node.absX + node.width - 10;
+      const labelLeft = port.absX - 10;
       const nameHasMath = node.name ? hasMathContent(node.name) : false;
       const descHasMath = node.description ? hasMathContent(node.description) : false;
       if (nameHasMath || descHasMath) {
-        labels.push(renderInputMathLabel(labelRight, port.absY, node.label ?? '', node.name, node.description));
+        labels.push(renderInputMathLabel(labelLeft, port.absY, node.label ?? '', theme, node.name, node.description));
       } else {
-        labels.push(renderInputPortLabel(labelRight, port.absY, node.label ?? '', node.name, node.description));
+        labels.push(renderInputPortLabel(labelLeft, port.absY, node.label ?? '', theme, node.name, node.description));
       }
     }
   } else if (node.gateType === 'OUTPUT') {
@@ -172,38 +193,38 @@ function renderNodeLabels(node: LayoutNode, showLabels: boolean, labels: string[
       const nameHasMath = node.name ? hasMathContent(node.name) : false;
       const descHasMath = node.description ? hasMathContent(node.description) : false;
       if (nameHasMath || descHasMath) {
-        labels.push(renderOutputMathLabel(labelLeft, port.absY, node.label ?? '', node.name, node.description));
+        labels.push(renderOutputMathLabel(labelLeft, port.absY, node.label ?? '', theme, node.name, node.description));
       } else {
-        labels.push(renderOutputPortLabel(labelLeft, port.absY, node.label ?? '', node.name, node.description));
+        labels.push(renderOutputPortLabel(labelLeft, port.absY, node.label ?? '', theme, node.name, node.description));
       }
     }
   }
 }
 
-function renderNodeIds(node: LayoutNode, showIds: boolean, ids: string[]): void {
+function renderNodeIds(node: LayoutNode, showIds: boolean, ids: string[], theme: DiagramTheme): void {
   if (!showIds) return;
   if (node.gateType === 'INPUT') {
     const port = node.outputs[0];
     if (port) {
-      ids.push(`<text class="ldl-id" x="${port.absX + PORT_SIZE / 2 + 3}" y="${port.absY + 3}" text-anchor="start" fill="#90a4ae" font-size="10" font-family="sans-serif" font-weight="600">${esc(node.label ?? '')}</text>`);
+      ids.push(`<text class="ldl-id" x="${port.absX + PORT_SIZE / 2 + 3}" y="${port.absY + 3}" text-anchor="start" fill="${theme.idFill}" font-size="10" font-family="sans-serif" font-weight="600">${esc(node.label ?? '')}</text>`);
     }
   } else if (node.gateType === 'OUTPUT') {
     const port = node.inputs[0];
     if (port) {
-      ids.push(`<text class="ldl-id" x="${port.absX - PORT_SIZE / 2 - 3}" y="${port.absY + 3}" text-anchor="end" fill="#90a4ae" font-size="10" font-family="sans-serif" font-weight="600">${esc(node.label ?? '')}</text>`);
+      ids.push(`<text class="ldl-id" x="${port.absX - PORT_SIZE / 2 - 3}" y="${port.absY + 3}" text-anchor="end" fill="${theme.idFill}" font-size="10" font-family="sans-serif" font-weight="600">${esc(node.label ?? '')}</text>`);
     }
   } else {
     for (const p of node.inputs) {
-      ids.push(`<text class="ldl-id" x="${p.absX - PORT_SIZE / 2 - 3}" y="${p.absY + 3}" text-anchor="end" fill="#90a4ae" font-size="10" font-family="sans-serif" font-weight="600">${esc(p.name)}</text>`);
+      ids.push(`<text class="ldl-id" x="${p.absX - PORT_SIZE / 2 - 3}" y="${p.absY + 3}" text-anchor="end" fill="${theme.idFill}" font-size="10" font-family="sans-serif" font-weight="600">${esc(p.name)}</text>`);
     }
     if (node.outputs.length > 0) {
       const p = node.outputs[0];
-      ids.push(`<text class="ldl-id" x="${p.absX + PORT_SIZE / 2 + 3}" y="${p.absY + 3}" text-anchor="start" fill="#90a4ae" font-size="10" font-family="sans-serif" font-weight="600">out</text>`);
+      ids.push(`<text class="ldl-id" x="${p.absX + PORT_SIZE / 2 + 3}" y="${p.absY + 3}" text-anchor="start" fill="${theme.idFill}" font-size="10" font-family="sans-serif" font-weight="600">out</text>`);
     }
   }
 }
 
-function renderInputNodeBody(node: LayoutNode, bodies: string[]): void {
+function renderInputNodeBody(node: LayoutNode, bodies: string[], theme: DiagramTheme): void {
   const port = node.outputs[0];
   if (!port) return;
 
@@ -211,7 +232,7 @@ function renderInputNodeBody(node: LayoutNode, bodies: string[]): void {
   bodies.push(`<line class="ldl-wire" x1="${labelRight}" y1="${port.absY}" x2="${port.absX}" y2="${port.absY}"/>`);
 }
 
-function renderOutputNodeBody(node: LayoutNode, bodies: string[]): void {
+function renderOutputNodeBody(node: LayoutNode, bodies: string[], theme: DiagramTheme): void {
   const port = node.inputs[0];
   if (!port) return;
 
@@ -219,7 +240,14 @@ function renderOutputNodeBody(node: LayoutNode, bodies: string[]): void {
   bodies.push(`<line class="ldl-wire" x1="${port.absX}" y1="${port.absY}" x2="${labelLeft}" y2="${port.absY}"/>`);
 }
 
-function renderGateNodeBody(node: LayoutNode, shape: 'and' | 'or', symbol: string, bodies: string[]): void {
+function orLeftCurveX(w: number, h: number, localY: number): number {
+  if (h <= 0) return 0;
+  const t = 1 - localY / h;
+  const cpxRatio = 0.18;
+  return w * 3 * (1 - t) * (1 - t) * t * cpxRatio + w * 3 * (1 - t) * t * t * cpxRatio;
+}
+
+function renderGateNodeBody(node: LayoutNode, shape: 'and' | 'or', symbol: string, bodies: string[], theme: DiagramTheme): void {
   const w = node.width;
   const h = node.height;
   const x = node.absX;
@@ -237,16 +265,28 @@ function renderGateNodeBody(node: LayoutNode, shape: 'and' | 'or', symbol: strin
 
   const parts: string[] = [];
   parts.push(`<g class="ldl-symbol ${cls}" id="${esc(node.id)}">`);
-  parts.push(`  <path d="${bodyPath}" transform="translate(${x}, ${y})" fill="${FILL_COLOR}" stroke="${STROKE_COLOR}" stroke-width="2.5"/>`);
-  parts.push(`  <text x="${x + w / 2}" y="${y + h / 2 + fontSize * 0.35}" text-anchor="middle" fill="${STROKE_COLOR}" font-size="${fontSize}" font-weight="700" font-family="sans-serif">${esc(symbol)}</text>`);
+  parts.push(`  <path d="${bodyPath}" transform="translate(${x}, ${y})" fill="${theme.fill}" stroke="${theme.stroke}" stroke-width="2.5"/>`);
+
+  if (shape === 'or' && !node.barsMode) {
+    for (const port of node.inputs) {
+      const localY = port.absY - y;
+      const curveX = orLeftCurveX(w, h, localY);
+      const stubEndX = x + curveX;
+      if (curveX > 1) {
+        parts.push(`  <line x1="${x}" y1="${port.absY}" x2="${stubEndX}" y2="${port.absY}" stroke="${theme.stroke}" stroke-width="2.5"/>`);
+      }
+    }
+  }
+
+  parts.push(`  <text x="${x + w / 2}" y="${y + h / 2 + fontSize * 0.35}" text-anchor="middle" fill="${theme.stroke}" font-size="${fontSize}" font-weight="700" font-family="sans-serif">${esc(symbol)}</text>`);
 
   if (node.barsMode && node.inputs.length > 2) {
     const barX = x - INPUT_BAR_OFFSET;
-    parts.push(`  <line class="ldl-input-bar" x1="${barX}" y1="${y}" x2="${barX}" y2="${y + h}" stroke="${STROKE_COLOR}" stroke-width="2.5"/>`);
+    parts.push(`  <line class="ldl-input-bar" x1="${barX}" y1="${y}" x2="${barX}" y2="${y + h}" stroke="${theme.stroke}" stroke-width="2.5"/>`);
     for (let i = 2; i < node.inputs.length; i++) {
       const port = node.inputs[i];
       const stubEnd = x - INPUT_BAR_STUB;
-      parts.push(`  <line class="ldl-bar-stub" x1="${barX}" y1="${port.absY}" x2="${stubEnd}" y2="${port.absY}" stroke="${WIRE_COLOR}" stroke-width="2.5"/>`);
+      parts.push(`  <line class="ldl-bar-stub" x1="${barX}" y1="${port.absY}" x2="${stubEnd}" y2="${port.absY}" stroke="${theme.wire}" stroke-width="2.5"/>`);
     }
   }
 
@@ -255,7 +295,7 @@ function renderGateNodeBody(node: LayoutNode, shape: 'and' | 'or', symbol: strin
   bodies.push(parts.join('\n'));
 }
 
-function renderNotNodeBody(node: LayoutNode, bodies: string[]): void {
+function renderNotNodeBody(node: LayoutNode, bodies: string[], theme: DiagramTheme): void {
   const x = node.absX;
   const y = node.absY;
   const h = NOT_GATE_H;
@@ -264,9 +304,9 @@ function renderNotNodeBody(node: LayoutNode, bodies: string[]): void {
 
   const parts: string[] = [];
   parts.push(`<g class="ldl-symbol ldl-gate-not" id="${esc(node.id)}">`);
-  parts.push(`  <path d="${bodyPath}" transform="translate(${x}, ${y})" fill="${FILL_COLOR}" stroke="${STROKE_COLOR}" stroke-width="2.5"/>`);
-  parts.push(`  <circle cx="${x + NOT_TRIANGLE_W + BUBBLE_R}" cy="${y + h / 2}" r="${BUBBLE_R}" fill="${FILL_COLOR}" stroke="${STROKE_COLOR}" stroke-width="2.5"/>`);
-  parts.push(`  <text x="${x + NOT_TRIANGLE_W * 0.38}" y="${y + h / 2 + 4}" text-anchor="middle" fill="${STROKE_COLOR}" font-size="11" font-weight="700" font-family="sans-serif">NOT</text>`);
+  parts.push(`  <path d="${bodyPath}" transform="translate(${x}, ${y})" fill="${theme.fill}" stroke="${theme.stroke}" stroke-width="2.5"/>`);
+  parts.push(`  <circle cx="${x + NOT_TRIANGLE_W + BUBBLE_R}" cy="${y + h / 2}" r="${BUBBLE_R}" fill="${theme.fill}" stroke="${theme.stroke}" stroke-width="2.5"/>`);
+  parts.push(`  <text x="${x + NOT_TRIANGLE_W * 0.38}" y="${y + h / 2 + 4}" text-anchor="middle" fill="${theme.stroke}" font-size="11" font-weight="700" font-family="sans-serif">NOT</text>`);
 
   if (node.outputs.length > 0) {
     const outPort = node.outputs[0];
@@ -341,7 +381,7 @@ function renderMixedLabelContent(
   return parts.join('\n');
 }
 
-function renderInputMathLabel(absX: number, absY: number, label: string, name?: string, description?: string): string {
+function renderInputMathLabel(absX: number, absY: number, label: string, theme: DiagramTheme, name?: string, description?: string): string {
   const displayName = name || label;
   const labelGap = 6;
   const textX = absX - labelGap;
@@ -351,19 +391,19 @@ function renderInputMathLabel(absX: number, absY: number, label: string, name?: 
   const parts: string[] = [];
 
   const nameSegments = splitIntoSegments(displayName);
-  parts.push(renderMixedLabelContent(nameSegments, textX, nameY, 'end', 12, NAME_FILL, false));
+  parts.push(renderMixedLabelContent(nameSegments, textX, nameY, 'end', 12, theme.nameFill, false));
 
   if (description) {
     const descSegments = splitIntoSegments(description);
-    parts.push(renderMixedLabelContent(descSegments, textX, descY, 'end', 9, DESC_FILL, true));
+    parts.push(renderMixedLabelContent(descSegments, textX, descY, 'end', 9, theme.descFill, true));
   }
 
-  parts.push(`<text class="ldl-id" x="${textX}" y="${absY - PORT_SIZE / 2 - 4}" text-anchor="end" fill="${ID_FILL}" font-size="10" font-family="sans-serif" font-weight="600">${esc(label)}</text>`);
+  parts.push(`<text class="ldl-id" x="${textX}" y="${absY - PORT_SIZE / 2 - 4}" text-anchor="end" fill="${theme.idFill}" font-size="10" font-family="sans-serif" font-weight="600">${esc(label)}</text>`);
 
   return parts.join('\n');
 }
 
-function renderOutputMathLabel(absX: number, absY: number, label: string, name?: string, description?: string): string {
+function renderOutputMathLabel(absX: number, absY: number, label: string, theme: DiagramTheme, name?: string, description?: string): string {
   const displayName = name || label;
   const labelGap = 6;
   const textX = absX + labelGap;
@@ -373,14 +413,14 @@ function renderOutputMathLabel(absX: number, absY: number, label: string, name?:
   const parts: string[] = [];
 
   const nameSegments = splitIntoSegments(displayName);
-  parts.push(renderMixedLabelContent(nameSegments, textX, nameY, 'start', 12, NAME_OUT_FILL, false));
+  parts.push(renderMixedLabelContent(nameSegments, textX, nameY, 'start', 12, theme.nameOutFill, false));
 
   if (description) {
     const descSegments = splitIntoSegments(description);
-    parts.push(renderMixedLabelContent(descSegments, textX, descY, 'start', 9, DESC_FILL, true));
+    parts.push(renderMixedLabelContent(descSegments, textX, descY, 'start', 9, theme.descFill, true));
   }
 
-  parts.push(`<text class="ldl-id" x="${textX}" y="${absY - PORT_SIZE / 2 - 4}" text-anchor="start" fill="${ID_FILL}" font-size="10" font-family="sans-serif" font-weight="600">${esc(label)}</text>`);
+  parts.push(`<text class="ldl-id" x="${textX}" y="${absY - PORT_SIZE / 2 - 4}" text-anchor="start" fill="${theme.idFill}" font-size="10" font-family="sans-serif" font-weight="600">${esc(label)}</text>`);
 
   return parts.join('\n');
 }

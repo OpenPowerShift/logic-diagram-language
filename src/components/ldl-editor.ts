@@ -6,6 +6,8 @@ import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { syntaxHighlighting, defaultHighlightStyle, foldGutter, indentOnInput, bracketMatching } from '@codemirror/language';
 import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
 import { ldlLanguage } from '../highlight/ldl-language.js';
+import type { UITheme } from '../theme/themes.js';
+import { LIGHT_UI } from '../theme/themes.js';
 
 @customElement('ldl-editor')
 export class LdlEditor extends LitElement {
@@ -24,11 +26,11 @@ export class LdlEditor extends LitElement {
       max-height: 80px;
       overflow-y: auto;
       padding: 6px 10px;
-      background: #fdecea;
-      border-top: 1px solid #e57373;
+      background: var(--ldl-error-bg);
+      border-top: 1px solid var(--ldl-error-border);
       font-size: 11px;
       font-family: monospace;
-      color: #c62828;
+      color: var(--ldl-error-text);
     }
     .cm-editor {
       height: 100%;
@@ -40,12 +42,84 @@ export class LdlEditor extends LitElement {
 
   @property({ type: String }) value = '';
   @property({ type: Array }) errors: { message: string; line: number; column: number }[] = [];
+  @property({ attribute: false }) theme: UITheme = LIGHT_UI;
 
   private editorView: EditorView | null = null;
   private ignoreNextChange = false;
 
   firstUpdated() {
     this.initEditor();
+  }
+
+  private applyThemeToStyles() {
+    const t = this.theme;
+    this.style.setProperty('--ldl-error-bg', t.errorBg);
+    this.style.setProperty('--ldl-error-border', t.errorBorder);
+    this.style.setProperty('--ldl-error-text', t.errorText);
+  }
+
+  updated(changed: Map<string, any>) {
+    this.applyThemeToStyles();
+
+    if (changed.has('theme') && this.editorView) {
+      this.recreateEditor();
+      return;
+    }
+
+    if (changed.has('value') && this.editorView) {
+      const currentDoc = this.editorView.state.doc.toString();
+      if (currentDoc !== this.value) {
+        this.ignoreNextChange = true;
+        this.editorView.dispatch({
+          changes: {
+            from: 0,
+            to: this.editorView.state.doc.length,
+            insert: this.value,
+          },
+        });
+        this.ignoreNextChange = false;
+      }
+    }
+  }
+
+  private getEditorTheme() {
+    const t = this.theme;
+    return EditorView.theme({
+      '&': {
+        height: '100%',
+        fontSize: '13px',
+        background: t.editorBg,
+        color: t.syntaxVariable,
+      },
+      '.cm-content': {
+        fontFamily: '"JetBrains Mono", "Fira Code", "Consolas", monospace',
+        caretColor: t.editorCursor,
+      },
+      '.cm-gutters': {
+        background: t.editorGutter,
+        color: t.editorGutterText,
+        border: 'none',
+      },
+      '.cm-activeLineGutter': {
+        background: t.editorActiveGutter,
+      },
+      '.cm-activeLine': {
+        background: t.editorActiveLine,
+      },
+      '&.cm-focused .cm-cursor': {
+        borderLeftColor: t.editorCursor,
+      },
+      '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': {
+        backgroundColor: `${t.editorSelection} !important`,
+      },
+      '.cm-comment': { color: t.syntaxComment },
+      '.cm-keyword': { color: t.syntaxKeyword },
+      '.cm-typeName': { color: t.syntaxType },
+      '.cm-variableName': { color: t.syntaxVariable },
+      '.cm-string': { color: t.syntaxString },
+      '.cm-number': { color: t.syntaxNumber },
+      '.cm-punctuation': { color: t.syntaxPunct },
+    });
   }
 
   private initEditor() {
@@ -72,6 +146,7 @@ export class LdlEditor extends LitElement {
           ]),
           ldlLanguage(),
           syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+          this.getEditorTheme(),
           EditorView.updateListener.of((update) => {
             if (update.docChanged && !this.ignoreNextChange) {
               this.value = update.state.doc.toString();
@@ -82,63 +157,56 @@ export class LdlEditor extends LitElement {
               }));
             }
           }),
-          EditorView.theme({
-            '&': {
-              height: '100%',
-              fontSize: '13px',
-              background: '#ffffff',
-              color: '#2c3e50',
-            },
-            '.cm-content': {
-              fontFamily: '"JetBrains Mono", "Fira Code", "Consolas", monospace',
-              caretColor: '#2c3e50',
-            },
-            '.cm-gutters': {
-              background: '#f5f6fa',
-              color: '#90a4ae',
-              border: 'none',
-            },
-            '.cm-activeLineGutter': {
-              background: '#e8eaf0',
-            },
-            '.cm-activeLine': {
-              background: '#f0f2f8',
-            },
-            '&.cm-focused .cm-cursor': {
-              borderLeftColor: '#2c3e50',
-            },
-            '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': {
-              backgroundColor: 'rgba(52, 152, 219, 0.25) !important',
-            },
-            '.cm-comment': { color: '#6a9955' },
-            '.cm-keyword': { color: '#9c27b0' },
-            '.cm-typeName': { color: '#1565c0' },
-            '.cm-variableName': { color: '#2c3e50' },
-            '.cm-string': { color: '#e65100' },
-            '.cm-number': { color: '#00695c' },
-            '.cm-punctuation': { color: '#78909c' },
-          }),
         ],
       }),
       parent: container,
     });
   }
 
-  updated(changed: Map<string, any>) {
-    if (changed.has('value') && this.editorView) {
-      const currentDoc = this.editorView.state.doc.toString();
-      if (currentDoc !== this.value) {
-        this.ignoreNextChange = true;
-        this.editorView.dispatch({
-          changes: {
-            from: 0,
-            to: this.editorView.state.doc.length,
-            insert: this.value,
-          },
-        });
-        this.ignoreNextChange = false;
-      }
+  private recreateEditor() {
+    if (this.editorView) {
+      this.editorView.destroy();
+      this.editorView = null;
     }
+    const container = this.shadowRoot!.querySelector('.editor-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    this.editorView = new EditorView({
+      state: EditorState.create({
+        doc: this.value,
+        extensions: [
+          lineNumbers(),
+          highlightActiveLineGutter(),
+          highlightSpecialChars(),
+          history(),
+          foldGutter(),
+          drawSelection(),
+          indentOnInput(),
+          bracketMatching(),
+          closeBrackets(),
+          keymap.of([
+            ...closeBracketsKeymap,
+            ...defaultKeymap,
+            ...historyKeymap,
+          ]),
+          ldlLanguage(),
+          syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+          this.getEditorTheme(),
+          EditorView.updateListener.of((update) => {
+            if (update.docChanged && !this.ignoreNextChange) {
+              this.value = update.state.doc.toString();
+              this.dispatchEvent(new CustomEvent('ldl-change', {
+                detail: { value: this.value },
+                bubbles: true,
+                composed: true,
+              }));
+            }
+          }),
+        ],
+      }),
+      parent: container,
+    });
   }
 
   render() {

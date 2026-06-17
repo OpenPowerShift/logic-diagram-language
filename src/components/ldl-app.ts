@@ -5,6 +5,9 @@ import { resolveOptions, DEFAULT_OPTIONS } from '../parser/ast.js';
 import type { RenderOptions } from '../parser/ast.js';
 import { renderDiagram } from '../renderer/svg-renderer.js';
 import { EXAMPLES, EXAMPLE_NAMES } from '../examples.js';
+import type { AppTheme, DiagramTheme } from '../theme/themes.js';
+import { LIGHT_THEME, DARK_THEME, LIGHT_DIAGRAM } from '../theme/themes.js';
+import { getCurrentTheme, onThemeChange } from '../theme/theme-observer.js';
 import './ldl-editor.js';
 import './ldl-viewer.js';
 
@@ -17,8 +20,8 @@ export class LdlApp extends LitElement {
       height: 100vh;
       width: 100vw;
       overflow: hidden;
-      background: #f5f6fa;
-      color: #2c3e50;
+      background: var(--ldl-bg);
+      color: var(--ldl-text);
       font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
     }
     .toolbar {
@@ -26,26 +29,26 @@ export class LdlApp extends LitElement {
       align-items: center;
       gap: 12px;
       padding: 8px 16px;
-      background: #2c3e50;
-      border-bottom: 2px solid #1a252f;
+      background: var(--ldl-toolbar-bg);
+      border-bottom: 2px solid var(--ldl-toolbar-dark);
       flex-shrink: 0;
       flex-wrap: wrap;
     }
     .toolbar-title {
       font-size: 15px;
       font-weight: 700;
-      color: #ffffff;
+      color: var(--ldl-toolbar-text);
       letter-spacing: 1px;
     }
     .toolbar-sep {
       width: 1px;
       height: 20px;
-      background: rgba(255,255,255,0.25);
+      background: var(--ldl-toolbar-separator);
     }
     select {
-      background: #1a252f;
-      color: #ffffff;
-      border: 1px solid rgba(255,255,255,0.2);
+      background: var(--ldl-toolbar-dark);
+      color: var(--ldl-toolbar-text);
+      border: 1px solid var(--ldl-toolbar-border-alpha20);
       border-radius: 4px;
       padding: 4px 8px;
       font-size: 12px;
@@ -54,10 +57,10 @@ export class LdlApp extends LitElement {
       outline: none;
     }
     select:hover {
-      border-color: rgba(255,255,255,0.4);
+      border-color: var(--ldl-toolbar-border-alpha40);
     }
     select:focus {
-      border-color: #3498db;
+      border-color: var(--ldl-accent);
     }
     .main {
       display: flex;
@@ -71,7 +74,7 @@ export class LdlApp extends LitElement {
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      border-right: 2px solid #dce1e8;
+      border-right: 2px solid var(--ldl-border);
     }
     .pane-right {
       flex: 1;
@@ -95,10 +98,41 @@ export class LdlApp extends LitElement {
   @state() private sourceText = EXAMPLES['Simple AND Gate'];
   @state() private showLabels = true;
   @state() private showIds = false;
+  @state() private currentTheme: AppTheme = getCurrentTheme();
+
+  private unsubscribeTheme: (() => void) | null = null;
 
   connectedCallback() {
     super.connectedCallback();
+    this.applyUITheme();
+    this.unsubscribeTheme = onThemeChange((theme) => {
+      this.currentTheme = theme;
+      this.applyUITheme();
+      this.updateDiagram(this.sourceText);
+    });
     this.updateDiagram(this.sourceText);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    if (this.unsubscribeTheme) {
+      this.unsubscribeTheme();
+      this.unsubscribeTheme = null;
+    }
+  }
+
+  private applyUITheme() {
+    const ui = this.currentTheme.ui;
+    this.style.setProperty('--ldl-bg', ui.bg);
+    this.style.setProperty('--ldl-text', ui.text);
+    this.style.setProperty('--ldl-toolbar-bg', ui.toolbarBg);
+    this.style.setProperty('--ldl-toolbar-dark', ui.toolbarDark);
+    this.style.setProperty('--ldl-accent', ui.accent);
+    this.style.setProperty('--ldl-border', ui.border);
+    this.style.setProperty('--ldl-toolbar-text', ui.toolbarText);
+    this.style.setProperty('--ldl-toolbar-separator', ui.toolbarSeparator);
+    this.style.setProperty('--ldl-toolbar-border-alpha20', ui.toolbarBorderAlpha20);
+    this.style.setProperty('--ldl-toolbar-border-alpha40', ui.toolbarBorderAlpha40);
   }
 
   private handleExampleChange(e: Event) {
@@ -129,7 +163,8 @@ export class LdlApp extends LitElement {
 
   private handleDownloadSvg() {
     if (!this.svg) return;
-    const blob = new Blob([this.svg], { type: 'image/svg+xml' });
+    const printSvg = this.getPrintSvg();
+    const blob = new Blob([printSvg], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -141,9 +176,10 @@ export class LdlApp extends LitElement {
   }
 
   private handleExportPdf() {
-    if (!this.svg) return;
+    const printSvg = this.getPrintSvg();
+    if (!printSvg) return;
     const parser = new DOMParser();
-    const doc = parser.parseFromString(this.svg, 'image/svg+xml');
+    const doc = parser.parseFromString(printSvg, 'image/svg+xml');
     const svgEl = doc.documentElement;
     const vb = svgEl.getAttribute('viewBox')?.split(' ').map(Number) ?? [0, 0, 800, 400];
     const svgW = vb[2];
@@ -172,13 +208,24 @@ export class LdlApp extends LitElement {
     img.src = imgSrc;
   }
 
+  private getPrintSvg(): string {
+    try {
+      const result = parse(this.sourceText);
+      if (result.diagram.outputs.length > 0) {
+        const options = resolveOptions(result.diagram.options);
+        return renderDiagram(result.diagram, result.diagram.portMeta, this.showLabels, this.showIds, options, LIGHT_DIAGRAM);
+      }
+    } catch {}
+    return this.svg;
+  }
+
   private updateDiagram(source: string) {
     try {
       const result = parse(source);
       this.parseErrors = result.errors;
       if (result.diagram.outputs.length > 0) {
         const options = resolveOptions(result.diagram.options);
-        this.svg = renderDiagram(result.diagram, result.diagram.portMeta, this.showLabels, this.showIds, options);
+        this.svg = renderDiagram(result.diagram, result.diagram.portMeta, this.showLabels, this.showIds, options, this.currentTheme.diagram);
       } else {
         this.svg = '';
       }
@@ -193,7 +240,7 @@ export class LdlApp extends LitElement {
       <div class="toolbar">
         <span class="toolbar-title">LDL</span>
         <div class="toolbar-sep"></div>
-        <label for="example-select" style="font-size:12px;color:#b0bec5;">Example:</label>
+        <label for="example-select" style="font-size:12px;color:${this.currentTheme.ui.textDim};">Example:</label>
         <select id="example-select" .value=${this.currentExample} @change=${this.handleExampleChange}>
           ${EXAMPLE_NAMES.map(name => html`<option value=${name} ?selected=${name === this.currentExample}>${name}</option>`)}
         </select>
@@ -203,6 +250,7 @@ export class LdlApp extends LitElement {
           <ldl-editor
             .value=${this.sourceText}
             .errors=${this.parseErrors}
+            .theme=${this.currentTheme.ui}
             @ldl-change=${this.handleSourceChange}
           ></ldl-editor>
         </div>
@@ -211,6 +259,7 @@ export class LdlApp extends LitElement {
             .svg=${this.svg}
             .showLabels=${this.showLabels}
             .showIds=${this.showIds}
+            .theme=${this.currentTheme.ui}
             @toggle-labels=${this.handleToggleLabels}
             @toggle-ids=${this.handleToggleIds}
             @download-svg=${this.handleDownloadSvg}

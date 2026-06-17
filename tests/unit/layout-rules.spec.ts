@@ -172,9 +172,9 @@ describe('Layout Rules', () => {
         const l = layoutDiagram(r.diagram, r.diagram.portMeta);
         for (const node of l.nodes) {
           if (node.inputs.length < 2) continue;
-          const baseHeight = Math.max(44, node.inputs.length * 22 + 8);
+          const baseHeight = (node.inputs.length + 1) * 15;
           if (node.height > baseHeight) {
-            expect(node.height - baseHeight).toBeLessThanOrEqual(node.inputs.length * 22 + 22);
+            expect(node.height - baseHeight).toBeLessThanOrEqual(node.inputs.length * 25);
           }
         }
       });

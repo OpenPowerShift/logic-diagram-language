@@ -1,6 +1,8 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
+import type { UITheme } from "../theme/themes.js";
+import { LIGHT_UI } from "../theme/themes.js";
 
 @customElement("ldl-viewer")
 export class LdlViewer extends LitElement {
@@ -13,26 +15,26 @@ export class LdlViewer extends LitElement {
     }
     .viewer-header {
       padding: 6px 12px;
-      background: #2c3e50;
       font-size: 12px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 1px;
-      color: #b0bec5;
-      border-bottom: 1px solid #1a252f;
       flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 8px;
       flex-wrap: wrap;
+      background: var(--ldl-toolbar-bg);
+      color: var(--ldl-text-dim);
+      border-bottom: 1px solid var(--ldl-toolbar-dark);
     }
     .viewer-title {
       font-size: 12px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 1px;
-      color: #b0bec5;
+      color: var(--ldl-text-dim);
     }
     .viewer-controls {
       display: flex;
@@ -42,9 +44,9 @@ export class LdlViewer extends LitElement {
     }
     .viewer-controls button,
     .viewer-controls .toolbar-btn {
-      background: #1a252f;
-      color: #e0e0e0;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: var(--ldl-toolbar-dark);
+      color: var(--ldl-toolbar-text);
+      border: 1px solid var(--ldl-toolbar-border-alpha20);
       border-radius: 3px;
       padding: 2px 8px;
       font-size: 11px;
@@ -54,16 +56,16 @@ export class LdlViewer extends LitElement {
     }
     .viewer-controls button:hover,
     .viewer-controls .toolbar-btn:hover {
-      background: #2c3e50;
-      border-color: rgba(255, 255, 255, 0.4);
+      background: var(--ldl-toolbar-bg);
+      border-color: var(--ldl-toolbar-border-alpha40);
     }
     .viewer-controls button:active,
     .viewer-controls .toolbar-btn:active {
-      background: #0f3460;
+      background: var(--ldl-toolbar-active);
     }
     .viewer-controls .toolbar-btn.active {
-      background: #3498db;
-      border-color: #3498db;
+      background: var(--ldl-accent);
+      border-color: var(--ldl-accent);
       color: white;
     }
     .viewer-controls .toolbar-btn:disabled {
@@ -72,19 +74,19 @@ export class LdlViewer extends LitElement {
     }
     .zoom-label {
       font-size: 11px;
-      color: #888;
+      color: var(--ldl-text-muted);
       min-width: 36px;
       text-align: center;
     }
     .separator {
       width: 1px;
       height: 16px;
-      background: rgba(255, 255, 255, 0.2);
+      background: var(--ldl-toolbar-separator);
     }
     .viewer-wrapper {
       flex: 1;
       overflow: hidden;
-      background: #e8eaf0;
+      background: var(--ldl-surface);
       cursor: grab;
       position: relative;
       user-select: none;
@@ -92,11 +94,11 @@ export class LdlViewer extends LitElement {
     .viewer-wrapper.dragging {
       cursor: grabbing;
     }
-.viewer-content {
+    .viewer-content {
       transform-origin: 0 0;
     }
     .empty-state {
-      color: #90a4ae;
+      color: var(--ldl-text-muted);
       font-size: 14px;
       text-align: center;
       margin-top: 40px;
@@ -106,6 +108,7 @@ export class LdlViewer extends LitElement {
   @property({ type: String }) svg = "";
   @property({ type: Boolean }) showLabels = true;
   @property({ type: Boolean }) showIds = false;
+  @property({ attribute: false }) theme: UITheme = LIGHT_UI;
 
   private scale = 1;
   private panX = 0;
@@ -119,6 +122,28 @@ export class LdlViewer extends LitElement {
     this.scale = 1;
     this.panX = 0;
     this.panY = 0;
+    this.applyTheme();
+  }
+
+  updated(changed: Map<string, any>) {
+    if (changed.has('theme')) {
+      this.applyTheme();
+    }
+  }
+
+  private applyTheme() {
+    const t = this.theme;
+    this.style.setProperty('--ldl-toolbar-bg', t.toolbarBg);
+    this.style.setProperty('--ldl-toolbar-dark', t.toolbarDark);
+    this.style.setProperty('--ldl-toolbar-active', t.toolbarActive);
+    this.style.setProperty('--ldl-text-dim', t.textDim);
+    this.style.setProperty('--ldl-text-muted', t.textMuted);
+    this.style.setProperty('--ldl-surface', t.surface);
+    this.style.setProperty('--ldl-accent', t.accent);
+    this.style.setProperty('--ldl-toolbar-text', t.toolbarText);
+    this.style.setProperty('--ldl-toolbar-border-alpha20', t.toolbarBorderAlpha20);
+    this.style.setProperty('--ldl-toolbar-border-alpha40', t.toolbarBorderAlpha40);
+    this.style.setProperty('--ldl-toolbar-separator', t.toolbarSeparator);
   }
 
   private handleZoomIn() {

@@ -1,13 +1,3 @@
-:root {
-  --ldl-bg: #f5f6fa;
-  --ldl-surface: #e8eaf0;
-  --ldl-border: #dce1e8;
-  --ldl-text: #2c3e50;
-  --ldl-text-dim: #78909c;
-  --ldl-accent: #3498db;
-  --ldl-accent2: #0fbcf9;
-}
-
 * {
   margin: 0;
   padding: 0;
@@ -17,8 +7,6 @@
 html, body {
   height: 100%;
   font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-  background: var(--ldl-bg);
-  color: var(--ldl-text);
 }
 
 ldl-app {

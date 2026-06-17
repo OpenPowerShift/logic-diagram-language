@@ -1,23 +1,16 @@
-const STROKE = '#2c3e50';
-const FILL = '#ffffff';
+import type { DiagramTheme } from '../theme/themes.js';
+
 export const PORT_SIZE = 5;
 export const PORT_R = 3;
-const WIRE = '#34495e';
-export const NAME_FILL = '#1a237e';
-export const NAME_OUT_FILL = '#1a237e';
-export const DESC_FILL = '#607d8b';
-export const ID_FILL = '#90a4ae';
 
 export const GATE_W = 60;
-export const GATE_W_MULTI = 72;
+export const GATE_W_MULTI = 75;
 export const NOT_TRIANGLE_W = 50;
-export const BUBBLE_R = 4;
-export const NOT_GATE_TOTAL_W = NOT_TRIANGLE_W + BUBBLE_R * 2 + 8;
-export const NOT_GATE_H = 34;
-export const AND_GATE_H_BASE = 44;
-export const STROKE_COLOR = STROKE;
-export const FILL_COLOR = FILL;
-export const WIRE_COLOR = WIRE;
+export const BUBBLE_R = 5;
+export const NOT_GATE_TOTAL_W = NOT_TRIANGLE_W + BUBBLE_R * 2 + 5;
+export const NOT_GATE_H = 40;
+export const AND_GATE_H_BASE = 45;
+export const PORT_SPACING = 15;
 
 function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -42,11 +35,11 @@ export function notGateBody(w: number, h: number): string {
   return `M 0,0 L ${w},${h / 2} L 0,${h} Z`;
 }
 
-export function renderJunctionDot(x: number, y: number): string {
-  return `<circle class="ldl-junction" cx="${x}" cy="${y}" r="4" fill="#34495e" stroke="#34495e" stroke-width="1"/>`;
+export function renderJunctionDot(x: number, y: number, theme: DiagramTheme): string {
+  return `<circle class="ldl-junction" cx="${x}" cy="${y}" r="4" fill="${theme.junctionFill}" stroke="${theme.junctionFill}" stroke-width="1"/>`;
 }
 
-export function renderInputPortLabel(absX: number, absY: number, label: string, name?: string, description?: string): string {
+export function renderInputPortLabel(absX: number, absY: number, label: string, theme: DiagramTheme, name?: string, description?: string): string {
   const displayName = name || label;
   const labelGap = 6;
   const textX = absX - labelGap;
@@ -54,16 +47,16 @@ export function renderInputPortLabel(absX: number, absY: number, label: string, 
   const descY = description ? absY + 12 : 0;
 
   const parts: string[] = [];
-  parts.push(`<text class="ldl-label ldl-name" x="${textX}" y="${nameY}" text-anchor="end" fill="${NAME_FILL}" font-size="12" font-family="sans-serif" font-weight="500">${esc(displayName)}</text>`);
+  parts.push(`<text class="ldl-label ldl-name" x="${textX}" y="${nameY}" text-anchor="end" fill="${theme.nameFill}" font-size="12" font-family="sans-serif" font-weight="500">${esc(displayName)}</text>`);
   if (description) {
-    parts.push(`<text class="ldl-label ldl-description" x="${textX}" y="${descY}" text-anchor="end" fill="${DESC_FILL}" font-size="9" font-family="sans-serif">${esc(description)}</text>`);
+    parts.push(`<text class="ldl-label ldl-description" x="${textX}" y="${descY}" text-anchor="end" fill="${theme.descFill}" font-size="9" font-family="sans-serif">${esc(description)}</text>`);
   }
-  parts.push(`<text class="ldl-id" x="${absX - labelGap}" y="${absY - PORT_SIZE / 2 - 4}" text-anchor="end" fill="${ID_FILL}" font-size="10" font-family="sans-serif" font-weight="600">${esc(label)}</text>`);
+  parts.push(`<text class="ldl-id" x="${absX - labelGap}" y="${absY - PORT_SIZE / 2 - 4}" text-anchor="end" fill="${theme.idFill}" font-size="10" font-family="sans-serif" font-weight="600">${esc(label)}</text>`);
 
   return parts.join('\n');
 }
 
-export function renderOutputPortLabel(absX: number, absY: number, label: string, name?: string, description?: string): string {
+export function renderOutputPortLabel(absX: number, absY: number, label: string, theme: DiagramTheme, name?: string, description?: string): string {
   const displayName = name || label;
   const labelGap = 6;
   const textX = absX + labelGap;
@@ -71,11 +64,11 @@ export function renderOutputPortLabel(absX: number, absY: number, label: string,
   const descY = description ? absY + 12 : 0;
 
   const parts: string[] = [];
-  parts.push(`<text class="ldl-label ldl-name" x="${textX}" y="${nameY}" text-anchor="start" fill="${NAME_OUT_FILL}" font-size="12" font-family="sans-serif" font-weight="600">${esc(displayName)}</text>`);
+  parts.push(`<text class="ldl-label ldl-name" x="${textX}" y="${nameY}" text-anchor="start" fill="${theme.nameOutFill}" font-size="12" font-family="sans-serif" font-weight="600">${esc(displayName)}</text>`);
   if (description) {
-    parts.push(`<text class="ldl-label ldl-description" x="${textX}" y="${descY}" text-anchor="start" fill="${DESC_FILL}" font-size="9" font-family="sans-serif">${esc(description)}</text>`);
+    parts.push(`<text class="ldl-label ldl-description" x="${textX}" y="${descY}" text-anchor="start" fill="${theme.descFill}" font-size="9" font-family="sans-serif">${esc(description)}</text>`);
   }
-  parts.push(`<text class="ldl-id" x="${absX + labelGap}" y="${absY - PORT_SIZE / 2 - 4}" text-anchor="start" fill="${ID_FILL}" font-size="10" font-family="sans-serif" font-weight="600">${esc(label)}</text>`);
+  parts.push(`<text class="ldl-id" x="${absX + labelGap}" y="${absY - PORT_SIZE / 2 - 4}" text-anchor="start" fill="${theme.idFill}" font-size="10" font-family="sans-serif" font-weight="600">${esc(label)}</text>`);
 
   return parts.join('\n');
 }

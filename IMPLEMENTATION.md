@@ -1,7 +1,7 @@
 # Implementation Status
 
 Spec version: 0.3.0-draft
-Last updated: 2026-06-15
+Last updated: 2026-06-17
 
 ## Legend
 
@@ -33,6 +33,7 @@ Last updated: 2026-06-15
 | `IMPORT TEMPLATE` | Missing | Parser discards data |
 | Hyperlinks (`.LINK`) | Missing | Not parsed or rendered |
 | Port-level style overrides | Missing | `styleMap` built in layout but never assigned to `LayoutPort.style` |
+| Common subexpression sharing | Done | Deduplication in `resolve()` for identical gate structures across outputs |
 
 ## Rendering
 
@@ -47,7 +48,7 @@ Last updated: 2026-06-15
 | Port labels (Name / Description) | Done | With mixed plain+math content |
 | ID labels | Done | |
 | Math rendering (TeX via MathJax v4) | Done | Inline SVG embedding with baseline alignment |
-| Wire routing | Done | Obstacle-aware with doglegs |
+| Wire routing | Done | A* pathfinding on 5px grid: obstacle avoidance (20% buffer), wrong-side entry penalty (30), wire-cross penalty (8), bend penalty (3), midpoint preference (0.15/cell), dogleg balancing, orthogonal-only paths |
 | Inversion bubbles | Done | Input-side and output-side |
 | Input bars (BARS mode) | Done | |
 | Layer visibility (labels/IDs toggle) | Done | |
@@ -73,6 +74,23 @@ Last updated: 2026-06-15
 | Parser tests | Done | 12 tests |
 | Renderer tests | Done | 9 tests |
 | Layout tests | Done | 17 tests |
-| Layout rule compliance tests | Done | 70 tests across all examples |
+| Layout rule compliance tests | Done | 83 tests (orthogonal segments, gate collision, grid alignment, BFI crossover) |
+| Layout rules tests | Done | 25+ tests (doglegs, backward wires, crossings, overlapping verticals) |
 | Math renderer tests | Done | 10 tests |
 | Visual (Playwright) tests | Done | |
+
+## A* Router Constants
+
+| Constant | Value | Purpose |
+|---|---|---|
+| CELL_SIZE | 5 | Grid resolution (all positions snap to 5px) |
+| BLOCKED_COST | 1e7 | Impassable cell (gate body + 20% buffer) |
+| WIRE_CROSS_COST | 8 | Penalty per cell overlapping a routed wire |
+| WRONG_SIDE_COST | 30 | Penalty for entering gate from right side |
+| BEND_PENALTY | 3 | Penalty for direction change in path |
+| MIDPOINT_COST_SCALE | 0.15 | Cost per cell-distance from midpoint column, nudges doglegs toward center |
+| GATE_BUFFER_RATIO | 0.2 | 20% buffer zone around gate bodies |
+
+Key files:
+- `src/renderer/astar-router.ts`: A* router, cost grid, orthogonalize(), balancePath()
+- `src/renderer/layout.ts`: Wire routing loop, grid-snapping pass, allObstacles

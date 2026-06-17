@@ -1,6 +1,7 @@
 import type { LogicNode, GateNode, PortNode, Diagram, DiagramOutput, PortMeta, RenderOptions } from '../parser/ast.js';
 import { DEFAULT_OPTIONS, resolveOptions } from '../parser/ast.js';
 import { hasMathContent } from './math-renderer.js';
+import { routeWireAStar, type GateObstacle, type RoutedSegment } from './astar-router.js';
 
 export interface LayoutPort {
   name: string;
@@ -47,41 +48,38 @@ export interface LayoutResult {
   height: number;
   options: RenderOptions;
 }
-
 const GATE_W = 60;
-const GATE_W_MULTI = 72;
-const AND_GATE_H_BASE = 44;
+const GATE_W_MULTI = 75;
+const AND_GATE_H_BASE = 45;
+const PORT_SPACING = 15;
 
 const NOT_TRIANGLE_W = 50;
 
-const BUBBLE_R = 4;
-const NOT_GATE_TOTAL_W = NOT_TRIANGLE_W + BUBBLE_R * 2 + 8;
-const NOT_GATE_H = 34;
+const BUBBLE_R = 5;
+const NOT_GATE_TOTAL_W = NOT_TRIANGLE_W + BUBBLE_R * 2 + 5;
+const NOT_GATE_H = 40;
 
 const INPUT_LABEL_W = 90;
 const OUTPUT_LABEL_W = 90;
-const INPUT_STUB = 8;
-const OUTPUT_STUB = 8;
+const INPUT_STUB = 10;
+const OUTPUT_STUB = 10;
 const PORT_SIZE = 5;
 
-const COL_SPACING = 220;
+const COL_SPACING = 260;
 const ROW_SPACING = 80;
 const PAD_X = 170;
+
 const PAD_Y = 50;
 
-const MIN_PORT_GAP = 22;
+const MIN_PORT_GAP = 25;
 const MIN_DOGLEG = 30;
-const BUBBLE_STUB = 6;
-const OR_LEFT_EDGE_MAX_RATIO = 0.18;
+const MIN_WIRE_SPACING = 10;
+const MIN_CHANNEL_SPACING = 20;
+const WIRE_PAD = MIN_WIRE_SPACING / 2;
+const BUBBLE_STUB = 5;
+const GRID = 5;
 
 let _id = 0;
-
-function orLeftEdgeOffset(y: number, h: number): number {
-  if (h <= 0) return 0;
-  const t = 1 - y / h;
-  const p0x = 0, p1x = OR_LEFT_EDGE_MAX_RATIO, p2x = OR_LEFT_EDGE_MAX_RATIO, p3x = 0;
-  return (1 - t) ** 3 * p0x + 3 * (1 - t) ** 2 * t * p1x + 3 * (1 - t) * t ** 2 * p2x + t ** 3 * p3x;
-}
 function uid(prefix: string): string { return `${prefix}_${++_id}`; }
 
 function naturalCompare(a: string, b: string): number {
@@ -160,6 +158,7 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
 
   const nodes = new Map<string, FlatNode>();
   const inputMap = new Map<string, string>();
+  const exprMap = new Map<string, string>();
 
   function resolve(node: LogicNode): string {
     if (node.kind === 'port') {
@@ -184,13 +183,22 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
       return id;
     }
     if (node.kind === 'gate') {
-      const id = uid(node.gateType.toLowerCase());
       const inputIds = node.inputs.map(i => resolve(i));
+      // Canonical key for deduplication: sort inputs for commutative operators
+      const keyInputIds = (node.gateType === 'AND' || node.gateType === 'OR')
+        ? [...inputIds].sort()
+        : inputIds;
+      const key = `${node.gateType}(${keyInputIds.join(',')})`;
+      const existing = exprMap.get(key);
+      if (existing) return existing;
+
+      const id = uid(node.gateType.toLowerCase());
       const depth = Math.max(...inputIds.map(iid => nodes.get(iid)?.depth ?? 0), 0) + 1;
       nodes.set(id, {
         id, kind: 'gate', gateType: node.gateType,
         depth, inputIds,
       });
+      exprMap.set(key, id);
       return id;
     }
     return uid('unknown');
@@ -319,6 +327,23 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     }
   }
 
+  // Push outputs to a higher depth if they share a column with any gate node.
+  // This prevents wires from passing through intermediate gate bodies when an
+  // output's depth column coincides with a gate's (e.g. when a shared subexpression
+  // feeds both a multi-input gate and a direct output).
+  {
+    const maxCheckDepth = Math.max(...Array.from(nodes.values()).map(n => n.depth), 0) + 5;
+    for (let depth = 0; depth <= maxCheckDepth; depth++) {
+      const hasGate = Array.from(nodes.values()).some(n => n.kind === 'gate' && n.depth === depth);
+      if (!hasGate) continue;
+      for (const node of nodes.values()) {
+        if (node.kind === 'output' && node.depth === depth) {
+          node.depth++;
+        }
+      }
+    }
+  }
+
   const rowMap = new Map<string, number>();
 
   const depthGroups = new Map<number, FlatNode[]>();
@@ -408,9 +433,10 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
 
     if (node.kind === 'input') {
       w = INPUT_LABEL_W;
-      h = node.description ? 28 : 20;
-      if (node.name && hasMathContent(node.name)) h = Math.max(h, 28);
-      if (node.description && hasMathContent(node.description)) h = Math.max(h, 32);
+      h = node.description ? 30 : 20;
+      if (node.name && hasMathContent(node.name)) h = Math.max(h, 30);
+      if (node.description && hasMathContent(node.description)) h = Math.max(h, 30);
+      h = Math.ceil(h / 10) * 10;
       const outX = absX + w + INPUT_STUB;
       const outY = absY + h / 2;
 
@@ -425,9 +451,10 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
       nodeMap.set(node.id, ln);
     } else if (node.kind === 'output') {
       w = OUTPUT_LABEL_W;
-      h = node.description ? 28 : 20;
-      if (node.name && hasMathContent(node.name)) h = Math.max(h, 28);
-      if (node.description && hasMathContent(node.description)) h = Math.max(h, 32);
+      h = node.description ? 30 : 20;
+      if (node.name && hasMathContent(node.name)) h = Math.max(h, 30);
+      if (node.description && hasMathContent(node.description)) h = Math.max(h, 30);
+      h = Math.ceil(h / 10) * 10;
       let inX = absX;
       const inY = absY + h / 2;
       let bubbledInput = false;
@@ -469,14 +496,13 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
         h = AND_GATE_H_BASE;
         w = isMultiInput ? GATE_W_MULTI : GATE_W;
       } else {
-        h = Math.max(AND_GATE_H_BASE, numInputs * 22 + 8);
+        h = Math.max(AND_GATE_H_BASE, (numInputs + 1) * PORT_SPACING);
         w = isMultiInput ? GATE_W_MULTI : GATE_W;
       }
 
       const inputs: LayoutPort[] = [];
       if (useBars) {
-        // BARS mode: first 2 inputs on gate body, rest via vertical bar
-        const portSpacing = h / 3;
+        const portSpacing = Math.round(h / 3 / GRID) * GRID;
         for (let i = 0; i < Math.min(2, numInputs); i++) {
           const portY = absY + (i + 1) * portSpacing;
           inputs.push({ name: `in_${i}`, absX: absX, absY: portY });
@@ -484,17 +510,13 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
         for (let i = 2; i < numInputs; i++) {
           const spacing = (h - 2 * AND_GATE_H_BASE / 3) / (numInputs - 1);
           const portY = absY + AND_GATE_H_BASE / 3 + (i - 2) * Math.min(spacing, MIN_PORT_GAP);
-          inputs.push({ name: `in_${i}`, absX: absX - 12, absY: portY });
+          const snappedY = Math.round(portY / GRID) * GRID;
+          inputs.push({ name: `in_${i}`, absX: absX - 10, absY: snappedY });
         }
 } else {
       for (let i = 0; i < numInputs; i++) {
-        const portY = absY + (i + 1) * h / (numInputs + 1);
-        let portX = absX;
-        // OR gates have a curved left edge; offset input ports to touch the curve
-        if (node.gateType === 'OR') {
-          portX = absX + orLeftEdgeOffset(portY - absY, h) * w;
-        }
-        inputs.push({ name: `in_${i}`, absX: portX, absY: portY });
+        const portY = absY + (i + 1) * PORT_SPACING;
+        inputs.push({ name: `in_${i}`, absX: absX, absY: portY });
       }
     }
 
@@ -515,7 +537,7 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
         if (m.property === 'Style') styleMap.set(m.identifier, m.value.toUpperCase() as 'CIRCLE' | 'SQUARE');
       }
 
-      const gateCenterY = absY + h / 2;
+      const gateCenterY = Math.round((absY + h / 2) / GRID) * GRID;
       const outputs: LayoutPort[] = [{ name: 'out', absX: absX + w, absY: gateCenterY }];
 
       // Mark bubbled output (BUBBLES mode) and shift output port right for bubble
@@ -548,7 +570,7 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
 
       const inputBottom = inputNode.absY + inputNode.height;
       if (inputBottom > gateTop && inputNode.absY < gateBottom && inputNode.absY < gateTop + 5) {
-        const shift = inputBottom - gateTop + 5;
+        const shift = Math.round((inputBottom - gateTop + 5) / GRID) * GRID;
         gateNode.absY += shift;
         for (const port of gateNode.inputs) port.absY += shift;
         for (const port of gateNode.outputs) port.absY += shift;
@@ -563,12 +585,12 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     const sourceId = node.inputIds[0];
     const sourceNode = nodeMap.get(sourceId);
     if (!sourceNode || sourceNode.outputs.length === 0) continue;
-    const sourceOutputY = sourceNode.outputs[0].absY;
+    const sourceOutputY = Math.round(sourceNode.outputs[0].absY / GRID) * GRID;
     const offsetY = sourceOutputY - gateNode.inputs[0].absY;
-    gateNode.absY += offsetY;
+    gateNode.absY = Math.round((gateNode.absY + offsetY) / GRID) * GRID;
     gateNode.inputs[0].absY = sourceOutputY;
     if (gateNode.outputs.length > 0) {
-      gateNode.outputs[0].absY += offsetY;
+      gateNode.outputs[0].absY = Math.round((gateNode.absY + gateNode.height / 2) / GRID) * GRID;
     }
   }
 
@@ -579,9 +601,9 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     const sourceId = node.inputIds[0];
     const sourceNode = nodeMap.get(sourceId);
     if (!sourceNode || sourceNode.outputs.length === 0) continue;
-    const sourceOutputY = sourceNode.outputs[0].absY;
+    const sourceOutputY = Math.round(sourceNode.outputs[0].absY / GRID) * GRID;
     outputNode.inputs[0].absY = sourceOutputY;
-    outputNode.absY = sourceOutputY - outputNode.height / 2;
+    outputNode.absY = Math.round((sourceOutputY - outputNode.height / 2) / GRID) * GRID;
   }
 
   for (const node of nodes.values()) {
@@ -614,13 +636,13 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
 
     const maxExpansion = MIN_PORT_GAP * gateNode.inputs.length;
     if (requiredHeight <= gateNode.height + maxExpansion) {
-      gateNode.absY = requiredTop;
-      gateNode.height = Math.max(gateNode.height, requiredHeight);
+      gateNode.absY = Math.round(requiredTop / GRID) * GRID;
+      gateNode.height = Math.ceil(requiredHeight / GRID) * GRID;
       for (let i = 0; i < indexed.length && i < gateNode.inputs.length; i++) {
-        gateNode.inputs[i].absY = idealYs[i];
+        gateNode.inputs[i].absY = Math.round(idealYs[i] / GRID) * GRID;
       }
       if (gateNode.outputs.length > 0) {
-        gateNode.outputs[0].absY = gateNode.absY + gateNode.height / 2;
+        gateNode.outputs[0].absY = Math.round((gateNode.absY + gateNode.height / 2) / GRID) * GRID;
       }
     }
   }
@@ -663,7 +685,7 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
 
     let bestDelta = 0;
     let bestScore = smallDoglegScore(0);
-    for (let delta = -MIN_DOGLEG; delta <= MIN_DOGLEG; delta += 0.5) {
+    for (let delta = -MIN_DOGLEG; delta <= MIN_DOGLEG; delta += GRID) {
       const score = smallDoglegScore(delta);
       if (score < bestScore || (score === bestScore && Math.abs(delta) < Math.abs(bestDelta))) {
         bestScore = score;
@@ -671,7 +693,7 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
       }
     }
 
-    if (Math.abs(bestDelta) >= 0.5) {
+    if (Math.abs(bestDelta) >= GRID) {
       gateNode.absY += bestDelta;
       for (const port of gateNode.inputs) {
         port.absY += bestDelta;
@@ -726,32 +748,29 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
 
     const maxExpansion = MIN_DOGLEG * gateNode.inputs.length;
     if (requiredHeight <= gateNode.height + maxExpansion) {
-      gateNode.absY = requiredTop;
-      gateNode.height = Math.max(gateNode.height, requiredHeight);
+      gateNode.absY = Math.round(requiredTop / GRID) * GRID;
+      gateNode.height = Math.ceil(requiredHeight / GRID) * GRID;
       for (let i = 0; i < indexed.length && i < gateNode.inputs.length; i++) {
-        gateNode.inputs[i].absY = idealYs[i];
+        gateNode.inputs[i].absY = Math.round(idealYs[i] / GRID) * GRID;
       }
       if (gateNode.outputs.length > 0) {
-        gateNode.outputs[0].absY = gateNode.absY + gateNode.height / 2;
+        gateNode.outputs[0].absY = Math.round((gateNode.absY + gateNode.height / 2) / GRID) * GRID;
       }
     } else {
-      // Cannot expand enough. For each port with a small dogleg, snap to source Y
-      // if it doesn't violate MIN_PORT_GAP with neighbours.
       const currentYs = gateNode.inputs.map(p => p.absY);
       for (let i = 0; i < sourceYs.length && i < gateNode.inputs.length; i++) {
         const diff = Math.abs(sourceYs[i] - currentYs[i]);
         if (diff >= 1 && diff < MIN_DOGLEG) {
-          const candidateY = sourceYs[i];
+          const candidateY = Math.round(sourceYs[i] / GRID) * GRID;
           const prevY = i > 0 ? gateNode.inputs[i - 1].absY : gateNode.absY;
           const nextY = i < gateNode.inputs.length - 1 ? gateNode.inputs[i + 1].absY : gateNode.absY + gateNode.height;
           if (candidateY - prevY >= MIN_PORT_GAP && nextY - candidateY >= MIN_PORT_GAP) {
             gateNode.inputs[i].absY = candidateY;
           } else {
-            // Snap to MIN_DOGLEG away from source
             if (candidateY > currentYs[i]) {
-              gateNode.inputs[i].absY = sourceYs[i] + MIN_DOGLEG;
+              gateNode.inputs[i].absY = Math.round((sourceYs[i] + MIN_DOGLEG) / GRID) * GRID;
             } else {
-              gateNode.inputs[i].absY = sourceYs[i] - MIN_DOGLEG;
+              gateNode.inputs[i].absY = Math.round((sourceYs[i] - MIN_DOGLEG) / GRID) * GRID;
             }
           }
         }
@@ -767,24 +786,131 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     const sourceId = node.inputIds[0];
     const sourceNode = nodeMap.get(sourceId);
     if (!sourceNode || sourceNode.outputs.length === 0) continue;
-    const sourceOutputY = sourceNode.outputs[0].absY;
+    const sourceOutputY = Math.round(sourceNode.outputs[0].absY / GRID) * GRID;
     outputNode.inputs[0].absY = sourceOutputY;
-    outputNode.absY = sourceOutputY - outputNode.height / 2;
+    outputNode.absY = Math.round((sourceOutputY - outputNode.height / 2) / GRID) * GRID;
+  }
+
+  // Resolve gate-gate overlaps at the same depth column by pushing the lower
+  // gate down so their bounding boxes no longer intersect.
+  for (let pass = 0; pass < 5; pass++) {
+    let anyOverlap = false;
+    // Gates vs gates
+    for (let i = 0; i < layoutNodes.length; i++) {
+      const a = layoutNodes[i];
+      if (a.gateType === 'INPUT' || a.gateType === 'OUTPUT') continue;
+      for (let j = i + 1; j < layoutNodes.length; j++) {
+        const b = layoutNodes[j];
+        if (b.gateType === 'INPUT' || b.gateType === 'OUTPUT') continue;
+        if (a.depth !== b.depth) continue;
+        const xOverlap = Math.min(a.absX + a.width, b.absX + b.width) - Math.max(a.absX, b.absX);
+        if (xOverlap <= 0) continue;
+        const yOverlap = Math.min(a.absY + a.height, b.absY + b.height) - Math.max(a.absY, b.absY);
+        if (yOverlap <= 0) continue;
+        const shift = Math.round((yOverlap + MIN_PORT_GAP) / GRID) * GRID;
+        if (a.absY < b.absY) {
+          b.absY += shift;
+          for (const port of b.inputs) port.absY += shift;
+          for (const port of b.outputs) port.absY += shift;
+        } else {
+          a.absY += shift;
+          for (const port of a.inputs) port.absY += shift;
+          for (const port of a.outputs) port.absY += shift;
+        }
+        anyOverlap = true;
+      }
+    }
+    // Gates vs outputs
+    for (const node of layoutNodes) {
+      if (node.gateType === 'INPUT') continue;
+      if (node.gateType !== 'OUTPUT') continue;
+      for (const gate of layoutNodes) {
+        if (gate.gateType === 'INPUT' || gate.gateType === 'OUTPUT') continue;
+        if (node.depth !== gate.depth) continue;
+        const xOverlap = Math.min(node.absX + node.width, gate.absX + gate.width) - Math.max(node.absX, gate.absX);
+        if (xOverlap <= 0) continue;
+        const yOverlap = Math.min(node.absY + node.height, gate.absY + gate.height) - Math.max(node.absY, gate.absY);
+        if (yOverlap <= 0) continue;
+        const shift = Math.round((yOverlap + MIN_PORT_GAP) / GRID) * GRID;
+        if (gate.absY < node.absY) {
+          node.absY += shift;
+          node.inputs[0].absY += shift;
+        } else {
+          gate.absY += shift;
+          for (const port of gate.inputs) port.absY += shift;
+          for (const port of gate.outputs) port.absY += shift;
+        }
+        anyOverlap = true;
+      }
+    }
+    if (!anyOverlap) break;
+  }
+
+  // Re-align output nodes after gate collision resolution
+  for (const node of nodes.values()) {
+    if (node.kind !== 'output') continue;
+    const outputNode = nodeMap.get(node.id);
+    if (!outputNode || node.inputIds.length === 0) continue;
+    const sourceId = node.inputIds[0];
+    const sourceNode = nodeMap.get(sourceId);
+    if (!sourceNode || sourceNode.outputs.length === 0) continue;
+    const sourceOutputY = Math.round(sourceNode.outputs[0].absY / GRID) * GRID;
+    outputNode.inputs[0].absY = sourceOutputY;
+    outputNode.absY = Math.round((sourceOutputY - outputNode.height / 2) / GRID) * GRID;
+  }
+
+  // Resolve output-vs-output overlaps at the same depth column.
+  // Two outputs in the same column can overlap in Y because their source
+  // gate output ports are close together. Push the lower output down.
+  for (let pass = 0; pass < 5; pass++) {
+    let anyOverlap = false;
+    const outputNodes = layoutNodes.filter(n => n.gateType === 'OUTPUT');
+    for (let i = 0; i < outputNodes.length; i++) {
+      for (let j = i + 1; j < outputNodes.length; j++) {
+        const a = outputNodes[i], b = outputNodes[j];
+        if (a.depth !== b.depth) continue;
+        const xOverlap = Math.min(a.absX + a.width, b.absX + b.width) - Math.max(a.absX, b.absX);
+        if (xOverlap <= 0) continue;
+        const yOverlap = Math.min(a.absY + a.height, b.absY + b.height) - Math.max(a.absY, b.absY);
+        if (yOverlap <= 0) continue;
+        const shift = Math.round((yOverlap + MIN_PORT_GAP) / GRID) * GRID;
+        if (a.absY < b.absY) {
+          b.absY += shift;
+          b.inputs[0].absY += shift;
+        } else {
+          a.absY += shift;
+          a.inputs[0].absY += shift;
+        }
+        anyOverlap = true;
+      }
+    }
+    if (!anyOverlap) break;
   }
 
   const wires: LayoutWire[] = [];
   const junctions: LayoutJunction[] = [];
-  const fanOutMap = new Map<string, { x: number; y: number; count: number }>();
+  const junctionSet = new Set<string>();
 
-  const gateRects = layoutNodes
-    .filter(n => n.gateType !== 'INPUT' && n.gateType !== 'OUTPUT')
-    .map(n => ({ x: n.absX, y: n.absY, w: n.width, h: n.height, id: n.id }));
+  function addJunction(x: number, y: number) {
+    const key = `${Math.round(x / GRID) * GRID},${Math.round(y / GRID) * GRID}`;
+    if (!junctionSet.has(key)) {
+      junctionSet.add(key);
+      junctions.push({ x: Math.round(x / GRID) * GRID, y: Math.round(y / GRID) * GRID });
+    }
+  }
 
-  // Track previously-routed wire segments for crossing avoidance
-  const routedHorizontals: { y: number; xMin: number; xMax: number; fromId: string }[] = [];
-  const routedVerticals: { x: number; yMin: number; yMax: number; fromId: string }[] = [];
+  const allObstacles: GateObstacle[] = layoutNodes.map(n => ({ x: n.absX, y: n.absY, w: n.width, h: n.height, id: n.id }));
 
-  for (const node of nodes.values()) {
+  const routedSegments: RoutedSegment[] = [];
+
+  const canvasW = Math.max(...layoutNodes.map(n => n.absX + n.width), ...layoutNodes.map(n => n.outputs[0]?.absX ?? n.absX + n.width)) + 200;
+  const canvasH = Math.max(...layoutNodes.map(n => n.absY + n.height)) + 200;
+
+  // Build fan-out groups: destinations per source
+  const fanOutGroups = new Map<string, { toId: string; toPort: LayoutPort; toLayoutNode: LayoutNode; destIsGate: boolean }[]>();
+
+  const wireRoutingOrder = Array.from(nodes.values()).sort((a, b) => a.depth - b.depth);
+  for (const node of wireRoutingOrder) {
     if (node.inputIds.length === 0) continue;
     const toLayoutNode = nodeMap.get(node.id);
     if (!toLayoutNode) continue;
@@ -804,108 +930,152 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
       }
     }
 
-    const wireData: { fromId: string; fx: number; fy: number; tx: number; ty: number }[] = [];
     for (let i = 0; i < sortedInputIds.length; i++) {
       const fromId = sortedInputIds[i];
-      const fromLayoutNode = nodeMap.get(fromId);
-      if (!fromLayoutNode) continue;
-
-      const fromPort = fromLayoutNode.outputs[0];
-      if (!fromPort) continue;
-
       const toPortIdx = Math.min(i, toLayoutNode.inputs.length - 1);
       const toPort = toLayoutNode.inputs[toPortIdx];
       if (!toPort) continue;
+      const destIsGate = node.kind === 'gate';
 
-      wireData.push({ fromId, fx: fromPort.absX, fy: fromPort.absY, tx: toPort.absX, ty: toPort.absY });
-    }
-
-    const aboveWires = wireData.filter(w => w.fy < toLayoutNode.absY);
-    const belowWires = wireData.filter(w => w.fy >= toLayoutNode.absY);
-    const mixedSides = aboveWires.length > 0 && belowWires.length > 0;
-
-    function verticalSpansOverlap(wires: { fy: number; ty: number }[]): boolean {
-      if (wires.length <= 1) return false;
-      const spans = wires.map(w => ({ min: Math.min(w.fy, w.ty), max: Math.max(w.fy, w.ty) }));
-      for (let i = 0; i < spans.length; i++) {
-        for (let j = i + 1; j < spans.length; j++) {
-          const overlapStart = Math.max(spans[i].min, spans[j].min);
-          const overlapEnd = Math.min(spans[i].max, spans[j].max);
-          if (overlapEnd - overlapStart > 5) return true;
-        }
+      if (!fanOutGroups.has(fromId)) {
+        fanOutGroups.set(fromId, []);
       }
-      return false;
+      fanOutGroups.get(fromId)!.push({ toId: node.id, toPort, toLayoutNode, destIsGate });
     }
+  }
 
-    const allOverlap = verticalSpansOverlap(wireData);
-    const channelXAll = wireData.length > 1 && !allOverlap ? computeSharedChannel(wireData, gateRects, toLayoutNode) : undefined;
+  // Route wires: fan-out groups with shared trunks, single destinations normally
+  for (const [fromId, destinations] of fanOutGroups) {
+    const fromLayoutNode = nodeMap.get(fromId);
+    if (!fromLayoutNode || !fromLayoutNode.outputs[0]) continue;
+    const fromPort = fromLayoutNode.outputs[0];
+    const fx = fromPort.absX;
+    const fy = fromPort.absY;
 
-    const aboveOverlap = verticalSpansOverlap(aboveWires);
-    const belowOverlap = verticalSpansOverlap(belowWires);
-    const channelXAbove = aboveWires.length > 1 && !aboveOverlap ? computeSharedChannel(aboveWires, gateRects, toLayoutNode) : undefined;
-    const channelXBelow = belowWires.length > 1 && !belowOverlap ? computeSharedChannel(belowWires, gateRects, toLayoutNode) : undefined;
+    if (destinations.length >= 2) {
+      // Fan-out: route shared trunk then branches
+      destinations.sort((a, b) => a.toPort.absY - b.toPort.absY);
 
-    for (let i = 0; i < wireData.length; i++) {
-      const { fromId, fx, fy, tx, ty } = wireData[i];
+      // Compute branch X: midpoint between source column and closest destination column
+      const minDestX = Math.min(...destinations.map(d => d.toPort.absX));
+      const branchX = Math.round((fx + minDestX) / 2 / GRID) * GRID;
 
-      let channelX: number | undefined;
-      if (channelXAll !== undefined) {
-        channelX = channelXAll;
-      } else if (mixedSides) {
-        if (fy < toLayoutNode.absY) {
-          channelX = channelXAbove;
+      // Route trunk: simple horizontal from source to branch point
+      const trunkPoints: { x: number; y: number }[] = [
+        { x: fx, y: fy },
+        { x: branchX, y: fy },
+      ];
+      routedSegments.push({ points: trunkPoints, fromId });
+
+      // For each destination, route a branch from (branchX, fy) to destination
+      for (let di = 0; di < destinations.length; di++) {
+        const dest = destinations[di];
+        const tx = dest.toPort.absX;
+        const ty = dest.toPort.absY;
+        const destIsGate = dest.destIsGate;
+
+        // If source and destination are at the same Y, route directly (no dogleg needed)
+        if (Math.abs(fy - ty) < 1) {
+          const directPoints = routeWireAStar(
+            fx, fy, tx, ty,
+            allObstacles,
+            fromLayoutNode.absX, fromLayoutNode.absY,
+            fromLayoutNode.width, fromLayoutNode.height,
+            dest.toLayoutNode.absX, dest.toLayoutNode.absY,
+            dest.toLayoutNode.width, dest.toLayoutNode.height,
+            destIsGate,
+            routedSegments,
+            canvasW, canvasH,
+            fromId,
+          );
+          routedSegments.push({ points: directPoints, fromId });
+          wires.push({
+            id: uid('wire'),
+            points: directPoints,
+            fromId,
+            toId: dest.toId,
+          });
+          // Also add trunk segment for this fan-out wire so it shares the trunk visually
+          // The trunk goes from source to branchX at source Y
+          if (destinations.length > 1) {
+            addJunction(branchX, fy);
+          }
+          continue;
+        }
+
+        const branchPoints = routeWireAStar(
+          branchX, fy, tx, ty,
+          allObstacles,
+          fromLayoutNode.absX, fromLayoutNode.absY,
+          fromLayoutNode.width, fromLayoutNode.height,
+          dest.toLayoutNode.absX, dest.toLayoutNode.absY,
+          dest.toLayoutNode.width, dest.toLayoutNode.height,
+          destIsGate,
+          routedSegments,
+          canvasW, canvasH,
+          fromId,
+        );
+
+        routedSegments.push({ points: branchPoints, fromId });
+
+        // Combine trunk + branch, inserting correction point at junction if needed
+        // to ensure orthogonality between the horizontal trunk and the branch's first segment
+        let combinedPoints: { x: number; y: number }[];
+        if (branchPoints.length >= 2 && Math.abs(branchPoints[1].y - fy) >= 1) {
+          // Branch goes vertical after the junction: insert an L-shaped correction
+          // trunk: (..., branchX, fy) -> (branchX, branchNext.y) if vertical, or
+          // trunk: (..., branchX, fy) -> (branchNext.x, fy) -> (branchNext.x, branchNext.y) if horizontal first
+          const branchNext = branchPoints[1];
+          if (Math.abs(branchNext.x - branchX) >= 1) {
+            // Branch first segment goes at an angle — insert correction
+            // Go horizontal to branchNext.x, then connect to rest of branch
+            combinedPoints = [...trunkPoints, { x: branchNext.x, y: fy }, ...branchPoints.slice(1)];
+          } else {
+            // Branch goes purely vertical from branch point — direct connection
+            combinedPoints = [...trunkPoints, ...branchPoints.slice(1)];
+          }
         } else {
-          channelX = channelXBelow;
+          // Branch starts horizontal or is a straight line — direct connection
+          combinedPoints = [...trunkPoints, ...branchPoints.slice(1)];
         }
-      } else {
-        channelX = channelXAbove ?? channelXBelow;
+
+        wires.push({
+          id: uid('wire'),
+          points: combinedPoints,
+          fromId,
+          toId: dest.toId,
+        });
       }
 
-      if (channelX === undefined) {
-        channelX = computeIndividualChannel(fx, fy, tx, ty, i, wireData.length, gateRects);
-      }
+      // Junction dot at the branch point
+      addJunction(branchX, fy);
+    } else {
+      // Single destination: route normally
+      const dest = destinations[0];
+      const tx = dest.toPort.absX;
+      const ty = dest.toPort.absY;
 
-      const fanKey = fromId;
-      if (!fanOutMap.has(fanKey)) {
-        fanOutMap.set(fanKey, { x: fx, y: fy, count: 0 });
-      }
-      fanOutMap.get(fanKey)!.count++;
+      const points = routeWireAStar(
+        fx, fy, tx, ty,
+        allObstacles,
+        fromLayoutNode.absX, fromLayoutNode.absY,
+        fromLayoutNode.width, fromLayoutNode.height,
+        dest.toLayoutNode.absX, dest.toLayoutNode.absY,
+        dest.toLayoutNode.width, dest.toLayoutNode.height,
+        dest.destIsGate,
+        routedSegments,
+        canvasW, canvasH,
+        fromId,
+      );
 
-      const points = routeWire(fx, fy, tx, ty, gateRects, fromId, node.id, channelX, routedHorizontals, routedVerticals);
-
-      // Record segments for crossing avoidance by subsequent wires
-      for (let si = 0; si < points.length - 1; si++) {
-        const p0 = points[si], p1 = points[si + 1];
-        if (Math.abs(p0.y - p1.y) < 1) {
-          routedHorizontals.push({ y: p0.y, xMin: Math.min(p0.x, p1.x), xMax: Math.max(p0.x, p1.x), fromId });
-        } else if (Math.abs(p0.x - p1.x) < 1) {
-          routedVerticals.push({ x: p0.x, yMin: Math.min(p0.y, p1.y), yMax: Math.max(p0.y, p1.y), fromId });
-        }
-      }
+      routedSegments.push({ points, fromId });
 
       wires.push({
         id: uid('wire'),
         points,
         fromId,
-        toId: node.id,
+        toId: dest.toId,
       });
-    }
-  }
-
-  for (const [, info] of fanOutMap) {
-    // Junction dots at source ports are added only if a T-branch is detected below
-  }
-
-  const junctionSet = new Set<string>();
-  for (const j of junctions) {
-    junctionSet.add(`${Math.round(j.x)},${Math.round(j.y)}`);
-  }
-
-  function addJunction(x: number, y: number) {
-    const key = `${Math.round(x)},${Math.round(y)}`;
-    if (!junctionSet.has(key)) {
-      junctionSet.add(key);
-      junctions.push({ x, y });
     }
   }
 
@@ -957,6 +1127,30 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     }
   }
 
+  // Snap all positions to the GRID so A* routing produces clean orthogonal paths
+  for (const n of layoutNodes) {
+    n.absX = Math.round(n.absX / GRID) * GRID;
+    n.absY = Math.round(n.absY / GRID) * GRID;
+    for (const p of n.inputs) {
+      p.absX = Math.round(p.absX / GRID) * GRID;
+      p.absY = Math.round(p.absY / GRID) * GRID;
+    }
+    for (const p of n.outputs) {
+      p.absX = Math.round(p.absX / GRID) * GRID;
+      p.absY = Math.round(p.absY / GRID) * GRID;
+    }
+  }
+  for (const w of wires) {
+    for (const p of w.points) {
+      p.x = Math.round(p.x / GRID) * GRID;
+      p.y = Math.round(p.y / GRID) * GRID;
+    }
+  }
+  for (const j of junctions) {
+    j.x = Math.round(j.x / GRID) * GRID;
+    j.y = Math.round(j.y / GRID) * GRID;
+  }
+
   const maxX = Math.max(...layoutNodes.map(n => n.absX + n.width), ...wires.flatMap(w => w.points.map(p => p.x)));
   const maxY = Math.max(...layoutNodes.map(n => n.absY + n.height), ...wires.flatMap(w => w.points.map(p => p.y)));
 
@@ -968,167 +1162,6 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     height: maxY,
     options: opts,
   };
-}
-
-function computeIndividualChannel(
-  fx: number, fy: number, tx: number, ty: number,
-  wireIndex: number, totalWires: number,
-  obstacles: { x: number; y: number; w: number; h: number; id: string }[],
-): number {
-  const midX = fx + (tx - fx) * 0.5;
-  const minChannelX = fx + 20;
-  const channelSpacing = 20;
-  const reversedIndex = totalWires - 1 - wireIndex;
-  const offset = (reversedIndex - (totalWires - 1) / 2) * channelSpacing;
-  return Math.max(minChannelX, midX + offset);
-}
-
-function computeSharedChannel(
-  wireData: { fx: number; fy: number; tx: number; ty: number }[],
-  obstacles: { x: number; y: number; w: number; h: number; id: string }[],
-  destNode: LayoutNode,
-): number | undefined {
-  if (wireData.length <= 1) return undefined;
-
-  const destX = destNode.absX;
-  let minX = Infinity;
-  let maxX = -Infinity;
-  for (const wd of wireData) {
-    minX = Math.min(minX, wd.fx, wd.tx);
-    maxX = Math.max(maxX, wd.fx, wd.tx);
-  }
-  const preferredX = (minX + maxX) / 2;
-  const minChannelX = Math.max(...wireData.map(wd => wd.fx + 20));
-
-  const yMin = Math.min(...wireData.map(wd => Math.min(wd.fy, wd.ty))) - 4;
-  const yMax = Math.max(...wireData.map(wd => Math.max(wd.fy, wd.ty))) + 4;
-
-  function hitsObstacle(testX: number): boolean {
-    for (const obs of obstacles) {
-      if (rectsOverlap(testX - 4, yMin, 8, yMax - yMin, obs.x, obs.y, obs.w, obs.h, 2)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  let channelX = Math.max(preferredX, minChannelX);
-  if (hitsObstacle(channelX)) {
-    for (let offset = 20; offset < 300; offset += 20) {
-      if (!hitsObstacle(channelX + offset)) { channelX = channelX + offset; break; }
-      if (!hitsObstacle(channelX - offset) && channelX - offset >= minChannelX) { channelX = channelX - offset; break; }
-    }
-  }
-
-  return channelX;
-}
-
-function channelHitsObstacle(testX: number, y1: number, y2: number, obs: { x: number; y: number; w: number; h: number; id: string }[]): boolean {
-  const yMin = Math.min(y1, y2) - 4;
-  const yMax = Math.max(y1, y2) + 4;
-  for (const o of obs) {
-    if (rectsOverlap(testX - 4, yMin, 8, yMax - yMin, o.x, o.y, o.w, o.h, 2)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function routeWire(
-  fx: number, fy: number,
-  tx: number, ty: number,
-  obstacles: { x: number; y: number; w: number; h: number; id: string }[],
-  fromId: string,
-  toId: string,
-  sharedChannelX: number | undefined = undefined,
-  routedHorizontals: { y: number; xMin: number; xMax: number; fromId: string }[] = [],
-  routedVerticals: { x: number; yMin: number; yMax: number; fromId: string }[] = [],
-): { x: number; y: number }[] {
-
-  const dy = Math.abs(fy - ty);
-
-  if (dy < 1) {
-    return [{ x: fx, y: fy }, { x: tx, y: ty }];
-  }
-
-  function horizontalCrossesVertical(y: number, xMin: number, xMax: number, vertFromId: string): boolean {
-    for (const v of routedVerticals) {
-      if (v.fromId === vertFromId) continue;
-      if (y >= v.yMin - 1 && y <= v.yMax + 1 && v.x >= xMin - 1 && v.x <= xMax + 1) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  function verticalCrossesHorizontal(x: number, yMin: number, yMax: number, vertFromId: string): boolean {
-    for (const h of routedHorizontals) {
-      if (h.fromId === vertFromId) continue;
-      if (x >= h.xMin - 1 && x <= h.xMax + 1 && h.y >= yMin - 1 && h.y <= yMax + 1) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  function channelClear(testX: number, y1: number, y2: number): boolean {
-    const yMin = Math.min(y1, y2);
-    const yMax = Math.max(y1, y2);
-    if (!channelHitsObstacle(testX, y1, y2, obstacles)) {
-      if (verticalCrossesHorizontal(testX, yMin - 4, yMax + 4, fromId)) {
-        return false;
-      }
-      return true;
-    }
-    return false;
-  }
-
-  if (sharedChannelX !== undefined) {
-    if (channelClear(sharedChannelX, fy, ty)) {
-      const hCrossesStart = horizontalCrossesVertical(fy, Math.min(fx, sharedChannelX), Math.max(fx, sharedChannelX), fromId);
-      const hCrossesEnd = horizontalCrossesVertical(ty, Math.min(sharedChannelX, tx), Math.max(sharedChannelX, tx), fromId);
-      if (!hCrossesStart && !hCrossesEnd) {
-        return [{ x: fx, y: fy }, { x: sharedChannelX, y: fy }, { x: sharedChannelX, y: ty }, { x: tx, y: ty }];
-      }
-    }
-  }
-
-  const midX = fx + (tx - fx) * 0.5;
-  const minChannelX = fx + 20;
-
-  let preferredChannelX = Math.max(midX, minChannelX);
-
-  if (channelClear(preferredChannelX, fy, ty)) {
-    const hCrossesStart = horizontalCrossesVertical(fy, Math.min(fx, preferredChannelX), Math.max(fx, preferredChannelX), fromId);
-    const hCrossesEnd = horizontalCrossesVertical(ty, Math.min(preferredChannelX, tx), Math.max(preferredChannelX, tx), fromId);
-    if (!hCrossesStart && !hCrossesEnd) {
-      return [{ x: fx, y: fy }, { x: preferredChannelX, y: fy }, { x: preferredChannelX, y: ty }, { x: tx, y: ty }];
-    }
-  }
-
-  const searchOrder: number[] = [];
-
-  const betweenTop = Math.min(fx, tx) + 20;
-  const betweenBot = Math.max(fx, tx);
-  for (let x = betweenTop; x <= betweenBot; x += 20) {
-    searchOrder.push(x);
-  }
-  for (let x = betweenBot + 20; x <= betweenBot + 300; x += 20) {
-    searchOrder.push(x);
-  }
-
-  for (const testX of searchOrder) {
-    if (testX < minChannelX) continue;
-    if (channelClear(testX, fy, ty)) {
-      const hCrossesStart = horizontalCrossesVertical(fy, Math.min(fx, testX), Math.max(fx, testX), fromId);
-      const hCrossesEnd = horizontalCrossesVertical(ty, Math.min(testX, tx), Math.max(testX, tx), fromId);
-      if (!hCrossesStart && !hCrossesEnd) {
-        return [{ x: fx, y: fy }, { x: testX, y: fy }, { x: testX, y: ty }, { x: tx, y: ty }];
-      }
-    }
-  }
-
-  return [{ x: fx, y: fy }, { x: preferredChannelX, y: fy }, { x: preferredChannelX, y: ty }, { x: tx, y: ty }];
 }
 
 export interface WireCrossing {

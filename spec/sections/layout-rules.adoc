@@ -62,7 +62,10 @@ Wires between ports follow these rules:
 . The wire then travels vertically to align with the destination port.
 . The wire enters the destination port horizontally from the left.
 . Wires MUST NOT backtrack; a vertical segment's X position MUST be >= the source port's X position + 15px.
-. The renderer MUST avoid routing wires through gate bodies. When a preferred channel would intersect a gate body, the renderer MUST search for a clear channel to the right.
+. Wire routing uses A* pathfinding on a 5px grid. The grid ensures all node positions, port positions, and wire vertices align to the 5px grid. Every wire segment MUST be exactly horizontal or vertical (no diagonal segments).
+. Gate bodies are treated as impassable obstacles with a 20% buffer zone (20% of gate width and height). Only the source and destination gates of a wire are routable through; all other objects (including inputs, outputs, and intermediate gates) block routing.
+. The A* cost model penalises wire-wire crossings (cost 8 per cell), wrong-side gate entry (cost 30 per cell to the right of a gate input port), and direction changes (cost +3 per bend). This naturally produces paths that avoid crossovers, enter gates from the left, and have minimal bends.
+. Dogleg vertical segments are biased toward the midpoint between source and destination X. A per-cell cost of 0.15 times the distance from the midpoint column nudges doglegs toward the center, producing balanced, readable diagrams. When the balanced position would overlap an obstacle or previously-routed wire, the A* path takes priority.
 . When the vertical distance between source and destination Y is less than 1px, the wire MUST be drawn as a straight line with no dogleg.
 . Wire routing MUST consider previously-routed wires as obstacles. A horizontal wire segment MUST NOT cross a vertical wire segment from a different source, and a vertical wire segment MUST NOT cross a horizontal wire segment from a different source, unless the crossing is unavoidable.
 
@@ -107,6 +110,25 @@ After all gate position adjustments, output nodes are re-aligned to their source
 ==== Output Straight-Through
 
 Output ports MUST be positioned so that their input Y aligns with the source gate's output Y. This ensures that the wire from a gate to its output port is always a straight horizontal line with no dogleg.
+
+[#common-subexpression-sharing]
+==== Common Subexpression Sharing
+
+The renderer MUST deduplicate structurally identical subexpressions into a single gate node. Two subexpressions are structurally identical if they have the same gate type and the same set of resolved input IDs after sorting inputs for commutative operators (AND, OR).
+
+When multiple outputs reference the same logical subexpression, the renderer MUST create one gate node and route wires from that node's output to all downstream consumers. This prevents overlapping gate nodes at identical positions and redundant wire routing.
+
+Example:
+
+[source]
+----
+O1 = A AND B
+O4 = NOT (A AND B)
+----
+
+The subexpression `A AND B` is referenced by both O1 and O4. The renderer MUST create a single AND gate for `A AND B` and fan out its output to both O1 and the NOT gate feeding O4, rather than creating two separate AND gates at the same grid position.
+
+For non-commutative operators (NOT) and future derived operators (NAND, NOR, XOR, XNOR), deduplication MUST preserve input ordering. Two expressions are identical only if their inputs appear in the same gate-specific order.
 
 [#symmetric-channels]
 ==== Symmetric Dogleg Channels
