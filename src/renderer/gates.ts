@@ -12,6 +12,10 @@ export const NOT_GATE_H = 40;
 export const AND_GATE_H_BASE = 45;
 export const PORT_SPACING = 15;
 
+// Maximum rightward bulge of the OR gate's concave left edge, at mid-height.
+// Fixed (independent of gate height) so concavity reads consistently across sizes.
+export const OR_CURVE_DEPTH = 10;
+
 function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
@@ -22,13 +26,27 @@ export function andGateBody(w: number, h: number): string {
 }
 
 export function orGateBody(w: number, h: number): string {
+  // Left edge is a single quadratic Bézier whose control point (2*depth, h/2)
+  // makes the curve's X an exact function of Y: x(localY) = orCurveTapX(h, localY).
+  // This lets input ports tap the curve precisely and keeps a constant concavity.
+  const cx = OR_CURVE_DEPTH * 2;
   return [
     `M 0,0`,
     `C ${w * 0.5},0 ${w * 0.8},${h * 0.15} ${w},${h / 2}`,
     `C ${w * 0.8},${h * 0.85} ${w * 0.5},${h} 0,${h}`,
-    `C ${w * 0.18},${h * 0.65} ${w * 0.18},${h * 0.35} 0,0`,
+    `Q ${cx},${h / 2} 0,0`,
     `Z`,
   ].join(' ');
+}
+
+// Exact X (rightward offset from the bbox left edge) of the OR gate's concave left
+// curve at a given local Y. Derived from the quadratic Bézier in orGateBody:
+//   x(localY) = 4 * depth * (localY/h) * (1 - localY/h)
+// Peaks at OR_CURVE_DEPTH when localY == h/2, and is 0 at the top/bottom corners.
+export function orCurveTapX(h: number, localY: number): number {
+  if (h <= 0) return 0;
+  const f = localY / h;
+  return 4 * OR_CURVE_DEPTH * f * (1 - f);
 }
 
 export function notGateBody(w: number, h: number): string {

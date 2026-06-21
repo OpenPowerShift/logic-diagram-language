@@ -56,6 +56,16 @@ the last occurrence wins.
 | ABOVE_BELOW
 | Input labels appear above/below the port, closer to the gate body
 | --
+
+| OUTPUT_ORDER
+| DECLARATION
+| Output ports are stacked top-to-bottom in the order the outputs are declared (O1, O2, …), each aligned to its source where possible
+| DECLARATION
+
+| OUTPUT_ORDER
+| AUTO
+| Output ports are reordered vertically by the position of the gate that drives them, so output wires fan out without crossing (the barycentre method already used for inputs)
+| --
 |===
 
 === Examples

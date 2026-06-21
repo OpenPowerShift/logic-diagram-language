@@ -55,19 +55,40 @@ The pipeline executes in this order:
 
 === Wire Routing
 
+Every wire MUST be drawn as either a straight horizontal line or a single clean
+**Z-route** (`horizontal → vertical → horizontal`). Wires MUST NOT contain *doglegs* — a
+dogleg is a small or needless jog, defined as a vertical run shorter than `MIN_DOGLEG`
+(30px) sitting between two horizontal segments. Doglegs are avoided primarily at the
+*layout* level (see <<minimum-dogleg-height>>): port Y positions are aligned so the
+natural orthogonal route is already straight or a clean Z.
+
 Wires between ports follow these rules:
 
 . A wire exits a source port horizontally to the right.
-. At a channel between the source column and the destination column, the wire turns vertically.
-. The wire then travels vertically to align with the destination port.
-. The wire enters the destination port horizontally from the left.
-. Wires MUST NOT backtrack; a vertical segment's X position MUST be >= the source port's X position + 15px.
-. Wire routing uses A* pathfinding on a 5px grid. The grid ensures all node positions, port positions, and wire vertices align to the 5px grid. Every wire segment MUST be exactly horizontal or vertical (no diagonal segments).
-. Gate bodies are treated as impassable obstacles with a 20% buffer zone (20% of gate width and height). Only the source and destination gates of a wire are routable through; all other objects (including inputs, outputs, and intermediate gates) block routing.
-. The A* cost model penalises wire-wire crossings (cost 8 per cell), wrong-side gate entry (cost 30 per cell to the right of a gate input port), and direction changes (cost +3 per bend). This naturally produces paths that avoid crossovers, enter gates from the left, and have minimal bends.
-. Dogleg vertical segments are biased toward the midpoint between source and destination X. A per-cell cost of 0.15 times the distance from the midpoint column nudges doglegs toward the center, producing balanced, readable diagrams. When the balanced position would overlap an obstacle or previously-routed wire, the A* path takes priority.
-. When the vertical distance between source and destination Y is less than 1px, the wire MUST be drawn as a straight line with no dogleg.
-. Wire routing MUST consider previously-routed wires as obstacles. A horizontal wire segment MUST NOT cross a vertical wire segment from a different source, and a vertical wire segment MUST NOT cross a horizontal wire segment from a different source, unless the crossing is unavoidable.
+. At a vertical channel between the source column and the destination column, the wire
+  turns vertically and travels to align with the destination port's Y.
+. The wire enters the destination port horizontally. For AND/NOT inputs it enters at the
+  straight bounding-box left edge; for OR inputs it terminates **on the concave curve**
+  (see <<or-curve-ports>>).
+. When the source and destination Y differ by less than 1px, the wire MUST be a straight
+  horizontal line with no vertical segment.
+. Wires MUST NOT backtrack; a vertical segment's X MUST be >= the source port's X + 15px.
+. Every node position, port Y position, and wire vertex MUST align to the 5px grid (the OR
+  input-port X, which taps the curve, is the sole exception). Every wire segment MUST be
+  exactly horizontal or vertical — no diagonal segments.
+
+The renderer uses A* pathfinding on the 5px grid to realise these routes around obstacles:
+
+. Gate bodies are impassable obstacles with a 20% buffer zone. Only the source and
+  destination gates of a wire are routable through; all other objects block routing.
+. The cost model penalises wire–wire crossings, wrong-side gate entry (entering to the
+  right of a gate input port), and direction changes, so paths avoid crossovers, enter
+  gates from the left, and have minimal bends (a straight line or a single Z).
+. Previously-routed wires are obstacles. A horizontal segment MUST NOT run along or cross
+  a vertical segment of a different source, and vice versa, unless unavoidable.
+. Parallel wire segments MUST be separated into distinct tracks with a minimum spacing of
+  `MIN_WIRE_SPACING` between adjacent parallels, so bundles remain individually legible.
+  The renderer favours readability (wider channels) over compactness.
 
 [#minimum-dogleg-height]
 ==== Minimum Dogleg Height (`MIN_DOGLEG`)
@@ -109,7 +130,41 @@ After all gate position adjustments, output nodes are re-aligned to their source
 [#straight-outputs]
 ==== Output Straight-Through
 
-Output ports MUST be positioned so that their input Y aligns with the source gate's output Y. This ensures that the wire from a gate to its output port is always a straight horizontal line with no dogleg.
+Output ports SHOULD be positioned so that their input Y aligns with the source gate's output Y, so the wire from a gate to its output port is a straight horizontal line. When two outputs share (or nearly share) a source Y they cannot both be straight; the lower one is pushed down by at least `MIN_DOGLEG` (never a small jog) — see <<output-ordering>>.
+
+[#output-ordering]
+==== Output Ordering
+
+The vertical order of output ports in the final column is controlled by the
+`OUTPUT_ORDER` option:
+
+* `DECLARATION` (default) — outputs are stacked in the order they are declared (O1, O2,
+  …) from top to bottom. Predictable, but output wires may need to cross or dogleg to
+  reach a source on the opposite side.
+* `AUTO` — outputs are reordered by the Y position of the gate that drives them (the same
+  barycentre principle applied to inputs in <<row-optimisation>>). Outputs then stack in
+  the order their wires arrive, so output wires fan out without crossing.
+
+In both modes outputs in the same column are placed greedily in the chosen order: each is
+placed at its source Y where possible, otherwise pushed down just enough to clear the
+previous output, with any deviation kept at 0 or `>= MIN_DOGLEG`.
+
+[#or-curve-ports]
+==== OR Gate Curve Ports
+
+The OR gate's left edge is a concave curve that bulges rightward. Unlike the AND gate
+(straight left edge), the OR gate's input ports sit **on the curve**, and incoming wires
+MUST terminate on the curve in all cases — a wire never stops short of, or overshoots, the
+curve.
+
+* For each OR input at grid-aligned Y, the input-port X is the curve's X at that Y
+  (`bbox-left + curveDepth(Y)`). The connecting wire's final point is this curve point.
+* The curve has a fixed maximum depth (`OR_CURVE_DEPTH`, ~10px) independent of the gate
+  height, so the concavity reads consistently regardless of the number of inputs or the
+  gate's expanded height.
+* The gate's **bounding box, right-edge output port, and every port Y position MUST stay
+  on the 5px grid**. Only the input-port X (the curve tap) is exempt, since it follows the
+  curve.
 
 [#common-subexpression-sharing]
 ==== Common Subexpression Sharing
@@ -156,9 +211,19 @@ When `OPTION INVERSION = BUBBLES` is set:
 
 . NOT gates are not placed as separate columns. Instead, the affected port is marked with a bubble.
 . The wire from the NOT's source connects directly to the bubbled port.
-. **Input-side bubbles**: When a NOT operation feeds into a gate input, the bubbled input port shifts left by `BUBBLE_R * 2` (8px) so the wire endpoint lands at the bubble's left edge, and the bubble's right edge touches the gate body.
-. **Output-side bubbles**: When a NOT operation wraps a gate's output, the bubbled output port shifts right by `BUBBLE_R * 2` (8px) so the bubble sits between the gate body's right edge and the wire. The bubble's left edge touches the gate body, and the wire starts from the bubble's right edge.
-. **Output node bubbles**: When a NOT operation feeds directly into an output node, the output node's input port shifts left by `BUBBLE_R * 2` (8px), similar to a gate input-side bubble.
+. The inversion bubble MUST sit fully **outside the gate body, just to the left of the gate
+  edge**, in reserved horizontal space between the incoming wire and the gate. It MUST NOT
+  overlap the gate body.
+. **Input-side bubbles**: When a NOT operation feeds into a gate input, the bubble's inner
+  (right) edge touches the gate edge — the straight bounding-box left edge for AND/NOT, or
+  the **curve tap point** for OR — and the incoming wire terminates at the bubble's outer
+  (left) edge. Layout reserves space so the bubble does not collide with the gate body or
+  the curve.
+. **Output-side bubbles**: When a NOT operation wraps a gate's output, the bubble sits just
+  right of the gate's right edge; the bubble's left edge touches the gate body and the wire
+  starts from the bubble's right edge.
+. **Output node bubbles**: When a NOT operation feeds directly into an output node, the
+  bubble sits just left of the output node's input port, like a gate input-side bubble.
 . The bubble does not affect the vertical position of any port -- Y positions are computed as normal.
 . The NOT gate's column is eliminated, and the source signal is treated as if it directly connects to the target port (with inversion). This reduces the total column count when many NOT operations are present.
 

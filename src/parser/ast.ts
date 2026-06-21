@@ -3,17 +3,20 @@ export type GateType = 'AND' | 'OR' | 'NOT' | 'NAND' | 'NOR' | 'XOR' | 'XNOR';
 export type InversionStyle = 'GATES' | 'BUBBLES';
 export type PortStyle = 'CIRCLE' | 'SQUARE';
 export type GateInputStyle = 'EXPAND' | 'BARS';
+export type OutputOrder = 'DECLARATION' | 'AUTO';
 
 export interface RenderOptions {
   inversion: InversionStyle;
   portStyle: PortStyle;
   gateInputStyle: GateInputStyle;
+  outputOrder: OutputOrder;
 }
 
 export const DEFAULT_OPTIONS: RenderOptions = {
   inversion: 'GATES',
   portStyle: 'CIRCLE',
   gateInputStyle: 'EXPAND',
+  outputOrder: 'DECLARATION',
 };
 
 export interface Position {
@@ -125,6 +128,8 @@ export function resolveOptions(optionDecls: OptionDecl[]): RenderOptions {
       opts.portStyle = value;
     } else if (name === 'GATE_INPUT_STYLE' && (value === 'EXPAND' || value === 'BARS')) {
       opts.gateInputStyle = value;
+    } else if (name === 'OUTPUT_ORDER' && (value === 'DECLARATION' || value === 'AUTO')) {
+      opts.outputOrder = value;
     }
   }
   return opts;

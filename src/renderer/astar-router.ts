@@ -1,12 +1,13 @@
 const CELL_SIZE = 5;
 const BLOCKED_COST = 1e7;
 const WIRE_CROSS_COST = 8;
-const WIRE_PROXIMITY_COST = 2;
-const SAME_SOURCE_BONUS = -6;
+const WIRE_PROXIMITY_COST = 3; // soft cost up to PROXIMITY_RADIUS cells from other-source wires
+const PROXIMITY_RADIUS = 2;    // spread parallel wires into separate tracks (~10px apart)
+const SAME_SOURCE_BONUS = -8; // makes overlapping a same-source trunk free, so fan-out shares one trunk
 const WRONG_SIDE_COST = 30;
-const BEND_PENALTY = 3;
+const BEND_PENALTY = 4;        // tuned so the optimum is a straight line or a single clean Z
 const GATE_BUFFER_RATIO = 0.2;
-const MIDPOINT_COST_SCALE = 0.15;
+const GATE_BUFFER_MIN = 10; // absolute min clearance (px) wires keep from a gate body
 
 export interface Vec2 {
   x: number;
@@ -130,9 +131,9 @@ function rasterizeWireSegments(
         const gx1 = toGrid(Math.max(p0.x, p1.x));
         for (let gx = gx0; gx <= gx1; gx++) {
           setCellCost(grid, gridW, gridH, gx, y, crossCost);
-          if (proxityCost > 0) {
-            setCellCost(grid, gridW, gridH, gx, y - 1, proxityCost);
-            setCellCost(grid, gridW, gridH, gx, y + 1, proxityCost);
+          for (let r = 1; r <= PROXIMITY_RADIUS && proxityCost > 0; r++) {
+            setCellCost(grid, gridW, gridH, gx, y - r, proxityCost);
+            setCellCost(grid, gridW, gridH, gx, y + r, proxityCost);
           }
         }
       } else if (Math.abs(p0.x - p1.x) < 1) {
@@ -141,9 +142,9 @@ function rasterizeWireSegments(
         const gy1 = toGrid(Math.max(p0.y, p1.y));
         for (let gy = gy0; gy <= gy1; gy++) {
           setCellCost(grid, gridW, gridH, x, gy, crossCost);
-          if (proxityCost > 0) {
-            setCellCost(grid, gridW, gridH, x - 1, gy, proxityCost);
-            setCellCost(grid, gridW, gridH, x + 1, gy, proxityCost);
+          for (let r = 1; r <= PROXIMITY_RADIUS && proxityCost > 0; r++) {
+            setCellCost(grid, gridW, gridH, x - r, gy, proxityCost);
+            setCellCost(grid, gridW, gridH, x + r, gy, proxityCost);
           }
         }
       }
@@ -185,6 +186,9 @@ function simplifyPath(path: Vec2[]): Vec2[] {
   return result;
 }
 
+// A straight horizontal wire is allowed unless it actually passes through a gate
+// BODY (plus a small margin). The 20% routing buffer is intentionally NOT used here:
+// a wire running clear of a gate should stay straight rather than be forced into A*.
 function lineHitsObstacle(
   y: number, x1: number, x2: number,
   obstacles: GateObstacle[],
@@ -193,14 +197,12 @@ function lineHitsObstacle(
 ): boolean {
   const xMin = Math.min(x1, x2);
   const xMax = Math.max(x1, x2);
-  const pad = 4;
+  const m = 3;
   for (const obs of obstacles) {
     if (obs.x === sourceGateX && obs.y === sourceGateY) continue;
     if (obs.x === destGateX && obs.y === destGateY) continue;
-    const bx = obs.w * GATE_BUFFER_RATIO;
-    const by = obs.h * GATE_BUFFER_RATIO;
-    if (rectsOverlap(xMin, y - pad, xMax - xMin, pad * 2,
-                     obs.x - bx, obs.y - by, obs.w + bx * 2, obs.h + by * 2, 0)) {
+    if (rectsOverlap(xMin, y - 1, xMax - xMin, 2,
+                     obs.x - m, obs.y - m, obs.w + m * 2, obs.h + m * 2, 0)) {
       return true;
     }
   }
@@ -215,88 +217,34 @@ function rectsOverlap(
          y1 + h1 + pad > y2 && y2 + h2 + pad > y1;
 }
 
-function balancePath(
-  path: Vec2[],
-  sourceX: number, destX: number,
-  obstacles: GateObstacle[],
-  sourceGateX: number, sourceGateY: number,
-  destGateX: number, destGateY: number,
-  routedSegments: RoutedSegment[],
-): Vec2[] {
-  if (path.length < 4) return path;
-
-  const GRID = 5;
-  const snap5 = (v: number) => Math.round(v / GRID) * GRID;
-  const midX = snap5((sourceX + destX) / 2);
-
-  const result: Vec2[] = path.map(p => ({ ...p }));
-
-  const verticals: { i0: number; i1: number; x: number; len: number }[] = [];
-  for (let i = 0; i < result.length - 1; i++) {
-    if (Math.abs(result[i].x - result[i + 1].x) < 1) {
-      const len = Math.abs(result[i].y - result[i + 1].y);
-      if (len >= GRID) {
-        verticals.push({ i0: i, i1: i + 1, x: result[i].x, len });
-      }
+// Drop duplicate and colinear vertices so the path is a minimal list of corners.
+function cleanColinear(pts: Vec2[]): Vec2[] {
+  if (pts.length <= 2) return pts;
+  const out: Vec2[] = [pts[0]];
+  for (let i = 1; i < pts.length; i++) {
+    const cur = pts[i];
+    const prev = out[out.length - 1];
+    if (Math.abs(cur.x - prev.x) < 1 && Math.abs(cur.y - prev.y) < 1) continue; // duplicate
+    if (out.length >= 2) {
+      const p2 = out[out.length - 2];
+      const colinH = Math.abs(p2.y - prev.y) < 1 && Math.abs(prev.y - cur.y) < 1;
+      const colinV = Math.abs(p2.x - prev.x) < 1 && Math.abs(prev.x - cur.x) < 1;
+      if (colinH || colinV) { out[out.length - 1] = cur; continue; }
     }
+    out.push(cur);
   }
-
-  if (verticals.length === 0) return result;
-
-  const primary = verticals.reduce((a, b) => a.len > b.len ? a : b);
-
-  const currentX = primary.x;
-  if (Math.abs(currentX - midX) < GRID) return result;
-
-  const newX = snap5(midX);
-  if (newX <= snap5(sourceX + 10) || newX >= snap5(destX - 10)) return result;
-
-  const testResult: Vec2[] = result.map(p => ({ ...p }));
-  testResult[primary.i0].x = newX;
-  testResult[primary.i1].x = newX;
-
-  const segMinX = Math.min(testResult[primary.i0].x, testResult[primary.i1].x);
-  const segMinY = Math.min(testResult[primary.i0].y, testResult[primary.i1].y);
-  const segMaxX = Math.max(testResult[primary.i0].x, testResult[primary.i1].x);
-  const segMaxY = Math.max(testResult[primary.i0].y, testResult[primary.i1].y);
-
-  for (const obs of obstacles) {
-    if (obs.x === sourceGateX && obs.y === sourceGateY) continue;
-    if (obs.x === destGateX && obs.y === destGateY) continue;
-    const bx = Math.ceil(obs.w * GATE_BUFFER_RATIO);
-    const by = Math.ceil(obs.h * GATE_BUFFER_RATIO);
-    if (rectsOverlap(
-      segMinX - 2, segMinY, segMaxX - segMinX + 4, segMaxY - segMinY,
-      obs.x - bx, obs.y - by, obs.w + bx * 2, obs.h + by * 2, 0,
-    )) {
-      return result;
-    }
-  }
-
-  for (const seg of routedSegments) {
-    for (let i = 0; i < seg.points.length - 1; i++) {
-      const sp0 = seg.points[i], sp1 = seg.points[i + 1];
-      if (Math.abs(sp0.x - sp1.x) < 1) {
-        const sMinY = Math.min(sp0.y, sp1.y);
-        const sMaxY = Math.max(sp0.y, sp1.y);
-        if (Math.abs(newX - sp0.x) < GRID && segMinY < sMaxY && segMaxY > sMinY) {
-          return result;
-        }
-      }
-    }
-  }
-
-  return testResult;
+  return out;
 }
 
 /**
- * Takes a grid-aligned path (all segments 5px H or V in grid coords) and converts
- * it to canvas coordinates with exact port endpoints, ensuring every segment
- * is purely horizontal or vertical (no diagonals).
+ * Convert a grid-aligned A* corner path to canvas coordinates with EXACT port
+ * endpoints, guaranteeing every segment is horizontal or vertical and that the
+ * path always begins at the source and ends at the destination.
  *
- * The grid path starts at startX,startY and ends at goalX,goalY in grid coords.
- * We snap the first/last points to exact port positions, then insert short
- * corrective segments to maintain orthogonality.
+ * Interior corners come straight from the grid path (already on the 5px grid).
+ * The exact endpoints replace the first/last grid points; if that leaves a
+ * diagonal segment at an endpoint we insert a single orthogonal corner. The last
+ * segment is made horizontal so wires enter their destination port from the side.
  */
 function orthogonalize(
   gridPath: Vec2[],
@@ -307,111 +255,27 @@ function orthogonalize(
     return [{ x: sourceX, y: sourceY }, { x: destX, y: destY }];
   }
 
-  // Convert grid coords to canvas coords
-  const canvas = gridPath.map(p => ({ x: toCanvas(p.x), y: toCanvas(p.y) }));
+  const pts: Vec2[] = gridPath.map(p => ({ x: toCanvas(p.x), y: toCanvas(p.y) }));
+  pts[0] = { x: sourceX, y: sourceY };
+  pts[pts.length - 1] = { x: destX, y: destY };
 
-  if (canvas.length === 2) {
-    return [{ x: sourceX, y: sourceY }, { x: destX, y: destY }];
-  }
-
-  // Determine initial direction from grid path
-  const firstDir = gridPath[1].x > gridPath[0].x ? 'R' :
-                   gridPath[1].x < gridPath[0].x ? 'L' :
-                   gridPath[1].y > gridPath[0].y ? 'D' : 'U';
-  const lastDir = gridPath[gridPath.length - 1].x > gridPath[gridPath.length - 2].x ? 'R' :
-                  gridPath[gridPath.length - 1].x < gridPath[gridPath.length - 2].x ? 'L' :
-                  gridPath[gridPath.length - 1].y > gridPath[gridPath.length - 2].y ? 'D' : 'U';
-
-  // Build the result starting from the snapped source
-  const result: Vec2[] = [{ x: sourceX, y: sourceY }];
-
-  // The second point: from source, go in the first direction to reach the grid path
-  // If A* went horizontal first, align second point's Y with source Y
-  // If A* went vertical first, align second point's X with source X
-  if (firstDir === 'R' || firstDir === 'L') {
-    // Horizontal first: second point has same Y as source, X from grid path
-    result.push({ x: canvas[1].x, y: sourceY });
-  } else {
-    // Vertical first: second point has same X as source, Y from grid path
-    result.push({ x: sourceX, y: canvas[1].y });
-  }
-
-  // Middle points (2 through n-3): use grid coordinates directly,
-  // snapping to ensure orthogonality with the previous point
-  for (let i = 2; i < canvas.length - 1; i++) {
-    const prev = result[result.length - 1];
-    const gridPt = canvas[i];
-    // Determine segment direction from grid path
-    const dx = gridPath[i].x - gridPath[i - 1].x;
-    const dy = gridPath[i].y - gridPath[i - 1].y;
-    if (dx !== 0) {
-      // Horizontal segment
-      result.push({ x: gridPt.x, y: prev.y });
-    } else {
-      // Vertical segment
-      result.push({ x: prev.x, y: gridPt.y });
+  const out: Vec2[] = [pts[0]];
+  for (let i = 1; i < pts.length; i++) {
+    const prev = out[out.length - 1];
+    const cur = pts[i];
+    const diagX = Math.abs(cur.x - prev.x) >= 1;
+    const diagY = Math.abs(cur.y - prev.y) >= 1;
+    if (diagX && diagY) {
+      // Insert one corner to keep the segment orthogonal. For the final segment,
+      // corner vertically first so the wire enters the dest port horizontally;
+      // otherwise corner horizontally first (exit/travel along rows).
+      if (i === pts.length - 1) out.push({ x: prev.x, y: cur.y });
+      else out.push({ x: cur.x, y: prev.y });
     }
+    out.push(cur);
   }
 
-  // Last bend point: from second-to-last canvas point, go in the direction
-  // that connects to the destination
-  if (canvas.length > 2) {
-    const prev = result[result.length - 1];
-    if (lastDir === 'R' || lastDir === 'L') {
-      // Horizontal approach to dest: align Y with dest Y
-      result.push({ x: canvas[canvas.length - 2].x, y: destY });
-    } else {
-      // Vertical approach to dest: align X with dest X
-      result.push({ x: destX, y: canvas[canvas.length - 2].y });
-    }
-  }
-
-  // Final point: snapped destination
-  result.push({ x: destX, y: destY });
-
-  // Deduplicate and remove zero-length segments
-  const clean: Vec2[] = [result[0]];
-  for (let i = 1; i < result.length; i++) {
-    const prev = clean[clean.length - 1];
-    const curr = result[i];
-    // Skip duplicate points
-    if (Math.abs(prev.x - curr.x) < 1 && Math.abs(prev.y - curr.y) < 1) continue;
-    // Skip colinear points (same direction as previous segment)
-    if (clean.length >= 2) {
-      const prevPrev = clean[clean.length - 2];
-      const prevDx = prev.x - prevPrev.x;
-      const prevDy = prev.y - prevPrev.y;
-      const currDx = curr.x - prev.x;
-      const currDy = curr.y - prev.y;
-      // Same direction: colinear, merge
-      if ((prevDx > 0 && currDx > 0) || (prevDx < 0 && currDx < 0) ||
-          (prevDy > 0 && currDy > 0) || (prevDy < 0 && currDy < 0)) {
-        if ((prevDx !== 0 && currDy === 0 && prevDy === 0) ||
-            (prevDy !== 0 && currDx === 0 && prevDx === 0)) {
-          clean[clean.length - 1] = curr;
-          continue;
-        }
-      }
-    }
-    clean.push(curr);
-  }
-
-  // Final orthogonality check: insert missing correction segments
-  const final: Vec2[] = [clean[0]];
-  for (let i = 1; i < clean.length; i++) {
-    const prev = final[final.length - 1];
-    const curr = clean[i];
-    const dx = Math.abs(curr.x - prev.x);
-    const dy = Math.abs(curr.y - prev.y);
-    if (dx >= 1 && dy >= 1) {
-      // Diagonal — insert a correction point
-      // Choose direction based on which creates a shorter correction
-      final.push({ x: curr.x, y: prev.y });
-    }
-    final.push(curr);
-  }
-
-  return final;
+  return cleanColinear(out);
 }
 
 export function routeWireAStar(
@@ -445,8 +309,8 @@ export function routeWireAStar(
   for (const obs of obstacles) {
     const isSource = obs.x === sourceGateX && obs.y === sourceGateY;
     const isDest = obs.x === destGateX && obs.y === destGateY;
-    const bufferX = Math.ceil(obs.w * GATE_BUFFER_RATIO);
-    const bufferY = Math.ceil(obs.h * GATE_BUFFER_RATIO);
+    const bufferX = Math.max(GATE_BUFFER_MIN, Math.ceil(obs.w * GATE_BUFFER_RATIO));
+    const bufferY = Math.max(GATE_BUFFER_MIN, Math.ceil(obs.h * GATE_BUFFER_RATIO));
     if (isSource || isDest) {
       rasterizeRect(grid, gridW, gridH, obs.x, obs.y, obs.w, obs.h, BLOCKED_COST, 0, 0);
     } else {
@@ -464,24 +328,6 @@ export function routeWireAStar(
   const startY = toGrid(sourceY);
   const goalX = toGrid(destX);
   const goalY = toGrid(destY);
-
-  const midGridX = toGrid(Math.round((sourceX + destX) / 2));
-  const y0 = Math.min(startY, goalY);
-  const y1 = Math.max(startY, goalY);
-  const x0 = Math.min(startX, goalX);
-  const x1 = Math.max(startX, goalX);
-  if (x1 > x0) {
-    for (let gy = y0; gy <= y1; gy++) {
-      for (let gx = x0; gx <= x1; gx++) {
-        const idx = gy * gridW + gx;
-        const dist = Math.abs(gx - midGridX);
-        const cost = dist * MIDPOINT_COST_SCALE;
-        if (cost > 0 && grid[idx] < BLOCKED_COST) {
-          grid[idx] += cost;
-        }
-      }
-    }
-  }
 
   // Clear a corridor from source port to outside the source gate
   // The source port is typically on the right edge of the gate
@@ -588,6 +434,5 @@ export function routeWireAStar(
   gridPath.reverse();
 
   const simplified = simplifyPath(gridPath);
-  const orthogonal = orthogonalize(simplified, sourceX, sourceY, destX, destY);
-  return balancePath(orthogonal, sourceX, destX, obstacles, sourceGateX, sourceGateY, destGateX, destGateY, routedSegments);
+  return orthogonalize(simplified, sourceX, sourceY, destX, destY);
 }

@@ -2,6 +2,7 @@ import type { LogicNode, GateNode, PortNode, Diagram, DiagramOutput, PortMeta, R
 import { DEFAULT_OPTIONS, resolveOptions } from '../parser/ast.js';
 import { hasMathContent } from './math-renderer.js';
 import { routeWireAStar, type GateObstacle, type RoutedSegment } from './astar-router.js';
+import { orCurveTapX } from './gates.js';
 
 export interface LayoutPort {
   name: string;
@@ -846,45 +847,111 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     if (!anyOverlap) break;
   }
 
-  // Re-align output nodes after gate collision resolution
-  for (const node of nodes.values()) {
-    if (node.kind !== 'output') continue;
-    const outputNode = nodeMap.get(node.id);
-    if (!outputNode || node.inputIds.length === 0) continue;
-    const sourceId = node.inputIds[0];
-    const sourceNode = nodeMap.get(sourceId);
-    if (!sourceNode || sourceNode.outputs.length === 0) continue;
-    const sourceOutputY = Math.round(sourceNode.outputs[0].absY / GRID) * GRID;
-    outputNode.inputs[0].absY = sourceOutputY;
-    outputNode.absY = Math.round((sourceOutputY - outputNode.height / 2) / GRID) * GRID;
-  }
+  // Position output nodes in a single ordering pass per column.
+  //   OUTPUT_ORDER = DECLARATION (default): outputs keep declared order (O1, O2, ... top
+  //     to bottom), each aligned to its source Y where possible.
+  //   OUTPUT_ORDER = AUTO: outputs are reordered by their source gate's output Y, which
+  //     lets output wires fan out without crossing.
+  // Within each column, outputs are placed greedily in the chosen order, each at its
+  // source Y (straight wire) or pushed down just enough to clear the previous one. Any
+  // push is kept >= MIN_DOGLEG so wires never form a small dogleg.
+  {
+    const declIndex = new Map<string, number>();
+    let di = 0;
+    for (const node of nodes.values()) if (node.kind === 'output') declIndex.set(node.id, di++);
 
-  // Resolve output-vs-output overlaps at the same depth column.
-  // Two outputs in the same column can overlap in Y because their source
-  // gate output ports are close together. Push the lower output down.
-  for (let pass = 0; pass < 5; pass++) {
-    let anyOverlap = false;
-    const outputNodes = layoutNodes.filter(n => n.gateType === 'OUTPUT');
-    for (let i = 0; i < outputNodes.length; i++) {
-      for (let j = i + 1; j < outputNodes.length; j++) {
-        const a = outputNodes[i], b = outputNodes[j];
-        if (a.depth !== b.depth) continue;
-        const xOverlap = Math.min(a.absX + a.width, b.absX + b.width) - Math.max(a.absX, b.absX);
-        if (xOverlap <= 0) continue;
-        const yOverlap = Math.min(a.absY + a.height, b.absY + b.height) - Math.max(a.absY, b.absY);
-        if (yOverlap <= 0) continue;
-        const shift = Math.round((yOverlap + MIN_PORT_GAP) / GRID) * GRID;
-        if (a.absY < b.absY) {
-          b.absY += shift;
-          b.inputs[0].absY += shift;
-        } else {
-          a.absY += shift;
-          a.inputs[0].absY += shift;
-        }
-        anyOverlap = true;
+    const outById = (id: string) => nodeMap.get(id)!;
+    const sourceY = (o: LayoutNode) => {
+      const srcId = nodes.get(o.id)?.inputIds[0];
+      const src = srcId ? nodeMap.get(srcId) : undefined;
+      return src?.outputs[0] ? Math.round(src.outputs[0].absY / GRID) * GRID : o.absY + o.height / 2;
+    };
+
+    const cols = new Map<number, LayoutNode[]>();
+    for (const n of layoutNodes) {
+      if (n.gateType !== 'OUTPUT') continue;
+      const arr = cols.get(n.absX) ?? [];
+      arr.push(n);
+      cols.set(n.absX, arr);
+    }
+
+    for (const outs of cols.values()) {
+      outs.sort((a, b) =>
+        opts.outputOrder === 'AUTO'
+          ? sourceY(a) - sourceY(b) || declIndex.get(a.id)! - declIndex.get(b.id)!
+          : declIndex.get(a.id)! - declIndex.get(b.id)!,
+      );
+      const minGap = 40; // centre-to-centre clearance between stacked output labels
+      let prevCenter = -Infinity;
+      for (const o of outs) {
+        const want = sourceY(o);
+        let center = Math.max(want, prevCenter + minGap);
+        // Keep any deviation from the source Y at 0 or >= MIN_DOGLEG (never a small jog).
+        if (center - want > 0 && center - want < MIN_DOGLEG) center = want + MIN_DOGLEG;
+        center = Math.round(center / GRID) * GRID;
+        o.absY = Math.round((center - o.height / 2) / GRID) * GRID;
+        o.inputs[0].absY = center;
+        prevCenter = center;
       }
     }
-    if (!anyOverlap) break;
+  }
+
+  // Snap all node and port positions to the grid BEFORE routing. This guarantees that
+  // an aligned source/dest pair has exactly equal Y, so the router takes the clean
+  // straight-line fast-path instead of a 1px dogleg (which the router can otherwise
+  // mis-handle). Done before the OR curve-tap pass so curve taps are not re-snapped.
+  for (const n of layoutNodes) {
+    n.absX = Math.round(n.absX / GRID) * GRID;
+    n.absY = Math.round(n.absY / GRID) * GRID;
+    for (const p of [...n.inputs, ...n.outputs]) {
+      p.absX = Math.round(p.absX / GRID) * GRID;
+      p.absY = Math.round(p.absY / GRID) * GRID;
+    }
+  }
+
+  // Kill residual small doglegs: each input port has exactly one source, so if the port
+  // sits within MIN_DOGLEG of (but not exactly on) its source output Y, nudge it onto the
+  // source Y to make the wire perfectly straight — provided that keeps it on the grid,
+  // inside the gate body, and ordered relative to its neighbours. Larger offsets are left
+  // as clean Z-routes.
+  for (const node of nodes.values()) {
+    if (node.inputIds.length === 0) continue;
+    const ln = nodeMap.get(node.id);
+    if (!ln || ln.inputs.length === 0) continue;
+    const srcYs = node.inputIds
+      .map(id => nodeMap.get(id)?.outputs[0]?.absY)
+      .filter((y): y is number => y !== undefined)
+      .sort((a, b) => a - b);
+    const ports = [...ln.inputs].sort((a, b) => a.absY - b.absY);
+    for (let i = 0; i < ports.length && i < srcYs.length; i++) {
+      const port = ports[i];
+      const want = srcYs[i];
+      const d = port.absY - want;
+      if (Math.abs(d) < 0.5 || Math.abs(d) >= MIN_DOGLEG) continue;
+      if (!Number.isInteger(want / GRID)) continue;
+      const prevY = i > 0 ? ports[i - 1].absY : -Infinity;
+      const nextY = i < ports.length - 1 ? ports[i + 1].absY : Infinity;
+      const insideBody = ln.gateType === 'OUTPUT' || (want > ln.absY && want < ln.absY + ln.height);
+      if (want > prevY + 0.5 && want < nextY - 0.5 && insideBody) {
+        port.absY = want;
+        if (ln.gateType === 'OUTPUT') ln.absY = Math.round((want - ln.height / 2) / GRID) * GRID;
+      }
+    }
+  }
+
+  // OR gate input ports tap the concave left curve. Done as a final pass so it uses
+  // the gate's final height and each port's final (aligned) Y. The bbox, output port
+  // and port Y positions stay on the grid; only the input-port X follows the curve.
+  // Bubbled inputs shift left by BUBBLE_R*2 so the bubble's inner edge meets the curve.
+  for (const gateNode of layoutNodes) {
+    if (gateNode.gateType !== 'OR') continue;
+    for (let i = 0; i < gateNode.inputs.length; i++) {
+      const port = gateNode.inputs[i];
+      if (gateNode.barsMode && i >= 2) continue; // bar-tap ports stay on the bar
+      const localY = port.absY - gateNode.absY;
+      const tapX = gateNode.absX + orCurveTapX(gateNode.height, localY);
+      port.absX = port.bubbled ? tapX - BUBBLE_R * 2 : tapX;
+    }
   }
 
   const wires: LayoutWire[] = [];
@@ -944,7 +1011,12 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     }
   }
 
-  // Route wires: fan-out groups with shared trunks, single destinations normally
+  // Route wires. Each destination is routed independently from the source output
+  // port, which guarantees every consumer connects (including a source that feeds
+  // both a gate and an output). Wires from the same source naturally overlap on a
+  // shared horizontal "trunk" near the source (same-source crossings are cheap) and
+  // diverge into separate channels; junction dots are added afterwards wherever
+  // same-source wires form a T-intersection.
   for (const [fromId, destinations] of fanOutGroups) {
     const fromLayoutNode = nodeMap.get(fromId);
     if (!fromLayoutNode || !fromLayoutNode.outputs[0]) continue;
@@ -952,111 +1024,15 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     const fx = fromPort.absX;
     const fy = fromPort.absY;
 
-    if (destinations.length >= 2) {
-      // Fan-out: route shared trunk then branches
-      destinations.sort((a, b) => a.toPort.absY - b.toPort.absY);
+    // Route the destinations closest in Y to the source first, so the shared trunk
+    // is established before farther branches need to find their channels.
+    const ordered = [...destinations].sort(
+      (a, b) => Math.abs(a.toPort.absY - fy) - Math.abs(b.toPort.absY - fy),
+    );
 
-      // Compute branch X: midpoint between source column and closest destination column
-      const minDestX = Math.min(...destinations.map(d => d.toPort.absX));
-      const branchX = Math.round((fx + minDestX) / 2 / GRID) * GRID;
-
-      // Route trunk: simple horizontal from source to branch point
-      const trunkPoints: { x: number; y: number }[] = [
-        { x: fx, y: fy },
-        { x: branchX, y: fy },
-      ];
-      routedSegments.push({ points: trunkPoints, fromId });
-
-      // For each destination, route a branch from (branchX, fy) to destination
-      for (let di = 0; di < destinations.length; di++) {
-        const dest = destinations[di];
-        const tx = dest.toPort.absX;
-        const ty = dest.toPort.absY;
-        const destIsGate = dest.destIsGate;
-
-        // If source and destination are at the same Y, route directly (no dogleg needed)
-        if (Math.abs(fy - ty) < 1) {
-          const directPoints = routeWireAStar(
-            fx, fy, tx, ty,
-            allObstacles,
-            fromLayoutNode.absX, fromLayoutNode.absY,
-            fromLayoutNode.width, fromLayoutNode.height,
-            dest.toLayoutNode.absX, dest.toLayoutNode.absY,
-            dest.toLayoutNode.width, dest.toLayoutNode.height,
-            destIsGate,
-            routedSegments,
-            canvasW, canvasH,
-            fromId,
-          );
-          routedSegments.push({ points: directPoints, fromId });
-          wires.push({
-            id: uid('wire'),
-            points: directPoints,
-            fromId,
-            toId: dest.toId,
-          });
-          // Also add trunk segment for this fan-out wire so it shares the trunk visually
-          // The trunk goes from source to branchX at source Y
-          if (destinations.length > 1) {
-            addJunction(branchX, fy);
-          }
-          continue;
-        }
-
-        const branchPoints = routeWireAStar(
-          branchX, fy, tx, ty,
-          allObstacles,
-          fromLayoutNode.absX, fromLayoutNode.absY,
-          fromLayoutNode.width, fromLayoutNode.height,
-          dest.toLayoutNode.absX, dest.toLayoutNode.absY,
-          dest.toLayoutNode.width, dest.toLayoutNode.height,
-          destIsGate,
-          routedSegments,
-          canvasW, canvasH,
-          fromId,
-        );
-
-        routedSegments.push({ points: branchPoints, fromId });
-
-        // Combine trunk + branch, inserting correction point at junction if needed
-        // to ensure orthogonality between the horizontal trunk and the branch's first segment
-        let combinedPoints: { x: number; y: number }[];
-        if (branchPoints.length >= 2 && Math.abs(branchPoints[1].y - fy) >= 1) {
-          // Branch goes vertical after the junction: insert an L-shaped correction
-          // trunk: (..., branchX, fy) -> (branchX, branchNext.y) if vertical, or
-          // trunk: (..., branchX, fy) -> (branchNext.x, fy) -> (branchNext.x, branchNext.y) if horizontal first
-          const branchNext = branchPoints[1];
-          if (Math.abs(branchNext.x - branchX) >= 1) {
-            // Branch first segment goes at an angle — insert correction
-            // Go horizontal to branchNext.x, then connect to rest of branch
-            combinedPoints = [...trunkPoints, { x: branchNext.x, y: fy }, ...branchPoints.slice(1)];
-          } else {
-            // Branch goes purely vertical from branch point — direct connection
-            combinedPoints = [...trunkPoints, ...branchPoints.slice(1)];
-          }
-        } else {
-          // Branch starts horizontal or is a straight line — direct connection
-          combinedPoints = [...trunkPoints, ...branchPoints.slice(1)];
-        }
-
-        wires.push({
-          id: uid('wire'),
-          points: combinedPoints,
-          fromId,
-          toId: dest.toId,
-        });
-      }
-
-      // Junction dot at the branch point
-      addJunction(branchX, fy);
-    } else {
-      // Single destination: route normally
-      const dest = destinations[0];
-      const tx = dest.toPort.absX;
-      const ty = dest.toPort.absY;
-
+    for (const dest of ordered) {
       const points = routeWireAStar(
-        fx, fy, tx, ty,
+        fx, fy, dest.toPort.absX, dest.toPort.absY,
         allObstacles,
         fromLayoutNode.absX, fromLayoutNode.absY,
         fromLayoutNode.width, fromLayoutNode.height,
@@ -1069,13 +1045,78 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
       );
 
       routedSegments.push({ points, fromId });
+      wires.push({ id: uid('wire'), points, fromId, toId: dest.toId });
+    }
+  }
 
-      wires.push({
-        id: uid('wire'),
-        points,
-        fromId,
-        toId: dest.toId,
-      });
+  // Balanced-Z pass: slide each wire's single vertical segment toward the midpoint of
+  // its free horizontal span, so wires make long runs and turn in open space rather than
+  // hugging a gate (which causes late-turn crossings). Each move is validated against gate
+  // bodies (kept GATE_CLEARANCE away) and against other-source wires, so it never creates
+  // a new gate crossing or an overlapping/parallel collision. If nothing validates the
+  // wire keeps its routed position.
+  const GATE_CLEARANCE = 15;
+  function vGateClear(x: number, y0: number, y1: number): boolean {
+    const yMin = Math.min(y0, y1), yMax = Math.max(y0, y1);
+    for (const o of allObstacles) {
+      if (x > o.x - GATE_CLEARANCE && x < o.x + o.w + GATE_CLEARANCE &&
+          yMax > o.y - 1 && yMin < o.y + o.h + 1) return false;
+    }
+    return true;
+  }
+  function hGateClear(y: number, x0: number, x1: number, skipId: string): boolean {
+    const xMin = Math.min(x0, x1), xMax = Math.max(x0, x1);
+    for (const o of allObstacles) {
+      if (o.id === skipId) continue;
+      if (y > o.y - 1 && y < o.y + o.h + 1 && xMax > o.x - 1 && xMin < o.x + o.w + 1) return false;
+    }
+    return true;
+  }
+  function crossesOtherWire(w: LayoutWire, vx: number, vy0: number, vy1: number, hyA: number, hxA0: number, hxA1: number, hyB: number, hxB0: number, hxB1: number): boolean {
+    const vyMin = Math.min(vy0, vy1), vyMax = Math.max(vy0, vy1);
+    for (const o of wires) {
+      if (o === w || o.fromId === w.fromId) continue;
+      for (let i = 0; i < o.points.length - 1; i++) {
+        const a = o.points[i], b = o.points[i + 1];
+        if (Math.abs(a.y - b.y) < 0.5) { // other horizontal: crosses our vertical?
+          const oxMin = Math.min(a.x, b.x), oxMax = Math.max(a.x, b.x);
+          if (vx > oxMin - 0.5 && vx < oxMax + 0.5 && a.y > vyMin - 0.5 && a.y < vyMax + 0.5) return true;
+        } else if (Math.abs(a.x - b.x) < 0.5) { // other vertical: overlaps ours / crosses our horizontals?
+          const oyMin = Math.min(a.y, b.y), oyMax = Math.max(a.y, b.y);
+          if (Math.abs(a.x - vx) < GRID && oyMax > vyMin - 0.5 && oyMin < vyMax + 0.5) return true;
+          if (a.x > Math.min(hxA0, hxA1) - 0.5 && a.x < Math.max(hxA0, hxA1) + 0.5 && hyA > oyMin - 0.5 && hyA < oyMax + 0.5) return true;
+          if (a.x > Math.min(hxB0, hxB1) - 0.5 && a.x < Math.max(hxB0, hxB1) + 0.5 && hyB > oyMin - 0.5 && hyB < oyMax + 0.5) return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  for (const w of wires) {
+    const p = w.points;
+    let vi = -1, vcount = 0;
+    for (let i = 0; i < p.length - 1; i++) {
+      if (Math.abs(p[i].x - p[i + 1].x) < 0.5 && Math.abs(p[i].y - p[i + 1].y) >= GRID) { vi = i; vcount++; }
+    }
+    if (vcount !== 1 || vi <= 0 || vi + 2 >= p.length) continue;            // need H–V–H
+    if (Math.abs(p[vi - 1].y - p[vi].y) > 0.5) continue;                    // segment before V is horizontal
+    if (Math.abs(p[vi + 1].y - p[vi + 2].y) > 0.5) continue;                // segment after V is horizontal
+    const sourceX = p[0].x, destX = p[p.length - 1].x;
+    const yA = p[vi].y, yB = p[vi + 1].y;
+    const mid = Math.round((sourceX + destX) / 2 / GRID) * GRID;
+    const lo = Math.round((Math.min(sourceX, destX) + 15) / GRID) * GRID;
+    const hi = Math.round((Math.max(sourceX, destX) - 15) / GRID) * GRID;
+    const cands: number[] = [];
+    for (let x = lo; x <= hi; x += GRID) cands.push(x);
+    cands.sort((a, b) => Math.abs(a - mid) - Math.abs(b - mid));
+    for (const x of cands) {
+      if (Math.abs(x - p[vi].x) < 0.5) break; // already best (closest to mid reached current)
+      if (!vGateClear(x, yA, yB)) continue;
+      if (!hGateClear(yA, sourceX, x, w.fromId)) continue;
+      if (!hGateClear(yB, x, destX, w.toId)) continue;
+      if (crossesOtherWire(w, x, yA, yB, yA, sourceX, x, yB, x, destX)) continue;
+      p[vi].x = x; p[vi + 1].x = x;
+      break;
     }
   }
 
@@ -1127,23 +1168,13 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     }
   }
 
-  // Snap all positions to the GRID so A* routing produces clean orthogonal paths
-  for (const n of layoutNodes) {
-    n.absX = Math.round(n.absX / GRID) * GRID;
-    n.absY = Math.round(n.absY / GRID) * GRID;
-    for (const p of n.inputs) {
-      p.absX = Math.round(p.absX / GRID) * GRID;
-      p.absY = Math.round(p.absY / GRID) * GRID;
-    }
-    for (const p of n.outputs) {
-      p.absX = Math.round(p.absX / GRID) * GRID;
-      p.absY = Math.round(p.absY / GRID) * GRID;
-    }
-  }
+  // Node and port positions were already grid-snapped before routing. Snap only the
+  // interior wire vertices to the grid here, leaving each wire's first/last point exact
+  // so endpoints stay glued to their ports (notably OR inputs that tap the curve off-grid).
   for (const w of wires) {
-    for (const p of w.points) {
-      p.x = Math.round(p.x / GRID) * GRID;
-      p.y = Math.round(p.y / GRID) * GRID;
+    for (let i = 1; i < w.points.length - 1; i++) {
+      w.points[i].x = Math.round(w.points[i].x / GRID) * GRID;
+      w.points[i].y = Math.round(w.points[i].y / GRID) * GRID;
     }
   }
   for (const j of junctions) {

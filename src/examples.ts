@@ -175,6 +175,8 @@ O1 = (I1 AND NOT I2) AND NOT I3
 O2 = NOT I3`,
 
   'Boolean Algebra': `// Boolean algebra with math notation
+OPTION OUTPUT_ORDER = AUTO
+
 A.Name = "$A$"
 A.Description = "Input A"
 

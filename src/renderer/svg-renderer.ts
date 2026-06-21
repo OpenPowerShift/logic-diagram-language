@@ -123,52 +123,44 @@ function renderNodePorts(node: LayoutNode, ports: string[], opts: RenderOptions,
   } else if (node.gateType === 'OUTPUT') {
     const port = node.inputs[0];
     if (port) {
-      const x = port.absX;
-      const y = port.absY;
-      if (opts.portStyle === 'SQUARE') {
-        const size = PORT_SIZE;
-        ports.push(`<rect class="ldl-port ldl-input ldl-port-square" data-port="in" x="${x - size / 2}" y="${y - size / 2}" width="${size}" height="${size}" fill="${theme.portFill}"/>`);
+      if (port.bubbled) {
+        // NOT feeding straight into an output: bubble sits just left of the output port.
+        const bubbleCenterX = port.absX + BUBBLE_R;
+        ports.push(`<circle class="ldl-bubble ldl-input" data-port="in" cx="${bubbleCenterX}" cy="${port.absY}" r="${BUBBLE_R}" fill="${theme.fill}" stroke="${theme.stroke}" stroke-width="1.5"/>`);
       } else {
-        ports.push(`<circle class="ldl-port ldl-input ldl-port-circle" data-port="in" cx="${x}" cy="${y}" r="${3}" fill="${theme.portFill}"/>`);
+        ports.push(portMarker(port.absX, port.absY, 'ldl-input', 'in', opts, theme));
       }
     }
   } else {
-    if (opts.inversion === 'BUBBLES') {
-      for (let i = 0; i < node.inputs.length; i++) {
-        const port = node.inputs[i];
+    // Inversion bubbles are drawn ONLY on ports actually marked inverted; every other
+    // port gets a normal marker. A bubbled input port was shifted left by BUBBLE_R*2 in
+    // layout, so the bubble (centre = port.absX + BUBBLE_R) sits just outside the gate
+    // edge with its inner edge meeting the gate (straight edge for AND/NOT, curve for OR).
+    for (const port of node.inputs) {
+      if (port.bubbled) {
         const bubbleCenterX = port.absX + BUBBLE_R;
         ports.push(`<circle class="ldl-bubble ldl-input" data-port="${esc(port.name)}" cx="${bubbleCenterX}" cy="${port.absY}" r="${BUBBLE_R}" fill="${theme.fill}" stroke="${theme.stroke}" stroke-width="1.5"/>`);
-        const stubEnd = port.absX - INPUT_BAR_STUB;
-        ports.push(`<line class="ldl-wire" x1="${port.absX}" y1="${port.absY}" x2="${stubEnd}" y2="${port.absY}"/>`);
+      } else {
+        ports.push(portMarker(port.absX, port.absY, 'ldl-input', port.name, opts, theme));
       }
-      if (node.gateType === 'NOT' && node.outputs.length > 0) {
-        const outPort = node.outputs[0];
-        const bubbleCenterX = outPort.absX - BUBBLE_R;
-        ports.push(`<circle class="ldl-bubble ldl-output" data-port="${esc(outPort.name)}" cx="${bubbleCenterX}" cy="${outPort.absY}" r="${BUBBLE_R}" fill="${theme.fill}" stroke="${theme.stroke}" stroke-width="1.5"/>`);
-      }
-    } else {
-      for (const port of node.inputs) {
-        const x = port.absX;
-        const y = port.absY;
-        if (opts.portStyle === 'SQUARE') {
-          const size = PORT_SIZE;
-          ports.push(`<rect class="ldl-port ldl-input ldl-port-square" data-port="${esc(port.name)}" x="${x - size / 2}" y="${y - size / 2}" width="${size}" height="${size}" fill="${theme.portFill}"/>`);
-        } else {
-          ports.push(`<circle class="ldl-port ldl-input ldl-port-circle" data-port="${esc(port.name)}" cx="${x}" cy="${y}" r="${3}" fill="${theme.portFill}"/>`);
-        }
-      }
-      for (const port of node.outputs) {
-        const x = port.absX;
-        const y = port.absY;
-        if (opts.portStyle === 'SQUARE') {
-          const size = PORT_SIZE;
-          ports.push(`<rect class="ldl-port ldl-output ldl-port-square" data-port="${esc(port.name)}" x="${x - size / 2}" y="${y - size / 2}" width="${size}" height="${size}" fill="${theme.portFill}"/>`);
-        } else {
-          ports.push(`<circle class="ldl-port ldl-output ldl-port-circle" data-port="${esc(port.name)}" cx="${x}" cy="${y}" r="${3}" fill="${theme.portFill}"/>`);
-        }
+    }
+    for (const port of node.outputs) {
+      if (port.bubbledOutput) {
+        const bubbleCenterX = port.absX - BUBBLE_R;
+        ports.push(`<circle class="ldl-bubble ldl-output" data-port="${esc(port.name)}" cx="${bubbleCenterX}" cy="${port.absY}" r="${BUBBLE_R}" fill="${theme.fill}" stroke="${theme.stroke}" stroke-width="1.5"/>`);
+      } else {
+        ports.push(portMarker(port.absX, port.absY, 'ldl-output', port.name, opts, theme));
       }
     }
   }
+}
+
+function portMarker(x: number, y: number, dir: 'ldl-input' | 'ldl-output', name: string, opts: RenderOptions, theme: DiagramTheme): string {
+  if (opts.portStyle === 'SQUARE') {
+    const size = PORT_SIZE;
+    return `<rect class="ldl-port ${dir} ldl-port-square" data-port="${esc(name)}" x="${x - size / 2}" y="${y - size / 2}" width="${size}" height="${size}" fill="${theme.portFill}"/>`;
+  }
+  return `<circle class="ldl-port ${dir} ldl-port-circle" data-port="${esc(name)}" cx="${x}" cy="${y}" r="${3}" fill="${theme.portFill}"/>`;
 }
 
 function renderNodeLabels(node: LayoutNode, showLabels: boolean, labels: string[], theme: DiagramTheme): void {
@@ -240,13 +232,6 @@ function renderOutputNodeBody(node: LayoutNode, bodies: string[], theme: Diagram
   bodies.push(`<line class="ldl-wire" x1="${port.absX}" y1="${port.absY}" x2="${labelLeft}" y2="${port.absY}"/>`);
 }
 
-function orLeftCurveX(w: number, h: number, localY: number): number {
-  if (h <= 0) return 0;
-  const t = 1 - localY / h;
-  const cpxRatio = 0.18;
-  return w * 3 * (1 - t) * (1 - t) * t * cpxRatio + w * 3 * (1 - t) * t * t * cpxRatio;
-}
-
 function renderGateNodeBody(node: LayoutNode, shape: 'and' | 'or', symbol: string, bodies: string[], theme: DiagramTheme): void {
   const w = node.width;
   const h = node.height;
@@ -266,17 +251,6 @@ function renderGateNodeBody(node: LayoutNode, shape: 'and' | 'or', symbol: strin
   const parts: string[] = [];
   parts.push(`<g class="ldl-symbol ${cls}" id="${esc(node.id)}">`);
   parts.push(`  <path d="${bodyPath}" transform="translate(${x}, ${y})" fill="${theme.fill}" stroke="${theme.stroke}" stroke-width="2.5"/>`);
-
-  if (shape === 'or' && !node.barsMode) {
-    for (const port of node.inputs) {
-      const localY = port.absY - y;
-      const curveX = orLeftCurveX(w, h, localY);
-      const stubEndX = x + curveX;
-      if (curveX > 1) {
-        parts.push(`  <line x1="${x}" y1="${port.absY}" x2="${stubEndX}" y2="${port.absY}" stroke="${theme.stroke}" stroke-width="2.5"/>`);
-      }
-    }
-  }
 
   parts.push(`  <text x="${x + w / 2}" y="${y + h / 2 + fontSize * 0.35}" text-anchor="middle" fill="${theme.stroke}" font-size="${fontSize}" font-weight="700" font-family="sans-serif">${esc(symbol)}</text>`);
 
