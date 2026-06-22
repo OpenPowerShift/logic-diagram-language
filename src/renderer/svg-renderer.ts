@@ -47,9 +47,31 @@ export function renderDiagram(diagram: Diagram, portMeta?: PortMeta[], showLabel
     svgJunctions.push(renderJunctionDot(junction.x, junction.y, theme));
   }
 
+  // Content bounds include port label text, which can extend past the node bounding boxes
+  // (long output names overflow to the right, long input names to the left). Without this
+  // the viewBox clips them — the cause of right-side truncation in SVG/PDF export.
+  let minX = 0, maxX = layout.width, minY = 0, maxY = layout.height;
+  for (const node of layout.nodes) {
+    if (node.gateType === 'INPUT' && node.outputs[0]) {
+      const w = labelExtent(node, showLabels, showIds);
+      const p = node.outputs[0];
+      if (w > 0) minX = Math.min(minX, p.absX - 16 - w);
+      minY = Math.min(minY, p.absY - 18);
+      maxY = Math.max(maxY, p.absY + 18);
+    } else if (node.gateType === 'OUTPUT' && node.inputs[0]) {
+      const w = labelExtent(node, showLabels, showIds);
+      const p = node.inputs[0];
+      if (w > 0) maxX = Math.max(maxX, p.absX + 16 + w);
+      minY = Math.min(minY, p.absY - 18);
+      maxY = Math.max(maxY, p.absY + 18);
+    }
+  }
+
   const pad = 30;
-  const svgW = layout.width + pad * 2;
-  const svgH = layout.height + pad * 2;
+  const svgW = (maxX - minX) + pad * 2;
+  const svgH = (maxY - minY) + pad * 2;
+  const tx = pad - minX;
+  const ty = pad - minY;
 
   const labelsClass = showLabels ? 'ldl-show-labels' : '';
   const idsClass = showIds ? 'ldl-show-ids' : '';
@@ -71,7 +93,7 @@ export function renderDiagram(diagram: Diagram, portMeta?: PortMeta[], showLabel
     </style>
   </defs>
   <rect x="0" y="0" width="${svgW}" height="${svgH}" fill="${theme.background}" rx="4"/>
-  <g transform="translate(${pad}, ${pad})">
+  <g transform="translate(${tx}, ${ty})">
     ${svgWires.join('\n    ')}
     ${svgBodies.join('\n    ')}
     ${svgPorts.join('\n    ')}
@@ -80,6 +102,34 @@ export function renderDiagram(diagram: Diagram, portMeta?: PortMeta[], showLabel
     ${svgLabels.join('\n    ')}
   </g>
 </svg>`;
+}
+
+// Widest rendered line of a port label (name/description/id), used to size the viewBox so
+// labels are never clipped. Handles mixed plain + math (TeX) content.
+function textLineWidth(text: string, fontSize: number): number {
+  let w = 0;
+  for (const seg of splitIntoSegments(text)) {
+    if (seg.type === 'math') {
+      const r = renderMath(seg.text, fontSize);
+      w += r?.width ?? estimateTextWidth(seg.text, fontSize);
+    } else {
+      w += estimateTextWidth(seg.text, fontSize);
+    }
+  }
+  return w;
+}
+
+function labelExtent(node: LayoutNode, showLabels: boolean, showIds: boolean): number {
+  let w = 0;
+  if (showLabels) {
+    const name = node.name || node.label || '';
+    w = Math.max(w, textLineWidth(name, 12));
+    if (node.description) w = Math.max(w, textLineWidth(node.description, 9));
+  }
+  if (showIds) w = Math.max(w, textLineWidth(node.label || '', 10));
+  // Safety margin: names render in a semi-bold weight that the width estimate undershoots,
+  // so pad generously to guarantee the label is never clipped.
+  return w > 0 ? w * 1.15 + 10 : 0;
 }
 
 function renderNodeBody(node: LayoutNode, bodies: string[], opts: RenderOptions, theme: DiagramTheme): void {
@@ -305,7 +355,10 @@ function renderMixedLabelContent(
   const parts: string[] = [];
   const classSuffix = isDescription ? 'ldl-description' : 'ldl-name';
   const fontWeight = isDescription ? '' : ' font-weight="500"';
+  // Small gap so a plain segment and an adjacent math segment never visually touch.
+  const segGap = segments.length > 1 ? fontSize * 0.18 : 0;
 
+  // width = glyph/text advance (used for placement); segGap is added only between segments.
   const measured: { type: 'plain' | 'math'; text: string; width: number; svg?: string; baselineOffset: number }[] = [];
 
   for (const seg of segments) {
@@ -328,7 +381,7 @@ function renderMixedLabelContent(
     let currentRight = baseX;
     for (let i = measured.length - 1; i >= 0; i--) {
       rightEdges[i] = currentRight;
-      currentRight -= measured[i].width;
+      currentRight -= measured[i].width + segGap;
     }
 
     for (let i = 0; i < measured.length; i++) {
@@ -348,7 +401,7 @@ function renderMixedLabelContent(
       } else if (seg.svg) {
         parts.push(`<g class="ldl-math" transform="translate(${leftX}, ${baseY - seg.baselineOffset})">${seg.svg}</g>`);
       }
-      leftX += seg.width;
+      leftX += seg.width + segGap;
     }
   }
 

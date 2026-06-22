@@ -4,6 +4,8 @@ import { parse } from '../parser/index.js';
 import { resolveOptions, DEFAULT_OPTIONS } from '../parser/ast.js';
 import type { RenderOptions } from '../parser/ast.js';
 import { renderDiagram } from '../renderer/svg-renderer.js';
+import { layoutDiagram } from '../renderer/layout.js';
+import { validateLayout, type CheckResult } from '../renderer/checks.js';
 import { EXAMPLES, EXAMPLE_NAMES } from '../examples.js';
 import type { AppTheme, DiagramTheme } from '../theme/themes.js';
 import { LIGHT_THEME, DARK_THEME, LIGHT_DIAGRAM } from '../theme/themes.js';
@@ -95,9 +97,42 @@ export class LdlApp extends LitElement {
       flex: 1;
       min-height: 0;
     }
+    .checks-panel {
+      flex: 0 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 14px;
+      padding: 6px 12px;
+      background: var(--ldl-toolbar-bg);
+      border-top: 1px solid var(--ldl-toolbar-dark);
+      font-size: 11px;
+      font-family: 'JetBrains Mono', 'Consolas', monospace;
+    }
+    .check {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--ldl-toolbar-text);
+    }
+    .check-mark {
+      font-weight: 700;
+    }
+    .check.ok .check-mark {
+      color: #2e9e5b;
+    }
+    .check.fail {
+      color: #d14;
+    }
+    .check.fail .check-mark {
+      color: #d14;
+    }
+    .check-detail {
+      opacity: 0.7;
+    }
   `;
 
   @state() private svg = '';
+  @state() private checks: CheckResult[] = [];
   @state() private parseErrors: { message: string; line: number; column: number }[] = [];
   @state() private currentExample = 'Simple AND Gate';
   @state() private sourceText = EXAMPLES['Simple AND Gate'];
@@ -230,13 +265,17 @@ export class LdlApp extends LitElement {
       this.parseErrors = result.errors;
       if (result.diagram.outputs.length > 0) {
         const options = resolveOptions(result.diagram.options);
+        const layout = layoutDiagram(result.diagram, result.diagram.portMeta, options);
+        this.checks = validateLayout(layout);
         this.svg = renderDiagram(result.diagram, result.diagram.portMeta, this.showLabels, this.showIds, options, this.currentTheme.diagram);
       } else {
         this.svg = '';
+        this.checks = [];
       }
     } catch (err: any) {
       this.parseErrors = [{ message: err.message, line: 0, column: 0 }];
       this.svg = '';
+      this.checks = [];
     }
   }
 
@@ -258,6 +297,15 @@ export class LdlApp extends LitElement {
             .theme=${this.currentTheme.ui}
             @ldl-change=${this.handleSourceChange}
           ></ldl-editor>
+          ${this.checks.length ? html`
+            <div class="checks-panel">
+              ${this.checks.map(c => html`
+                <span class="check ${c.ok ? 'ok' : 'fail'}" title=${c.detail ?? (c.ok ? 'passed' : 'failed')}>
+                  <span class="check-mark">${c.ok ? '✓' : '✗'}</span>${c.label}${c.detail && !c.ok ? html` <span class="check-detail">(${c.detail})</span>` : ''}
+                </span>
+              `)}
+            </div>
+          ` : ''}
         </div>
         <div class="pane-right">
           <ldl-viewer

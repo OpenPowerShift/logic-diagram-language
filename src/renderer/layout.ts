@@ -913,11 +913,13 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     }
   }
 
-  // Kill residual small doglegs: each input port has exactly one source, so if the port
-  // sits within MIN_DOGLEG of (but not exactly on) its source output Y, nudge it onto the
-  // source Y to make the wire perfectly straight — provided that keeps it on the grid,
-  // inside the gate body, and ordered relative to its neighbours. Larger offsets are left
-  // as clean Z-routes.
+  // Kill residual small doglegs. Each input port has exactly one source, so a port sitting
+  // within MIN_DOGLEG of (but not on) its source Y leaves an ugly small jog. Prefer to fix
+  // this by shifting the WHOLE gate (keeping the port gaps intact) by a delta that aligns
+  // one port without leaving any other port with a small dogleg. Only if no such shift
+  // exists do we nudge a single port, and even then only when it preserves the minimum
+  // PORT_SPACING gap to its neighbours.
+  const isSmall = (d: number) => Math.abs(d) >= 0.5 && Math.abs(d) < MIN_DOGLEG;
   for (const node of nodes.values()) {
     if (node.inputIds.length === 0) continue;
     const ln = nodeMap.get(node.id);
@@ -927,16 +929,35 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
       .filter((y): y is number => y !== undefined)
       .sort((a, b) => a - b);
     const ports = [...ln.inputs].sort((a, b) => a.absY - b.absY);
-    for (let i = 0; i < ports.length && i < srcYs.length; i++) {
+    const n = Math.min(ports.length, srcYs.length);
+    const diffs = () => ports.map((p, i) => (i < n ? p.absY - srcYs[i] : 0));
+    if (!diffs().some(isSmall)) continue;
+
+    // Candidate whole-gate shifts: the offset that would align each currently-small port.
+    const candidates = diffs().map((d, i) => (isSmall(d) ? -d : null)).filter((x): x is number => x !== null);
+    let applied = false;
+    for (const delta of candidates) {
+      if (!Number.isInteger(delta / GRID)) continue;
+      const after = ports.map((p, i) => (i < n ? p.absY + delta - srcYs[i] : 0));
+      if (after.some(isSmall)) continue; // would still leave a small jog somewhere
+      ln.absY += delta;
+      for (const p of ln.inputs) p.absY += delta;
+      for (const p of ln.outputs) p.absY += delta;
+      applied = true;
+      break;
+    }
+    if (applied) continue;
+
+    // Fallback: nudge an individual port onto its source, but never closer than
+    // PORT_SPACING to a neighbour (so we don't trade a dogleg for a too-tight port gap).
+    for (let i = 0; i < n; i++) {
       const port = ports[i];
       const want = srcYs[i];
-      const d = port.absY - want;
-      if (Math.abs(d) < 0.5 || Math.abs(d) >= MIN_DOGLEG) continue;
-      if (!Number.isInteger(want / GRID)) continue;
+      if (!isSmall(port.absY - want) || !Number.isInteger(want / GRID)) continue;
       const prevY = i > 0 ? ports[i - 1].absY : -Infinity;
       const nextY = i < ports.length - 1 ? ports[i + 1].absY : Infinity;
       const insideBody = ln.gateType === 'OUTPUT' || (want > ln.absY && want < ln.absY + ln.height);
-      if (want > prevY + 0.5 && want < nextY - 0.5 && insideBody) {
+      if (want - prevY >= PORT_SPACING - 0.5 && nextY - want >= PORT_SPACING - 0.5 && insideBody) {
         port.absY = want;
         if (ln.gateType === 'OUTPUT') ln.absY = Math.round((want - ln.height / 2) / GRID) * GRID;
       }
@@ -1200,6 +1221,62 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     place(below);
   }
 
+  // Shared fan-out trunk: when one source feeds several destinations and two of its wires
+  // turn vertically at nearly the same X, snap them to a single shared channel. Same-source
+  // overlap is intentional (it reads as one trunk) and it collapses the near-duplicate
+  // junction dots into one clean T-tap. Snapping toward the gate-most X only shortens the
+  // peel-off horizontals, so it cannot introduce a backtrack.
+  {
+    const bySource = new Map<string, { w: LayoutWire; x: number }[]>();
+    for (const w of wires) {
+      if (w.points.length !== 4) continue;
+      if (Math.abs(w.points[1].x - w.points[2].x) >= 1) continue;       // middle segment vertical
+      if (Math.abs(w.points[0].y - w.points[1].y) >= 1) continue;       // exits horizontally
+      const arr = bySource.get(w.fromId) ?? [];
+      arr.push({ w, x: w.points[1].x });
+      bySource.set(w.fromId, arr);
+    }
+    // A move is rejected if the relocated vertical or its peel-off horizontal would touch a
+    // wire from a different source (same-source overlap is fine — that's the shared trunk).
+    const moveClear = (self: LayoutWire, sharedX: number) => {
+      const vyMin = Math.min(self.points[1].y, self.points[2].y);
+      const vyMax = Math.max(self.points[1].y, self.points[2].y);
+      const hy = self.points[3].y, hx0 = Math.min(sharedX, self.points[3].x), hx1 = Math.max(sharedX, self.points[3].x);
+      for (const o of wires) {
+        if (o.fromId === self.fromId) continue;
+        for (let k = 0; k < o.points.length - 1; k++) {
+          const a = o.points[k], b = o.points[k + 1];
+          if (Math.abs(a.x - b.x) < 0.5) { // other vertical
+            if (Math.abs(a.x - sharedX) < GRID && Math.max(a.y, b.y) > vyMin - 0.5 && Math.min(a.y, b.y) < vyMax + 0.5) return false;
+          } else if (Math.abs(a.y - b.y) < 0.5) { // other horizontal vs our vertical or peel-off
+            if (a.y > vyMin - 0.5 && a.y < vyMax + 0.5 && sharedX > Math.min(a.x, b.x) - 0.5 && sharedX < Math.max(a.x, b.x) + 0.5) return false;
+            if (Math.abs(a.y - hy) < 0.5 && Math.max(a.x, b.x) > hx0 - 0.5 && Math.min(a.x, b.x) < hx1 + 0.5) return false;
+          }
+        }
+      }
+      return true;
+    };
+    for (const group of bySource.values()) {
+      if (group.length < 2) continue;
+      group.sort((a, b) => a.x - b.x);
+      let start = 0;
+      for (let i = 1; i <= group.length; i++) {
+        if (i === group.length || group[i].x - group[i - 1].x > FANIN_SPACING) {
+          if (i - start >= 2) {
+            const sharedX = group[i - 1].x; // gate-most X in the cluster
+            if (group.slice(start, i).every(g => moveClear(g.w, sharedX))) {
+              for (let k = start; k < i; k++) {
+                group[k].w.points[1].x = sharedX;
+                group[k].w.points[2].x = sharedX;
+              }
+            }
+          }
+          start = i;
+        }
+      }
+    }
+  }
+
   for (let i = 0; i < wires.length; i++) {
     for (let j = i + 1; j < wires.length; j++) {
       if (wires[i].fromId !== wires[j].fromId) continue;
@@ -1262,13 +1339,23 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     j.y = Math.round(j.y / GRID) * GRID;
   }
 
+  // Merge near-duplicate junction dots (e.g. two fan-out branches that peel off within a
+  // few px of each other) so a split reads as one clean dot rather than a smudge.
+  const MERGE_DIST = 8;
+  const mergedJunctions: LayoutJunction[] = [];
+  for (const j of junctions) {
+    if (!mergedJunctions.some(m => Math.abs(m.x - j.x) <= MERGE_DIST && Math.abs(m.y - j.y) <= MERGE_DIST)) {
+      mergedJunctions.push(j);
+    }
+  }
+
   const maxX = Math.max(...layoutNodes.map(n => n.absX + n.width), ...wires.flatMap(w => w.points.map(p => p.x)));
   const maxY = Math.max(...layoutNodes.map(n => n.absY + n.height), ...wires.flatMap(w => w.points.map(p => p.y)));
 
   return {
     nodes: layoutNodes,
     wires,
-    junctions,
+    junctions: mergedJunctions,
     width: maxX,
     height: maxY,
     options: opts,

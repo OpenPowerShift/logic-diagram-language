@@ -143,7 +143,8 @@ The vertical order of output ports in the final column is controlled by the
   reach a source on the opposite side.
 * `AUTO` — outputs are reordered by the Y position of the gate that drives them (the same
   barycentre principle applied to inputs in <<row-optimisation>>). Outputs then stack in
-  the order their wires arrive, so output wires fan out without crossing.
+  the order their wires arrive, so output wires fan out without crossing. Note: AUTO can
+  increase output-column congestion in some diagrams, so it is opt-in rather than default.
 
 In both modes outputs in the same column are placed greedily in the chosen order: each is
 placed at its source Y where possible, otherwise pushed down just enough to clear the
@@ -203,6 +204,15 @@ the left of the gate, rather than all crowding into one bundle. The channels are
 * **Validated** — a channel is only used if it clears all gate bodies and does not overlap
   a wire from a different net; a group falls back to its balanced-Z route if any channel in
   it cannot be placed cleanly, so the optimisation never introduces a new collision.
+
+[#fan-out-dots]
+==== Fan-Out Junction Dots
+
+When one source drives several destinations, sibling branches whose vertical channels fall
+within `FANIN_SPACING` of each other SHOULD share a single trunk channel (same-source
+overlap is intended and reads as one trunk). A connection point is marked with a junction
+dot at each true T-intersection; junction dots within a few pixels of each other are merged
+into one so a split reads as a single clean dot rather than a cluster.
 
 [#crossover-minimisation]
 ==== Crossover Minimisation

@@ -118,17 +118,22 @@ export function hasMathContent(text: string): boolean {
   return false;
 }
 
+// Approximate the advance width of a string in a sans-serif face, in pixels. Per-character
+// em factors are calibrated to Helvetica/Arial and kept slightly generous so callers never
+// under-estimate (which would let adjacent label segments overlap or clip the viewBox).
 export function estimateTextWidth(text: string, fontSize: number): number {
-  let width = 0;
+  let em = 0;
   for (const ch of text) {
     const code = ch.charCodeAt(0);
-    if (code > 0x2000) { width += fontSize * 0.58 * 1.1; continue; }
-    if (ch >= 'A' && ch <= 'Z') { width += fontSize * 0.58 * 0.72; continue; }
-    if (ch >= 'a' && ch <= 'z') { width += fontSize * 0.58 * 0.55; continue; }
-    if (ch >= '0' && ch <= '9') { width += fontSize * 0.58 * 0.55; continue; }
-    if (ch === ' ' || ch === '.' || ch === ',') { width += fontSize * 0.58 * 0.3; continue; }
-    if (ch === '(' || ch === ')') { width += fontSize * 0.58 * 0.4; continue; }
-    width += fontSize * 0.58 * 0.55;
+    if (ch >= 'A' && ch <= 'Z') em += 0.70;
+    else if (ch === 'i' || ch === 'l' || ch === 'j' || ch === 't' || ch === 'f') em += 0.30;
+    else if (ch >= 'a' && ch <= 'z') em += 0.52;
+    else if (ch >= '0' && ch <= '9') em += 0.56;
+    else if (ch === ' ') em += 0.30;
+    else if (ch === '.' || ch === ',' || ch === ':' || ch === ';' || ch === "'" || ch === '|' || ch === '!') em += 0.30;
+    else if (ch === '(' || ch === ')' || ch === '[' || ch === ']' || ch === '{' || ch === '}') em += 0.36;
+    else if (code > 0x2000) em += 0.62;
+    else em += 0.56;
   }
-  return width;
+  return em * fontSize;
 }
