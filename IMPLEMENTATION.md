@@ -133,3 +133,30 @@ Key files:
 - `src/renderer/layout.ts`: endpoint-alignment passes, fan-out trunk/branches, junction
   dots, OR curve-tap ports, channel spacing, allObstacles
 - `src/renderer/gates.ts`, `src/renderer/svg-renderer.ts`: OR curve geometry, bubble placement
+
+## Current Issues
+
+1. ~~In the demo, if example goes past the screen the example selector at the top gets lost. The top bars should always stay at the top even if the text input is large or the diagram is large.~~ **RESOLVED** — root cause was `global.css` `ldl-app { display: block }` overriding the component's `:host { display: flex }`, so the column flex layout never constrained `.main` to the viewport; the toolbar stayed but the panes could grow past the screen. Fixed by making `ldl-app` `display: flex; flex-direction: column` in `global.css` and adding explicit `min-height: 0` to the flex panes.
+
+2. ~~The fit is not fitting as well as it should, it is often smaller than it needs to be, see for example "Interlocking Q01 Close". When I click the button we need to fit the horizontal and vertical extents as much as possible within the current view.~~ **RESOLVED** — the SVG's `max-width:100%` meant `.viewer-content` never rendered at the diagram's pixel size, so the fit maths used the wrong dimensions. Now the viewer sizes the content box to the SVG `viewBox`, the wrapper gets `min-height/min-width:0` so it clips instead of growing, `handleFit` fits both extents (`min(scaleX, scaleY)`, centred), and new diagrams auto-fit on load.
+
+3. Boolean Algebra with "OPTION OUTPUT_ORDER = DECLARATION" not puts two of the outputs at the bottom. But if that's the case then the inputs should be re-ordered to allow it. Let's make the default be OPTION INPUT_ORDER = AUTO to fix this.
+
+4. Very large AND gates have the edges of the curved gate calculated wrong, see this example: X = A AND B AND C AND D AND E AND F AND G AND H AND I AND J AND K.
+
+5. When a gate has many inputs the minimum gap between them is too small (it should be the same as the gap between the ports). This implies we should move the gate to the right. How can we include this in our general philosophy?
+
+6. Also even for a trivial example, the gate routing at the bottom is not very good. Try this example: X = A OR B OR C OR D OR F OR G OR H OR I OR J OR K OR L OR M OR N OR O OR P. There are unnecessary doglegs and crossovers and its not symmetrical with the top but it should be.
+
+7. There should be an output indicating if the checks have passed which is displayed on the left below the console input.
+
+- all gates orthogonal
+- minimum gaps met
+- all inputs and outputs and gates connected
+- no crossovers or unable to solve 
+
+8. PDF output is truncated on the right. Some of the output ports are not visible.
+
+9. Where possible multiple tap-offs (if they are close enough) should use the same dot. For instance in booolean algebra we use two dots from node A but we could have used one and then done another dot on teh start of the OR gate which would have been visually better and with less crossovers.
+
+10. On Boolean Algebra we need to think about laying out of gates. For instance the NOT is placed above which pushes other output gates around and puts more bends in than necessary (if the NOT went down rather than up the others would be straight lines). I think we need to improve/optimise our gate/object placement approach. Please provide a proposal.

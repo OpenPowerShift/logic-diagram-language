@@ -31,8 +31,9 @@ export class LdlApp extends LitElement {
       padding: 8px 16px;
       background: var(--ldl-toolbar-bg);
       border-bottom: 2px solid var(--ldl-toolbar-dark);
-      flex-shrink: 0;
+      flex: 0 0 auto;
       flex-wrap: wrap;
+      z-index: 10;
     }
     .toolbar-title {
       font-size: 15px;
@@ -65,6 +66,7 @@ export class LdlApp extends LitElement {
     .main {
       display: flex;
       flex: 1;
+      min-height: 0;
       overflow: hidden;
     }
     .pane-left {
@@ -73,6 +75,7 @@ export class LdlApp extends LitElement {
       max-width: 55%;
       display: flex;
       flex-direction: column;
+      min-height: 0;
       overflow: hidden;
       border-right: 2px solid var(--ldl-border);
     }
@@ -80,6 +83,8 @@ export class LdlApp extends LitElement {
       flex: 1;
       display: flex;
       flex-direction: column;
+      min-height: 0;
+      min-width: 0;
       overflow: hidden;
     }
     ldl-viewer {

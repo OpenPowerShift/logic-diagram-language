@@ -85,6 +85,8 @@ export class LdlViewer extends LitElement {
     }
     .viewer-wrapper {
       flex: 1;
+      min-height: 0;
+      min-width: 0;
       overflow: hidden;
       background: var(--ldl-surface);
       cursor: grab;
@@ -96,6 +98,14 @@ export class LdlViewer extends LitElement {
     }
     .viewer-content {
       transform-origin: 0 0;
+    }
+    /* Render the SVG at the content box's pixel size so transform scaling is exact.
+       Without this the SVG's own max-width:100% makes it size to the wrapper, which
+       breaks the fit calculation (diagram ends up far smaller than the view). */
+    .viewer-content svg {
+      display: block;
+      width: 100%;
+      height: 100%;
     }
     .empty-state {
       color: var(--ldl-text-muted);
@@ -129,6 +139,26 @@ export class LdlViewer extends LitElement {
     if (changed.has('theme')) {
       this.applyTheme();
     }
+    if (changed.has('svg') && this.svg) {
+      // Auto-fit each new diagram once the SVG is in the DOM.
+      requestAnimationFrame(() => this.handleFit());
+    }
+  }
+
+  private getSvgSize(): { w: number; h: number } | null {
+    const svgEl = this.shadowRoot?.querySelector('.viewer-content svg');
+    const vb = svgEl?.getAttribute('viewBox')?.split(/\s+/).map(Number);
+    if (!vb || vb.length < 4 || !vb[2] || !vb[3]) return null;
+    return { w: vb[2], h: vb[3] };
+  }
+
+  private setContentSize() {
+    const content = this.shadowRoot?.querySelector('.viewer-content') as HTMLElement;
+    const s = this.getSvgSize();
+    if (content && s) {
+      content.style.width = `${s.w}px`;
+      content.style.height = `${s.h}px`;
+    }
   }
 
   private applyTheme() {
@@ -157,34 +187,28 @@ export class LdlViewer extends LitElement {
   }
 
   private handleFit() {
-    const content = this.shadowRoot?.querySelector(
-      ".viewer-content",
-    ) as HTMLElement;
     const wrapper = this.shadowRoot?.querySelector(
       ".viewer-wrapper",
     ) as HTMLElement;
-    if (!content || !wrapper) return;
+    const size = this.getSvgSize();
+    if (!wrapper || !size) return;
 
-    const svgEl = content.querySelector("svg");
-    if (!svgEl) return;
+    // Pin the content box to the diagram's pixel size so the transform scales it exactly.
+    this.setContentSize();
 
-    const vb = svgEl.getAttribute("viewBox")?.split(" ").map(Number);
-    if (!vb || vb.length < 4) return;
-
-    const svgW = vb[2];
-    const svgH = vb[3];
     const wrapperRect = wrapper.getBoundingClientRect();
-
     if (wrapperRect.width <= 0 || wrapperRect.height <= 0) return;
 
-    const scaleX = (wrapperRect.width - 20) / svgW;
-    const scaleY = (wrapperRect.height - 20) / svgH;
-    this.scale = Math.min(scaleX, scaleY, 3);
+    const margin = 24;
+    const scaleX = (wrapperRect.width - margin) / size.w;
+    const scaleY = (wrapperRect.height - margin) / size.h;
+    // Fit both extents as fully as possible (cap only to avoid absurd upscaling).
+    this.scale = Math.max(0.05, Math.min(scaleX, scaleY, 4));
 
-    const contentW = svgW * this.scale;
-    const contentH = svgH * this.scale;
-    this.panX = (wrapperRect.width - contentW) / 2;
-    this.panY = (wrapperRect.height - contentH) / 2;
+    const contentW = size.w * this.scale;
+    const contentH = size.h * this.scale;
+    this.panX = Math.max(0, (wrapperRect.width - contentW) / 2);
+    this.panY = Math.max(0, (wrapperRect.height - contentH) / 2);
 
     this.updateTransform();
   }
