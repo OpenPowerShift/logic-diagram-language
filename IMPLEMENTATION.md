@@ -26,6 +26,7 @@ Last updated: 2026-06-17
 | `OPTION PORT_STYLE` | Done | CIRCLE (default) and SQUARE |
 | `OPTION GATE_INPUT_STYLE` | Done | EXPAND (default) and BARS (BARS routing known-broken, out of scope) |
 | `OPTION OUTPUT_ORDER` | Done | DECLARATION (default) keeps declared output order; AUTO reorders outputs by source gate Y to avoid crossings |
+| `OPTION INPUT_ORDER` | Done | AUTO (default) reorders inputs via Sugiyama barycentre; DECLARATION keeps declared order |
 | `OPTION LABEL_STYLE` | Missing | Only SIDE behavior exists; ABOVE_BELOW not implemented |
 | `CONNECT` explicit wires | Missing | Parser stores `ConnectDecl[]` but renderer never reads them |
 | `STYLE ... END STYLE` | Partial | Parser stores blocks in `StyleDecl[]` but renderer never embeds CSS |
@@ -140,13 +141,13 @@ Key files:
 
 2. ~~The fit is not fitting as well as it should, it is often smaller than it needs to be, see for example "Interlocking Q01 Close". When I click the button we need to fit the horizontal and vertical extents as much as possible within the current view.~~ **RESOLVED** — the SVG's `max-width:100%` meant `.viewer-content` never rendered at the diagram's pixel size, so the fit maths used the wrong dimensions. Now the viewer sizes the content box to the SVG `viewBox`, the wrapper gets `min-height/min-width:0` so it clips instead of growing, `handleFit` fits both extents (`min(scaleX, scaleY)`, centred), and new diagrams auto-fit on load.
 
-3. Boolean Algebra with "OPTION OUTPUT_ORDER = DECLARATION" not puts two of the outputs at the bottom. But if that's the case then the inputs should be re-ordered to allow it. Let's make the default be OPTION INPUT_ORDER = AUTO to fix this.
+3. ~~Boolean Algebra with "OPTION OUTPUT_ORDER = DECLARATION" not puts two of the outputs at the bottom. But if that's the case then the inputs should be re-ordered to allow it. Let's make the default be OPTION INPUT_ORDER = AUTO to fix this.~~ **RESOLVED** — added `OPTION INPUT_ORDER` (AUTO default = Sugiyama barycentre reordering, DECLARATION = keep declared order). The barycentre reordering was always on; it is now exposed and documented, with AUTO the default so input rows reorder to suit the chosen output order.
 
-4. Very large AND gates have the edges of the curved gate calculated wrong, see this example: X = A AND B AND C AND D AND E AND F AND G AND H AND I AND J AND K.
+4. ~~Very large AND gates have the edges of the curved gate calculated wrong, see this example: X = A AND B AND C AND D AND E AND F AND G AND H AND I AND J AND K.~~ **RESOLVED** — `andGateBody` used arc radius `h/2`, so once `h > w` the top edge went to a negative X and the shape broke. The corner radius is now capped at `w/2`; the body is a rounded rectangle that degenerates to the classic semicircular "D" for short gates. The OR body scales with height and cannot produce invalid geometry.
 
-5. When a gate has many inputs the minimum gap between them is too small (it should be the same as the gap between the ports). This implies we should move the gate to the right. How can we include this in our general philosophy?
+5. ~~When a gate has many inputs the minimum gap between them is too small (it should be the same as the gap between the ports). This implies we should move the gate to the right. How can we include this in our general philosophy?~~ **RESOLVED** — added a nested fan-in channel pass: each dogleg wire into a gate gets its own vertical channel just left of the gate, spaced `FANIN_SPACING` (15px, = port gap) and nested (most extreme source turns nearest the gate) so the fan-in is never more crowded than the ports and never crosses. Placing the channels in the gap left of the gate achieves the consistent gap without physically moving the gate. Documented as "Multi-Input Fan-In Channels" in the spec.
 
-6. Also even for a trivial example, the gate routing at the bottom is not very good. Try this example: X = A OR B OR C OR D OR F OR G OR H OR I OR J OR K OR L OR M OR N OR O OR P. There are unnecessary doglegs and crossovers and its not symmetrical with the top but it should be.
+6. ~~Also even for a trivial example, the gate routing at the bottom is not very good. Try this example: X = A OR B OR C OR D OR F OR G OR H OR I OR J OR K OR L OR M OR N OR O OR P. There are unnecessary doglegs and crossovers and its not symmetrical with the top but it should be.~~ **RESOLVED** — the nested fan-in (see issue 5) nests above- and below-side inputs independently and symmetrically, eliminating the bottom-side doglegs/crossovers for large OR (and AND) gates.
 
 7. There should be an output indicating if the checks have passed which is displayed on the left below the console input.
 

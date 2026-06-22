@@ -66,6 +66,16 @@ the last occurrence wins.
 | AUTO
 | Output ports are reordered vertically by the position of the gate that drives them, so output wires fan out without crossing (the barycentre method already used for inputs)
 | --
+
+| INPUT_ORDER
+| AUTO
+| Input ports are reordered vertically using the Sugiyama barycentre method to minimise wire crossings
+| AUTO
+
+| INPUT_ORDER
+| DECLARATION
+| Input ports keep their declared (natural-sorted) order; gate rows still follow from that fixed order
+| --
 |===
 
 === Examples

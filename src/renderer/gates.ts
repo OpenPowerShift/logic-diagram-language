@@ -21,8 +21,20 @@ function esc(s: string): string {
 }
 
 export function andGateBody(w: number, h: number): string {
-  const r = h / 2;
-  return `M 0,0 L ${w - r},0 A ${r},${r} 0 0,1 ${w - r},${h} L 0,${h} Z`;
+  // Rounded right side. Cap the corner radius at w/2 so tall gates don't produce a
+  // negative top edge (r=h/2 would make w-r < 0 once h > w) — the body then becomes a
+  // stadium/rounded rectangle. For short gates (h <= w) this is exactly the classic
+  // semicircular "D" shape, since the straight right edge between the corners is zero.
+  const r = Math.min(h / 2, w / 2);
+  return [
+    `M 0,0`,
+    `L ${w - r},0`,
+    `A ${r},${r} 0 0 1 ${w},${r}`,
+    `L ${w},${h - r}`,
+    `A ${r},${r} 0 0 1 ${w - r},${h}`,
+    `L 0,${h}`,
+    `Z`,
+  ].join(' ');
 }
 
 export function orGateBody(w: number, h: number): string {

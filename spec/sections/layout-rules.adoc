@@ -21,7 +21,7 @@ Outputs of a gate at column *c* align horizontally with the inputs of gates at c
 [#row-optimisation]
 ==== Row Optimisation (Sugiyama Barycentre Method)
 
-Input nodes are initially assigned rows in natural sort order (I1, I2, ..., I10). The renderer MUST then apply the Sugiyama barycentre crossing-minimisation algorithm to reorder input nodes so that wires between levels cross as little as possible.
+Input nodes are initially assigned rows in natural sort order (I1, I2, ..., I10). When `OPTION INPUT_ORDER = AUTO` (the default) the renderer MUST then apply the Sugiyama barycentre crossing-minimisation algorithm to reorder input nodes so that wires between levels cross as little as possible. When `OPTION INPUT_ORDER = DECLARATION` the inputs keep their natural-sorted order and only the gate rows are propagated from it.
 
 The algorithm iterates up to 3 times:
 
@@ -186,11 +186,23 @@ The subexpression `A AND B` is referenced by both O1 and O4. The renderer MUST c
 For non-commutative operators (NOT) and future derived operators (NAND, NOR, XOR, XNOR), deduplication MUST preserve input ordering. Two expressions are identical only if their inputs appear in the same gate-specific order.
 
 [#symmetric-channels]
-==== Symmetric Dogleg Channels
+==== Multi-Input Fan-In Channels
 
-When multiple wires connect to the same gate, wires that originate from the same side (all above, or all below the gate) MUST share a single vertical channel X. This creates a symmetrical "trunk" pattern where all wires from one side enter the gate through a common vertical line.
+When several wires dogleg into the same gate, each gets its own vertical channel just to
+the left of the gate, rather than all crowding into one bundle. The channels are:
 
-When wires originate from both above and below the gate, the above-side wires share one channel and the below-side wires share a separate channel. The above-side channel is positioned closer to the midpoint between source and destination columns, and the below-side channel is positioned accordingly.
+* **Evenly spaced** — adjacent channels are `FANIN_SPACING` (15px, the same as the port
+  gap) apart, so the fan-in is never more crowded than the ports it feeds. Because the
+  channels live in the gap immediately left of the gate, this is how the layout keeps a
+  consistent gap without having to physically move the gate further right.
+* **Nested** — wires arriving from above the gate and wires arriving from below are nested
+  independently, with the most extreme source (topmost / bottommost) turning closest to
+  the gate and progressively inner sources turning further left. This is the ordering that
+  is provably crossing-free for a single source column, and it reads symmetrically between
+  the top and bottom halves of the gate.
+* **Validated** — a channel is only used if it clears all gate bodies and does not overlap
+  a wire from a different net; a group falls back to its balanced-Z route if any channel in
+  it cannot be placed cleanly, so the optimisation never introduces a new collision.
 
 [#crossover-minimisation]
 ==== Crossover Minimisation

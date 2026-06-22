@@ -381,7 +381,11 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     }
   }
 
-  for (let iteration = 0; iteration < 3; iteration++) {
+  // INPUT_ORDER = AUTO (default): reorder input rows by the Sugiyama barycentre method to
+  // minimise wire crossings. INPUT_ORDER = DECLARATION: keep inputs in their declared
+  // (natural-sorted) order and only propagate gate rows from that fixed input order.
+  const barycentreIterations = opts.inputOrder === 'AUTO' ? 3 : 0;
+  for (let iteration = 0; iteration < barycentreIterations; iteration++) {
     const sortedInputGroup = [...inputGroup];
     for (const node of sortedInputGroup) {
       const downNodes = Array.from(nodes.values()).filter(n => n.inputIds.includes(node.id));
@@ -1118,6 +1122,82 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
       p[vi].x = x; p[vi + 1].x = x;
       break;
     }
+  }
+
+  // Nested fan-in channels: when several wires dogleg into the same gate, give each its
+  // own vertical channel just left of the gate, evenly spaced (FANIN_SPACING) and nested
+  // so they neither cross nor crowd. Inputs arriving from above and from below are nested
+  // independently, with the most extreme source turning closest to the gate — this is the
+  // arrangement that avoids crossings and reads symmetrically. Only simple H–V–H wires
+  // with a clear channel band are reshaped; obstacle-routed wires are left untouched.
+  const FANIN_SPACING = 15;
+  for (const gate of layoutNodes) {
+    if (gate.gateType === 'INPUT' || gate.gateType === 'OUTPUT') continue;
+    const fanWires = wires.filter(w =>
+      w.toId === gate.id && w.points.length === 4 &&
+      Math.abs(w.points[0].y - w.points[1].y) < 1 &&
+      Math.abs(w.points[1].x - w.points[2].x) < 1 &&
+      Math.abs(w.points[2].y - w.points[3].y) < 1 &&
+      Math.abs(w.points[0].y - w.points[3].y) >= 1, // has a real dogleg
+    );
+    if (fanWires.length < 2) continue;
+
+    const above = fanWires.filter(w => w.points[0].y < w.points[3].y);
+    const below = fanWires.filter(w => w.points[0].y > w.points[3].y);
+    above.sort((a, b) => a.points[0].y - b.points[0].y); // topmost source first
+    below.sort((a, b) => b.points[0].y - a.points[0].y); // bottommost source first
+
+    // A reshaped channel is rejected if it would hit a gate body or overlap a wire from a
+    // different source that is NOT part of this gate's nested fan-in (those are crossing-
+    // free by construction). Rejected wires keep their balanced-Z geometry.
+    const fanSet = new Set(fanWires);
+    const channelOk = (w: LayoutWire, channelX: number, srcX: number, srcY: number, portX: number, portY: number) => {
+      if (!vGateClear(channelX, srcY, portY)) return false;
+      if (!hGateClear(srcY, srcX, channelX, w.fromId)) return false;
+      if (!hGateClear(portY, channelX, portX, w.toId)) return false;
+      const vyMin = Math.min(srcY, portY), vyMax = Math.max(srcY, portY);
+      for (const o of wires) {
+        if (o === w || o.fromId === w.fromId || fanSet.has(o)) continue;
+        for (let k = 0; k < o.points.length - 1; k++) {
+          const a = o.points[k], b = o.points[k + 1];
+          if (Math.abs(a.x - b.x) < 0.5) { // other vertical: overlap our channel?
+            if (Math.abs(a.x - channelX) < GRID &&
+                Math.max(a.y, b.y) > vyMin - 0.5 && Math.min(a.y, b.y) < vyMax + 0.5) return false;
+          } else if (Math.abs(a.y - b.y) < 0.5) { // other horizontal: cross our channel?
+            if (a.y > vyMin - 0.5 && a.y < vyMax + 0.5 &&
+                channelX > Math.min(a.x, b.x) - 0.5 && channelX < Math.max(a.x, b.x) + 0.5) return false;
+          }
+        }
+      }
+      return true;
+    };
+
+    // All-or-nothing per group: compute every nested channel, and only apply them if all
+    // are valid and mutually distinct. Otherwise leave the group's balanced-Z geometry
+    // (which is already non-overlapping) so we never trade one problem for another.
+    const place = (group: LayoutWire[]) => {
+      const planned: number[] = [];
+      const used = new Set<number>();
+      for (let i = 0; i < group.length; i++) {
+        const w = group[i];
+        const srcX = w.points[0].x, srcY = w.points[0].y;
+        const portX = w.points[3].x, portY = w.points[3].y;
+        // i = 0 (most extreme source) turns closest to the gate; deeper indices nest left.
+        let channelX = gate.absX - GATE_CLEARANCE - i * FANIN_SPACING;
+        const minX = Math.round((srcX + MIN_DOGLEG) / GRID) * GRID;
+        if (channelX < minX) channelX = minX;
+        channelX = Math.round(channelX / GRID) * GRID;
+        if (used.has(channelX) || !channelOk(w, channelX, srcX, srcY, portX, portY)) return;
+        used.add(channelX);
+        planned.push(channelX);
+      }
+      for (let i = 0; i < group.length; i++) {
+        group[i].points[1].x = planned[i];
+        group[i].points[2].x = planned[i];
+      }
+    };
+    place(above);
+    place(below);
   }
 
   for (let i = 0; i < wires.length; i++) {
