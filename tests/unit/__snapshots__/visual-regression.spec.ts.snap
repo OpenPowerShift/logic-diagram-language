@@ -1,0 +1,10553 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Visual regression (layout geometry) > Boolean Algebra 1`] = `
+{
+  "canvas": [
+    1050,
+    245,
+  ],
+  "junctions": [
+    [
+      340,
+      180,
+    ],
+    [
+      355,
+      70,
+    ],
+    [
+      415,
+      70,
+    ],
+    [
+      590,
+      145,
+    ],
+  ],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        430,
+        120,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          135,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          430,
+          150,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          490,
+          145,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        165,
+        100,
+        30,
+      ],
+      "desc": "Input B",
+      "inputs": [],
+      "label": "B",
+      "name": "$B$",
+      "outputs": [
+        [
+          270,
+          180,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        55,
+        100,
+        30,
+      ],
+      "desc": "Input A",
+      "inputs": [],
+      "label": "A",
+      "name": "$A$",
+      "outputs": [
+        [
+          270,
+          70,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        50,
+        65,
+        40,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          70,
+          "in_0",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          495,
+          70,
+          "out",
+          0,
+        ],
+      ],
+      "type": "NOT",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        95,
+        65,
+        40,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          115,
+          "in_0",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          755,
+          115,
+          "out",
+          0,
+        ],
+      ],
+      "type": "NOT",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        200,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          439,
+          215,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          439,
+          230,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          490,
+          225,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        950,
+        100,
+        100,
+        30,
+      ],
+      "desc": "NAND: $\\overline{AB}$",
+      "inputs": [
+        [
+          950,
+          115,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "O4",
+      "name": "$\\overline{A \\cdot B}$",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        950,
+        130,
+        100,
+        30,
+      ],
+      "desc": "Logical AND",
+      "inputs": [
+        [
+          950,
+          145,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "O1",
+      "name": "$A \\cdot B$",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        950,
+        210,
+        100,
+        30,
+      ],
+      "desc": "Logical OR",
+      "inputs": [
+        [
+          950,
+          225,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "O2",
+      "name": "$A + B$",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        950,
+        55,
+        100,
+        30,
+      ],
+      "desc": "Logical NOT",
+      "inputs": [
+        [
+          950,
+          70,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "O3",
+      "name": "$\\overline{A}$",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          180,
+        ],
+        [
+          340,
+          180,
+        ],
+        [
+          340,
+          230,
+        ],
+        [
+          439,
+          230,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          180,
+        ],
+        [
+          415,
+          180,
+        ],
+        [
+          415,
+          150,
+        ],
+        [
+          430,
+          150,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          70,
+        ],
+        [
+          355,
+          70,
+        ],
+        [
+          355,
+          215,
+        ],
+        [
+          439,
+          215,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          70,
+        ],
+        [
+          415,
+          70,
+        ],
+        [
+          415,
+          135,
+        ],
+        [
+          430,
+          135,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          70,
+        ],
+        [
+          430,
+          70,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          490,
+          145,
+        ],
+        [
+          590,
+          145,
+        ],
+        [
+          590,
+          115,
+        ],
+        [
+          690,
+          115,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          490,
+          145,
+        ],
+        [
+          950,
+          145,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          490,
+          225,
+        ],
+        [
+          950,
+          225,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          70,
+        ],
+        [
+          950,
+          70,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          755,
+          115,
+        ],
+        [
+          950,
+          115,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > Breaker Failure (SEL-751A) 1`] = `
+{
+  "canvas": [
+    1570,
+    510,
+  ],
+  "junctions": [
+    [
+      1270,
+      210,
+    ],
+    [
+      1300,
+      210,
+    ],
+  ],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        430,
+        200,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          215,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          430,
+          230,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          490,
+          225,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        420,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          435,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          430,
+          450,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          490,
+          445,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        950,
+        310,
+        60,
+        55,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          950,
+          335,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          950,
+          350,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          1010,
+          340,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        160,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "CB52A",
+      "name": "52A",
+      "outputs": [
+        [
+          270,
+          170,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        260,
+        100,
+        30,
+      ],
+      "desc": "Setting",
+      "inputs": [],
+      "label": "CB52ABFY",
+      "name": "52ABF = Y",
+      "outputs": [
+        [
+          270,
+          275,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        370,
+        100,
+        30,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "I1I2",
+      "name": "$\\mathrm{|I1|+|I2|}$",
+      "outputs": [
+        [
+          270,
+          385,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        480,
+        100,
+        30,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "INOM",
+      "name": "$\\mathrm{0.02 \\cdot I_{NOM}}$",
+      "outputs": [
+        [
+          270,
+          495,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        50,
+        100,
+        30,
+      ],
+      "desc": "Relay Word Bit",
+      "inputs": [],
+      "label": "BFI",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          65,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        1210,
+        185,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1219,
+          200,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          1219,
+          215,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          1270,
+          210,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        310,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          699,
+          325,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          699,
+          340,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          750,
+          335,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        1470,
+        200,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1470,
+          210,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "BFT",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          1010,
+          340,
+        ],
+        [
+          1195,
+          340,
+        ],
+        [
+          1195,
+          215,
+        ],
+        [
+          1219,
+          215,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          1270,
+          210,
+        ],
+        [
+          1470,
+          210,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          170,
+        ],
+        [
+          415,
+          170,
+        ],
+        [
+          415,
+          215,
+        ],
+        [
+          430,
+          215,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          275,
+        ],
+        [
+          415,
+          275,
+        ],
+        [
+          415,
+          230,
+        ],
+        [
+          430,
+          230,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          385,
+        ],
+        [
+          415,
+          385,
+        ],
+        [
+          415,
+          435,
+        ],
+        [
+          430,
+          435,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          495,
+        ],
+        [
+          415,
+          495,
+        ],
+        [
+          415,
+          450,
+        ],
+        [
+          430,
+          450,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          65,
+        ],
+        [
+          1195,
+          65,
+        ],
+        [
+          1195,
+          200,
+        ],
+        [
+          1219,
+          200,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          490,
+          225,
+        ],
+        [
+          675,
+          225,
+        ],
+        [
+          675,
+          325,
+        ],
+        [
+          699,
+          325,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          490,
+          445,
+        ],
+        [
+          675,
+          445,
+        ],
+        [
+          675,
+          340,
+        ],
+        [
+          699,
+          340,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          750,
+          335,
+        ],
+        [
+          950,
+          335,
+        ],
+      ],
+    },
+    {
+      "feedback": 1,
+      "points": [
+        [
+          1270,
+          210,
+        ],
+        [
+          1300,
+          210,
+        ],
+        [
+          1300,
+          395,
+        ],
+        [
+          920,
+          395,
+        ],
+        [
+          920,
+          350,
+        ],
+        [
+          950,
+          350,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
+{
+  "canvas": [
+    1310,
+    330,
+  ],
+  "junctions": [
+    [
+      350,
+      160,
+    ],
+  ],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        430,
+        90,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          105,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          430,
+          120,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          490,
+          115,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        260,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          275,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          690,
+          290,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          750,
+          285,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        150,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "DC",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          160,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        310,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "GF",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          320,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        50,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "AB",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          60,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        170,
+        65,
+        40,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          190,
+          "in_0",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          495,
+          190,
+          "out",
+          0,
+        ],
+      ],
+      "type": "NOT",
+    },
+    {
+      "block": null,
+      "box": [
+        950,
+        175,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          959,
+          190,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          959,
+          205,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          1010,
+          200,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        1210,
+        190,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1210,
+          200,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "CBFPS",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          1010,
+          200,
+        ],
+        [
+          1210,
+          200,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          160,
+        ],
+        [
+          350,
+          160,
+        ],
+        [
+          350,
+          190,
+        ],
+        [
+          430,
+          190,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          160,
+        ],
+        [
+          415,
+          160,
+        ],
+        [
+          415,
+          120,
+        ],
+        [
+          430,
+          120,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          320,
+        ],
+        [
+          675,
+          320,
+        ],
+        [
+          675,
+          290,
+        ],
+        [
+          690,
+          290,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          60,
+        ],
+        [
+          415,
+          60,
+        ],
+        [
+          415,
+          105,
+        ],
+        [
+          430,
+          105,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          490,
+          115,
+        ],
+        [
+          935,
+          115,
+        ],
+        [
+          935,
+          190,
+        ],
+        [
+          959,
+          190,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          190,
+        ],
+        [
+          675,
+          190,
+        ],
+        [
+          675,
+          275,
+        ],
+        [
+          690,
+          275,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          750,
+          285,
+        ],
+        [
+          935,
+          285,
+        ],
+        [
+          935,
+          205,
+        ],
+        [
+          959,
+          205,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > Combined Options 1`] = `
+{
+  "canvas": [
+    790,
+    570,
+  ],
+  "junctions": [],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        430,
+        275,
+        75,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          420,
+          290,
+          "in_2",
+          null,
+          0,
+        ],
+        [
+          420,
+          295,
+          "in_3",
+          null,
+          0,
+        ],
+        [
+          420,
+          295,
+          "in_4",
+          null,
+          0,
+        ],
+        [
+          420,
+          300,
+          "in_5",
+          null,
+          0,
+        ],
+        [
+          420,
+          305,
+          "in_1",
+          null,
+          1,
+        ],
+        [
+          430,
+          290,
+          "in_0",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          505,
+          300,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        150,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "I2",
+      "name": "Stop",
+      "outputs": [
+        [
+          270,
+          160,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        250,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "I3",
+      "name": "Reset",
+      "outputs": [
+        [
+          270,
+          260,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        350,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "I4",
+      "name": "Enable",
+      "outputs": [
+        [
+          270,
+          360,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        450,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "I5",
+      "name": "Supervision",
+      "outputs": [
+        [
+          270,
+          460,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        50,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "I1",
+      "name": "Start",
+      "outputs": [
+        [
+          270,
+          60,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        550,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "I6",
+      "name": "Override",
+      "outputs": [
+        [
+          270,
+          560,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        285,
+        100,
+        30,
+      ],
+      "desc": "(BO 1.1)",
+      "inputs": [
+        [
+          690,
+          300,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "O1",
+      "name": "Master Trip",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          160,
+        ],
+        [
+          400,
+          160,
+        ],
+        [
+          400,
+          305,
+        ],
+        [
+          420,
+          305,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          260,
+        ],
+        [
+          385,
+          260,
+        ],
+        [
+          385,
+          290,
+        ],
+        [
+          420,
+          290,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          360,
+        ],
+        [
+          385,
+          360,
+        ],
+        [
+          385,
+          295,
+        ],
+        [
+          420,
+          295,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          460,
+        ],
+        [
+          400,
+          460,
+        ],
+        [
+          400,
+          295,
+        ],
+        [
+          420,
+          295,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          560,
+        ],
+        [
+          415,
+          560,
+        ],
+        [
+          415,
+          300,
+        ],
+        [
+          420,
+          300,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          60,
+        ],
+        [
+          415,
+          60,
+        ],
+        [
+          415,
+          290,
+        ],
+        [
+          430,
+          290,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          505,
+          300,
+        ],
+        [
+          690,
+          300,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
+{
+  "canvas": [
+    1570,
+    1075,
+  ],
+  "junctions": [
+    [
+      415,
+      240,
+    ],
+  ],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        690,
+        220,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          235,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          690,
+          250,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          750,
+          245,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        460,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          475,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          690,
+          490,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          750,
+          485,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        565,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          580,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          690,
+          595,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          750,
+          590,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": "COMPARE",
+      "box": [
+        430,
+        370,
+        65,
+        50,
+      ],
+      "desc": "Phase OC",
+      "inputs": [
+        [
+          430,
+          385,
+          "+",
+          null,
+          0,
+        ],
+        [
+          430,
+          405,
+          "-",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": "50P1",
+      "outputs": [
+        [
+          495,
+          395,
+          "OUT",
+          0,
+        ],
+      ],
+      "type": "COMPARE",
+    },
+    {
+      "block": "COMPARE",
+      "box": [
+        430,
+        670,
+        65,
+        50,
+      ],
+      "desc": "Differential",
+      "inputs": [
+        [
+          430,
+          685,
+          "+",
+          null,
+          0,
+        ],
+        [
+          430,
+          705,
+          "-",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": "87",
+      "outputs": [
+        [
+          495,
+          695,
+          "OUT",
+          0,
+        ],
+      ],
+      "type": "COMPARE",
+    },
+    {
+      "block": "FALLING",
+      "box": [
+        430,
+        220,
+        50,
+        40,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          240,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          480,
+          240,
+          "OUT",
+          0,
+        ],
+      ],
+      "type": "FALLING",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        1045,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "START",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          1055,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        230,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "CB52A",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          240,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        335,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "IA",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          345,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        435,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "IPICKUP",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          445,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        535,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "RESET",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          545,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        60,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "BLOCK",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          70,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        635,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "IDIFF",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          645,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        735,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "IREST",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          745,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        835,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "EXT_ALARM",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          845,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        935,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "LOCKOUT",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          945,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        50,
+        65,
+        40,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          70,
+          "in_0",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          495,
+          70,
+          "out",
+          0,
+        ],
+      ],
+      "type": "NOT",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        925,
+        65,
+        40,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          945,
+          "in_0",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          495,
+          945,
+          "out",
+          0,
+        ],
+      ],
+      "type": "NOT",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        925,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          699,
+          940,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          699,
+          955,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          750,
+          950,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        1470,
+        285,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1470,
+          295,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "OC_TRIP",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        1470,
+        475,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1470,
+          485,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "BF_TRIP",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        1470,
+        580,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1470,
+          590,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "RECLOSE",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        1470,
+        940,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1470,
+          950,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "ALARM",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": "RISING",
+      "box": [
+        430,
+        1035,
+        50,
+        40,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          1055,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          480,
+          1055,
+          "OUT",
+          0,
+        ],
+      ],
+      "type": "RISING",
+    },
+    {
+      "block": "SR",
+      "box": [
+        950,
+        280,
+        60,
+        55,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          950,
+          295,
+          "S",
+          null,
+          0,
+        ],
+        [
+          950,
+          320,
+          "R",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": "Trip Latch",
+      "outputs": [
+        [
+          1010,
+          295,
+          "Q",
+          0,
+        ],
+      ],
+      "type": "SR",
+    },
+    {
+      "block": "TIMER",
+      "box": [
+        1210,
+        270,
+        85,
+        50,
+      ],
+      "desc": "Trip delay",
+      "inputs": [
+        [
+          1210,
+          295,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": "62T",
+      "outputs": [
+        [
+          1295,
+          295,
+          "OUT",
+          0,
+        ],
+      ],
+      "type": "TIMER",
+    },
+    {
+      "block": "TIMER",
+      "box": [
+        950,
+        460,
+        85,
+        50,
+      ],
+      "desc": "BF delay",
+      "inputs": [
+        [
+          950,
+          485,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": "62BF",
+      "outputs": [
+        [
+          1035,
+          485,
+          "OUT",
+          0,
+        ],
+      ],
+      "type": "TIMER",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          1010,
+          295,
+        ],
+        [
+          1210,
+          295,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          1035,
+          485,
+        ],
+        [
+          1470,
+          485,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          1295,
+          295,
+        ],
+        [
+          1470,
+          295,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          1055,
+        ],
+        [
+          430,
+          1055,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          240,
+        ],
+        [
+          415,
+          240,
+        ],
+        [
+          415,
+          345,
+        ],
+        [
+          685,
+          345,
+        ],
+        [
+          685,
+          475,
+        ],
+        [
+          690,
+          475,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          240,
+        ],
+        [
+          430,
+          240,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          345,
+        ],
+        [
+          350,
+          345,
+        ],
+        [
+          350,
+          385,
+        ],
+        [
+          430,
+          385,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          445,
+        ],
+        [
+          415,
+          445,
+        ],
+        [
+          415,
+          405,
+        ],
+        [
+          430,
+          405,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          545,
+        ],
+        [
+          565,
+          545,
+        ],
+        [
+          565,
+          410,
+        ],
+        [
+          945,
+          410,
+        ],
+        [
+          945,
+          320,
+        ],
+        [
+          950,
+          320,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          645,
+        ],
+        [
+          415,
+          645,
+        ],
+        [
+          415,
+          685,
+        ],
+        [
+          430,
+          685,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          70,
+        ],
+        [
+          430,
+          70,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          745,
+        ],
+        [
+          415,
+          745,
+        ],
+        [
+          415,
+          705,
+        ],
+        [
+          430,
+          705,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          845,
+        ],
+        [
+          675,
+          845,
+        ],
+        [
+          675,
+          940,
+        ],
+        [
+          699,
+          940,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          945,
+        ],
+        [
+          430,
+          945,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          480,
+          1055,
+        ],
+        [
+          675,
+          1055,
+        ],
+        [
+          675,
+          955,
+        ],
+        [
+          699,
+          955,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          480,
+          240,
+        ],
+        [
+          580,
+          240,
+        ],
+        [
+          580,
+          580,
+        ],
+        [
+          690,
+          580,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          395,
+        ],
+        [
+          670,
+          395,
+        ],
+        [
+          670,
+          250,
+        ],
+        [
+          690,
+          250,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          695,
+        ],
+        [
+          595,
+          695,
+        ],
+        [
+          595,
+          490,
+        ],
+        [
+          690,
+          490,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          70,
+        ],
+        [
+          675,
+          70,
+        ],
+        [
+          675,
+          235,
+        ],
+        [
+          690,
+          235,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          945,
+        ],
+        [
+          505,
+          945,
+        ],
+        [
+          585,
+          945,
+        ],
+        [
+          585,
+          710,
+        ],
+        [
+          685,
+          710,
+        ],
+        [
+          685,
+          595,
+        ],
+        [
+          690,
+          595,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          750,
+          245,
+        ],
+        [
+          935,
+          245,
+        ],
+        [
+          935,
+          295,
+        ],
+        [
+          950,
+          295,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          750,
+          485,
+        ],
+        [
+          950,
+          485,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          750,
+          590,
+        ],
+        [
+          1470,
+          590,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          750,
+          950,
+        ],
+        [
+          1470,
+          950,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > Complex Protection 1`] = `
+{
+  "canvas": [
+    1310,
+    380,
+  ],
+  "junctions": [],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        690,
+        100,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          115,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          690,
+          130,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          750,
+          125,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        950,
+        200,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          950,
+          215,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          950,
+          230,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          1010,
+          225,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        160,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "EARTH_FAULT",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          170,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        260,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "OVERCURRENT_A",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          270,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        360,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "OVERCURRENT_B",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          370,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        60,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "BLOCK",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          70,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        50,
+        65,
+        40,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          70,
+          "in_0",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          495,
+          70,
+          "out",
+          0,
+        ],
+      ],
+      "type": "NOT",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        300,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          439,
+          315,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          439,
+          330,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          490,
+          325,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        1210,
+        215,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1210,
+          225,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "MAIN_TRIP",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          1010,
+          225,
+        ],
+        [
+          1210,
+          225,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          170,
+        ],
+        [
+          675,
+          170,
+        ],
+        [
+          675,
+          130,
+        ],
+        [
+          690,
+          130,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          270,
+        ],
+        [
+          415,
+          270,
+        ],
+        [
+          415,
+          315,
+        ],
+        [
+          439,
+          315,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          370,
+        ],
+        [
+          415,
+          370,
+        ],
+        [
+          415,
+          330,
+        ],
+        [
+          439,
+          330,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          70,
+        ],
+        [
+          430,
+          70,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          490,
+          325,
+        ],
+        [
+          935,
+          325,
+        ],
+        [
+          935,
+          230,
+        ],
+        [
+          950,
+          230,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          70,
+        ],
+        [
+          675,
+          70,
+        ],
+        [
+          675,
+          115,
+        ],
+        [
+          690,
+          115,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          750,
+          125,
+        ],
+        [
+          935,
+          125,
+        ],
+        [
+          935,
+          215,
+        ],
+        [
+          950,
+          215,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > Differential Protection 1`] = `
+{
+  "canvas": [
+    1050,
+    305,
+  ],
+  "junctions": [
+    [
+      675,
+      285,
+    ],
+  ],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        690,
+        145,
+        75,
+        60,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          160,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          690,
+          175,
+          "in_1",
+          null,
+          0,
+        ],
+        [
+          690,
+          190,
+          "in_2",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          765,
+          175,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        160,
+        100,
+        30,
+      ],
+      "desc": "CT secondary current",
+      "inputs": [],
+      "label": "I2",
+      "name": "$I_{out}$",
+      "outputs": [
+        [
+          270,
+          175,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        270,
+        100,
+        30,
+      ],
+      "desc": "Blocking signal",
+      "inputs": [],
+      "label": "I3",
+      "name": "Block",
+      "outputs": [
+        [
+          270,
+          285,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        50,
+        100,
+        30,
+      ],
+      "desc": "CT primary current",
+      "inputs": [],
+      "label": "I1",
+      "name": "$I_{in}$",
+      "outputs": [
+        [
+          270,
+          65,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        155,
+        65,
+        40,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          175,
+          "in_0",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          495,
+          175,
+          "out",
+          0,
+        ],
+      ],
+      "type": "NOT",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        265,
+        65,
+        40,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          285,
+          "in_0",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          495,
+          285,
+          "out",
+          0,
+        ],
+      ],
+      "type": "NOT",
+    },
+    {
+      "block": null,
+      "box": [
+        950,
+        160,
+        100,
+        30,
+      ],
+      "desc": "Differential trip",
+      "inputs": [
+        [
+          950,
+          175,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "O1",
+      "name": "$I_{diff} > I_{bias}$",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        950,
+        270,
+        100,
+        30,
+      ],
+      "desc": "$I_0 > I_{0\\_set}$",
+      "inputs": [
+        [
+          950,
+          285,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "O2",
+      "name": "Restricted Earth Fault",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          175,
+        ],
+        [
+          430,
+          175,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          285,
+        ],
+        [
+          430,
+          285,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          65,
+        ],
+        [
+          675,
+          65,
+        ],
+        [
+          675,
+          160,
+        ],
+        [
+          690,
+          160,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          175,
+        ],
+        [
+          690,
+          175,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          285,
+        ],
+        [
+          675,
+          285,
+        ],
+        [
+          675,
+          190,
+        ],
+        [
+          690,
+          190,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          285,
+        ],
+        [
+          950,
+          285,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          765,
+          175,
+        ],
+        [
+          950,
+          175,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > Generic Block (FB) 1`] = `
+{
+  "canvas": [
+    790,
+    270,
+  ],
+  "junctions": [],
+  "labels": [],
+  "nodes": [
+    {
+      "block": "FB",
+      "box": [
+        430,
+        135,
+        210,
+        125,
+      ],
+      "desc": "SEL-751A",
+      "inputs": [
+        [
+          430,
+          165,
+          "in_0",
+          "EN",
+          0,
+        ],
+        [
+          430,
+          195,
+          "in_1",
+          "PHASE",
+          0,
+        ],
+        [
+          430,
+          230,
+          "in_2",
+          "EARTH",
+          0,
+        ],
+      ],
+      "label": null,
+      "name": "Feeder Protection",
+      "outputs": [
+        [
+          640,
+          160,
+          "TRIP",
+          0,
+        ],
+        [
+          640,
+          195,
+          "ALARM",
+          0,
+        ],
+        [
+          640,
+          230,
+          "CLOSE",
+          0,
+        ],
+      ],
+      "type": "FB",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        150,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "IA",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          160,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        250,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "IN",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          260,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        50,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "ENABLE",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          60,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        150,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          160,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "TRIP",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        185,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          195,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "ALARM",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        220,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          230,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "CLOSE",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          160,
+        ],
+        [
+          400,
+          160,
+        ],
+        [
+          400,
+          195,
+        ],
+        [
+          430,
+          195,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          260,
+        ],
+        [
+          415,
+          260,
+        ],
+        [
+          415,
+          230,
+        ],
+        [
+          430,
+          230,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          60,
+        ],
+        [
+          415,
+          60,
+        ],
+        [
+          415,
+          165,
+        ],
+        [
+          430,
+          165,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          640,
+          160,
+        ],
+        [
+          690,
+          160,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          640,
+          195,
+        ],
+        [
+          690,
+          195,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          640,
+          230,
+        ],
+        [
+          690,
+          230,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > Input Bars 1`] = `
+{
+  "canvas": [
+    790,
+    470,
+  ],
+  "junctions": [],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        430,
+        205,
+        75,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          420,
+          220,
+          "in_2",
+          null,
+          0,
+        ],
+        [
+          420,
+          225,
+          "in_3",
+          null,
+          0,
+        ],
+        [
+          420,
+          230,
+          "in_4",
+          null,
+          0,
+        ],
+        [
+          430,
+          220,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          430,
+          235,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          505,
+          230,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        150,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "I2",
+      "name": "Stop",
+      "outputs": [
+        [
+          270,
+          160,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        250,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "I3",
+      "name": "Reset",
+      "outputs": [
+        [
+          270,
+          260,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        350,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "I4",
+      "name": "Enable",
+      "outputs": [
+        [
+          270,
+          360,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        450,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "I5",
+      "name": "Supervision",
+      "outputs": [
+        [
+          270,
+          460,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        50,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "I1",
+      "name": "Start",
+      "outputs": [
+        [
+          270,
+          60,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        220,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          230,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "O1",
+      "name": "Output",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          160,
+        ],
+        [
+          400,
+          160,
+        ],
+        [
+          400,
+          235,
+        ],
+        [
+          430,
+          235,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          260,
+        ],
+        [
+          385,
+          260,
+        ],
+        [
+          385,
+          220,
+        ],
+        [
+          420,
+          220,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          360,
+        ],
+        [
+          400,
+          360,
+        ],
+        [
+          400,
+          225,
+        ],
+        [
+          420,
+          225,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          460,
+        ],
+        [
+          415,
+          460,
+        ],
+        [
+          415,
+          230,
+        ],
+        [
+          420,
+          230,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          60,
+        ],
+        [
+          415,
+          60,
+        ],
+        [
+          415,
+          220,
+        ],
+        [
+          430,
+          220,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          505,
+          230,
+        ],
+        [
+          690,
+          230,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
+{
+  "canvas": [
+    1310,
+    1070,
+  ],
+  "junctions": [],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        430,
+        695,
+        75,
+        60,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          710,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          430,
+          725,
+          "in_1",
+          null,
+          0,
+        ],
+        [
+          430,
+          740,
+          "in_2",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          505,
+          725,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        980,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          1010,
+          "in_1",
+          null,
+          0,
+        ],
+        [
+          430,
+          995,
+          "in_0",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          490,
+          1005,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        950,
+        210,
+        75,
+        105,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          950,
+          225,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          950,
+          240,
+          "in_1",
+          null,
+          0,
+        ],
+        [
+          950,
+          255,
+          "in_2",
+          null,
+          0,
+        ],
+        [
+          950,
+          270,
+          "in_3",
+          null,
+          0,
+        ],
+        [
+          950,
+          285,
+          "in_4",
+          null,
+          0,
+        ],
+        [
+          950,
+          300,
+          "in_5",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          1025,
+          265,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        1040,
+        100,
+        30,
+      ],
+      "desc": "(BI 3.20)",
+      "inputs": [],
+      "label": "I10",
+      "name": "Close Switch",
+      "outputs": [
+        [
+          270,
+          1055,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        160,
+        100,
+        30,
+      ],
+      "desc": "(BI 3.24)",
+      "inputs": [],
+      "label": "I2",
+      "name": "BB Not Earthed",
+      "outputs": [
+        [
+          270,
+          175,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        270,
+        100,
+        30,
+      ],
+      "desc": "(BI 3.3)",
+      "inputs": [],
+      "label": "I3",
+      "name": "D/S Q01 Open",
+      "outputs": [
+        [
+          270,
+          285,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        380,
+        100,
+        30,
+      ],
+      "desc": "(BI 3.5)",
+      "inputs": [],
+      "label": "I4",
+      "name": "E/S Q05 Open",
+      "outputs": [
+        [
+          270,
+          395,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        490,
+        100,
+        30,
+      ],
+      "desc": "(BI 3.15)",
+      "inputs": [],
+      "label": "I5",
+      "name": "KF1 Release",
+      "outputs": [
+        [
+          270,
+          505,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        50,
+        100,
+        30,
+      ],
+      "desc": "(BI 3.1)",
+      "inputs": [],
+      "label": "I1",
+      "name": "CBQ 00 Open",
+      "outputs": [
+        [
+          270,
+          65,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        600,
+        100,
+        30,
+      ],
+      "desc": "(BI 3.11)",
+      "inputs": [],
+      "label": "I6",
+      "name": "In Remote",
+      "outputs": [
+        [
+          270,
+          615,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        710,
+        100,
+        30,
+      ],
+      "desc": "(BI 3.23)",
+      "inputs": [],
+      "label": "I7",
+      "name": "SCADA ON",
+      "outputs": [
+        [
+          270,
+          725,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        820,
+        100,
+        30,
+      ],
+      "desc": "(via RTU)",
+      "inputs": [],
+      "label": "I8",
+      "name": "DNP Close Command",
+      "outputs": [
+        [
+          270,
+          835,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        930,
+        100,
+        30,
+      ],
+      "desc": "(BI 3.12)",
+      "inputs": [],
+      "label": "I9",
+      "name": "In Local",
+      "outputs": [
+        [
+          270,
+          945,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        485,
+        65,
+        40,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          505,
+          "in_0",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          495,
+          505,
+          "out",
+          0,
+        ],
+      ],
+      "type": "NOT",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        855,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          699,
+          870,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          699,
+          885,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          750,
+          880,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        1210,
+        250,
+        100,
+        30,
+      ],
+      "desc": "(BO 3.2)",
+      "inputs": [
+        [
+          1210,
+          265,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "O1",
+      "name": "Output",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          1025,
+          265,
+        ],
+        [
+          1210,
+          265,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          1055,
+        ],
+        [
+          415,
+          1055,
+        ],
+        [
+          415,
+          1010,
+        ],
+        [
+          430,
+          1010,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          175,
+        ],
+        [
+          920,
+          175,
+        ],
+        [
+          920,
+          240,
+        ],
+        [
+          950,
+          240,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          285,
+        ],
+        [
+          890,
+          285,
+        ],
+        [
+          890,
+          255,
+        ],
+        [
+          950,
+          255,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          395,
+        ],
+        [
+          905,
+          395,
+        ],
+        [
+          905,
+          270,
+        ],
+        [
+          950,
+          270,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          505,
+        ],
+        [
+          430,
+          505,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          615,
+        ],
+        [
+          415,
+          615,
+        ],
+        [
+          415,
+          710,
+        ],
+        [
+          430,
+          710,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          65,
+        ],
+        [
+          935,
+          65,
+        ],
+        [
+          935,
+          225,
+        ],
+        [
+          950,
+          225,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          725,
+        ],
+        [
+          430,
+          725,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          835,
+        ],
+        [
+          415,
+          835,
+        ],
+        [
+          415,
+          740,
+        ],
+        [
+          430,
+          740,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          945,
+        ],
+        [
+          415,
+          945,
+        ],
+        [
+          415,
+          995,
+        ],
+        [
+          430,
+          995,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          490,
+          1005,
+        ],
+        [
+          675,
+          1005,
+        ],
+        [
+          675,
+          885,
+        ],
+        [
+          699,
+          885,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          505,
+        ],
+        [
+          920,
+          505,
+        ],
+        [
+          920,
+          285,
+        ],
+        [
+          950,
+          285,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          505,
+          725,
+        ],
+        [
+          675,
+          725,
+        ],
+        [
+          675,
+          870,
+        ],
+        [
+          699,
+          870,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          750,
+          880,
+        ],
+        [
+          935,
+          880,
+        ],
+        [
+          935,
+          300,
+        ],
+        [
+          950,
+          300,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > Inversion Bubbles 1`] = `
+{
+  "canvas": [
+    790,
+    425,
+  ],
+  "junctions": [
+    [
+      320,
+      285,
+    ],
+    [
+      320,
+      335,
+    ],
+    [
+      335,
+      175,
+    ],
+    [
+      350,
+      65,
+    ],
+  ],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        430,
+        145,
+        75,
+        60,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          420,
+          175,
+          "in_1",
+          null,
+          1,
+        ],
+        [
+          430,
+          160,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          430,
+          190,
+          "in_2",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          505,
+          175,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        305,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          320,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          430,
+          335,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          500,
+          330,
+          "out",
+          1,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        160,
+        100,
+        30,
+      ],
+      "desc": "(BI 1.2)",
+      "inputs": [],
+      "label": "I2",
+      "name": "Stop Condition",
+      "outputs": [
+        [
+          270,
+          175,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        270,
+        100,
+        30,
+      ],
+      "desc": "(BI 1.3)",
+      "inputs": [],
+      "label": "I3",
+      "name": "Reset",
+      "outputs": [
+        [
+          270,
+          285,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        50,
+        100,
+        30,
+      ],
+      "desc": "(BI 1.1)",
+      "inputs": [],
+      "label": "I1",
+      "name": "Start Permitted",
+      "outputs": [
+        [
+          270,
+          65,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        160,
+        100,
+        30,
+      ],
+      "desc": "(BO 1.1)",
+      "inputs": [
+        [
+          690,
+          175,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "O1",
+      "name": "Run",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        315,
+        100,
+        30,
+      ],
+      "desc": "(BO 1.2)",
+      "inputs": [
+        [
+          690,
+          330,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "O2",
+      "name": "NAND Result",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        360,
+        100,
+        30,
+      ],
+      "desc": "(BO 1.3)",
+      "inputs": [
+        [
+          680,
+          375,
+          "in",
+          null,
+          1,
+        ],
+      ],
+      "label": "O3",
+      "name": "Inverted Stop",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        395,
+        100,
+        30,
+      ],
+      "desc": "(BO 1.4)",
+      "inputs": [
+        [
+          690,
+          410,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "O4",
+      "name": "Pass-Through",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          175,
+        ],
+        [
+          335,
+          175,
+        ],
+        [
+          335,
+          375,
+        ],
+        [
+          665,
+          375,
+        ],
+        [
+          680,
+          375,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          175,
+        ],
+        [
+          420,
+          175,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          285,
+        ],
+        [
+          320,
+          285,
+        ],
+        [
+          320,
+          335,
+        ],
+        [
+          430,
+          335,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          285,
+        ],
+        [
+          320,
+          285,
+        ],
+        [
+          320,
+          410,
+        ],
+        [
+          690,
+          410,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          285,
+        ],
+        [
+          415,
+          285,
+        ],
+        [
+          415,
+          190,
+        ],
+        [
+          430,
+          190,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          65,
+        ],
+        [
+          350,
+          65,
+        ],
+        [
+          350,
+          320,
+        ],
+        [
+          430,
+          320,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          65,
+        ],
+        [
+          415,
+          65,
+        ],
+        [
+          415,
+          160,
+        ],
+        [
+          430,
+          160,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          500,
+          330,
+        ],
+        [
+          690,
+          330,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          505,
+          175,
+        ],
+        [
+          690,
+          175,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > Labelled Gates 1`] = `
+{
+  "canvas": [
+    1310,
+    770,
+  ],
+  "junctions": [],
+  "labels": [
+    [
+      495,
+      375,
+      65,
+      35,
+      "High-Set",
+      "50-2",
+    ],
+    [
+      495,
+      75,
+      85,
+      35,
+      "Earth Fault",
+      "51N/50N",
+    ],
+    [
+      510,
+      620,
+      65,
+      35,
+      "Phase OC",
+      "51/50/46",
+    ],
+    [
+      755,
+      425,
+      85,
+      35,
+      "Supervised",
+      "harmonic block",
+    ],
+  ],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        690,
+        440,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          455,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          690,
+          470,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          750,
+          465,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        150,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "E51N",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          160,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        250,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "HBLK",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          260,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        350,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "E50N2",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          360,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        450,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "O502",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          460,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        50,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "E50N",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          60,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        550,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "NEGSEQ",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          560,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        650,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "O50",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          660,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        750,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "O51",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          760,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        240,
+        65,
+        40,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          260,
+          "in_0",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          495,
+          260,
+          "out",
+          0,
+        ],
+      ],
+      "type": "NOT",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        390,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          439,
+          405,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          439,
+          420,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          490,
+          415,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        630,
+        75,
+        60,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          438,
+          645,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          438,
+          675,
+          "in_2",
+          null,
+          0,
+        ],
+        [
+          440,
+          660,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          505,
+          660,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        90,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          439,
+          105,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          439,
+          120,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          490,
+          115,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        950,
+        330,
+        75,
+        60,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          958,
+          345,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          958,
+          375,
+          "in_2",
+          null,
+          0,
+        ],
+        [
+          960,
+          360,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          1025,
+          360,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        1210,
+        350,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1210,
+          360,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "TRIP",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          1025,
+          360,
+        ],
+        [
+          1210,
+          360,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          160,
+        ],
+        [
+          415,
+          160,
+        ],
+        [
+          415,
+          120,
+        ],
+        [
+          439,
+          120,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          260,
+        ],
+        [
+          430,
+          260,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          360,
+        ],
+        [
+          415,
+          360,
+        ],
+        [
+          415,
+          405,
+        ],
+        [
+          439,
+          405,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          460,
+        ],
+        [
+          415,
+          460,
+        ],
+        [
+          415,
+          420,
+        ],
+        [
+          439,
+          420,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          560,
+        ],
+        [
+          415,
+          560,
+        ],
+        [
+          415,
+          645,
+        ],
+        [
+          438,
+          645,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          60,
+        ],
+        [
+          415,
+          60,
+        ],
+        [
+          415,
+          105,
+        ],
+        [
+          439,
+          105,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          660,
+        ],
+        [
+          440,
+          660,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          760,
+        ],
+        [
+          415,
+          760,
+        ],
+        [
+          415,
+          675,
+        ],
+        [
+          438,
+          675,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          490,
+          115,
+        ],
+        [
+          935,
+          115,
+        ],
+        [
+          935,
+          345,
+        ],
+        [
+          958,
+          345,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          490,
+          415,
+        ],
+        [
+          920,
+          415,
+        ],
+        [
+          920,
+          360,
+        ],
+        [
+          960,
+          360,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          260,
+        ],
+        [
+          595,
+          260,
+        ],
+        [
+          595,
+          455,
+        ],
+        [
+          690,
+          455,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          505,
+          660,
+        ],
+        [
+          675,
+          660,
+        ],
+        [
+          675,
+          470,
+        ],
+        [
+          690,
+          470,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          750,
+          465,
+        ],
+        [
+          935,
+          465,
+        ],
+        [
+          935,
+          375,
+        ],
+        [
+          958,
+          375,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > Mixed Logic 1`] = `
+{
+  "canvas": [
+    1570,
+    570,
+  ],
+  "junctions": [],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        1210,
+        340,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1210,
+          355,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          1210,
+          370,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          1270,
+          365,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        90,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          105,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          430,
+          120,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          490,
+          115,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        290,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          305,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          690,
+          320,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          750,
+          315,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        150,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "B",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          160,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        250,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "C",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          260,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        350,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "D",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          360,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        450,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "ENABLE",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          460,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        50,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "A",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          60,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        550,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "FORCE",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          560,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        340,
+        65,
+        40,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          360,
+          "in_0",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          495,
+          360,
+          "out",
+          0,
+        ],
+      ],
+      "type": "NOT",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        490,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          439,
+          505,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          439,
+          520,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          490,
+          515,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        950,
+        190,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          959,
+          205,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          959,
+          220,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          1010,
+          215,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        1470,
+        355,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1470,
+          365,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "OUTPUT",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          1010,
+          215,
+        ],
+        [
+          1195,
+          215,
+        ],
+        [
+          1195,
+          355,
+        ],
+        [
+          1210,
+          355,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          1270,
+          365,
+        ],
+        [
+          1470,
+          365,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          160,
+        ],
+        [
+          415,
+          160,
+        ],
+        [
+          415,
+          120,
+        ],
+        [
+          430,
+          120,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          260,
+        ],
+        [
+          675,
+          260,
+        ],
+        [
+          675,
+          305,
+        ],
+        [
+          690,
+          305,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          360,
+        ],
+        [
+          430,
+          360,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          460,
+        ],
+        [
+          415,
+          460,
+        ],
+        [
+          415,
+          505,
+        ],
+        [
+          439,
+          505,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          560,
+        ],
+        [
+          415,
+          560,
+        ],
+        [
+          415,
+          520,
+        ],
+        [
+          439,
+          520,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          60,
+        ],
+        [
+          415,
+          60,
+        ],
+        [
+          415,
+          105,
+        ],
+        [
+          430,
+          105,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          490,
+          115,
+        ],
+        [
+          935,
+          115,
+        ],
+        [
+          935,
+          205,
+        ],
+        [
+          959,
+          205,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          490,
+          515,
+        ],
+        [
+          1195,
+          515,
+        ],
+        [
+          1195,
+          370,
+        ],
+        [
+          1210,
+          370,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          360,
+        ],
+        [
+          675,
+          360,
+        ],
+        [
+          675,
+          320,
+        ],
+        [
+          690,
+          320,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          750,
+          315,
+        ],
+        [
+          935,
+          315,
+        ],
+        [
+          935,
+          220,
+        ],
+        [
+          959,
+          220,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
+{
+  "canvas": [
+    790,
+    520,
+  ],
+  "junctions": [
+    [
+      355,
+      285,
+    ],
+    [
+      410,
+      395,
+    ],
+  ],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        430,
+        195,
+        75,
+        75,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          420,
+          225,
+          "in_1",
+          null,
+          1,
+        ],
+        [
+          420,
+          240,
+          "in_2",
+          null,
+          1,
+        ],
+        [
+          420,
+          255,
+          "in_3",
+          null,
+          1,
+        ],
+        [
+          430,
+          210,
+          "in_0",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          505,
+          235,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        160,
+        100,
+        30,
+      ],
+      "desc": "$NC\\ contact$",
+      "inputs": [],
+      "label": "I2",
+      "name": "Stop PB",
+      "outputs": [
+        [
+          270,
+          175,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        270,
+        100,
+        30,
+      ],
+      "desc": "$I^2 > I_{rated}^2$",
+      "inputs": [],
+      "label": "I3",
+      "name": "OL Trip",
+      "outputs": [
+        [
+          270,
+          285,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        380,
+        100,
+        30,
+      ],
+      "desc": "$\\Theta > \\Theta_{trip}$",
+      "inputs": [],
+      "label": "I4",
+      "name": "Thermal",
+      "outputs": [
+        [
+          270,
+          395,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        490,
+        100,
+        30,
+      ],
+      "desc": "Start current",
+      "inputs": [],
+      "label": "I5",
+      "name": "$I_s$",
+      "outputs": [
+        [
+          270,
+          505,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        50,
+        100,
+        30,
+      ],
+      "desc": "$NO\\ contact$",
+      "inputs": [],
+      "label": "I1",
+      "name": "Start PB",
+      "outputs": [
+        [
+          270,
+          65,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        365,
+        75,
+        60,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          428,
+          410,
+          "in_2",
+          null,
+          1,
+        ],
+        [
+          438,
+          380,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          440,
+          395,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          505,
+          395,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        220,
+        100,
+        30,
+      ],
+      "desc": "$K_1$",
+      "inputs": [
+        [
+          690,
+          235,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "O1",
+      "name": "Contactor",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        380,
+        100,
+        30,
+      ],
+      "desc": "$\\Delta I > \\Delta I_{set}$",
+      "inputs": [
+        [
+          690,
+          395,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "O2",
+      "name": "Trip",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          175,
+        ],
+        [
+          400,
+          175,
+        ],
+        [
+          400,
+          225,
+        ],
+        [
+          420,
+          225,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          285,
+        ],
+        [
+          355,
+          285,
+        ],
+        [
+          355,
+          240,
+        ],
+        [
+          420,
+          240,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          285,
+        ],
+        [
+          355,
+          285,
+        ],
+        [
+          355,
+          380,
+        ],
+        [
+          438,
+          380,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          395,
+        ],
+        [
+          410,
+          395,
+        ],
+        [
+          410,
+          255,
+        ],
+        [
+          420,
+          255,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          395,
+        ],
+        [
+          440,
+          395,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          505,
+        ],
+        [
+          415,
+          505,
+        ],
+        [
+          415,
+          410,
+        ],
+        [
+          428,
+          410,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          65,
+        ],
+        [
+          415,
+          65,
+        ],
+        [
+          415,
+          210,
+        ],
+        [
+          430,
+          210,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          505,
+          235,
+        ],
+        [
+          690,
+          235,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          505,
+          395,
+        ],
+        [
+          690,
+          395,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > NOT Gate 1`] = `
+{
+  "canvas": [
+    790,
+    90,
+  ],
+  "junctions": [],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        170,
+        60,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "A",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          70,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        50,
+        65,
+        40,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          70,
+          "in_0",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          495,
+          70,
+          "out",
+          0,
+        ],
+      ],
+      "type": "NOT",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        60,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          70,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "OUT",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          70,
+        ],
+        [
+          430,
+          70,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          70,
+        ],
+        [
+          690,
+          70,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > Nested NOT 1`] = `
+{
+  "canvas": [
+    1050,
+    90,
+  ],
+  "junctions": [],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        170,
+        60,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "A",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          70,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        50,
+        65,
+        40,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          70,
+          "in_0",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          495,
+          70,
+          "out",
+          0,
+        ],
+      ],
+      "type": "NOT",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        50,
+        65,
+        40,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          70,
+          "in_0",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          755,
+          70,
+          "out",
+          0,
+        ],
+      ],
+      "type": "NOT",
+    },
+    {
+      "block": null,
+      "box": [
+        950,
+        60,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          950,
+          70,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "OUT",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          70,
+        ],
+        [
+          430,
+          70,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          70,
+        ],
+        [
+          690,
+          70,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          755,
+          70,
+        ],
+        [
+          950,
+          70,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > Overcurrent Protection 1`] = `
+{
+  "canvas": [
+    790,
+    410,
+  ],
+  "junctions": [
+    [
+      415,
+      285,
+    ],
+  ],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        430,
+        320,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          335,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          430,
+          350,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          490,
+          345,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        160,
+        100,
+        30,
+      ],
+      "desc": "Phase C current",
+      "inputs": [],
+      "label": "I3",
+      "name": "$I_c$",
+      "outputs": [
+        [
+          270,
+          175,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        270,
+        100,
+        30,
+      ],
+      "desc": "Phase A current",
+      "inputs": [],
+      "label": "I1",
+      "name": "$I_a$",
+      "outputs": [
+        [
+          270,
+          285,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        380,
+        100,
+        30,
+      ],
+      "desc": "Setting $= 5.0 \\$ A$",
+      "inputs": [],
+      "label": "I4",
+      "name": "$I_{set}$",
+      "outputs": [
+        [
+          270,
+          395,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        50,
+        100,
+        30,
+      ],
+      "desc": "Phase B current",
+      "inputs": [],
+      "label": "I2",
+      "name": "$I_b$",
+      "outputs": [
+        [
+          270,
+          65,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        145,
+        75,
+        60,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          438,
+          160,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          438,
+          190,
+          "in_2",
+          null,
+          0,
+        ],
+        [
+          440,
+          175,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          505,
+          175,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        160,
+        100,
+        30,
+      ],
+      "desc": "Residual current",
+      "inputs": [
+        [
+          690,
+          175,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "O2",
+      "name": "$I_a + I_b + I_c$",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        330,
+        100,
+        30,
+      ],
+      "desc": "Overcurrent trip",
+      "inputs": [
+        [
+          690,
+          345,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "O1",
+      "name": "$I > I_{set}$",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          175,
+        ],
+        [
+          440,
+          175,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          285,
+        ],
+        [
+          415,
+          285,
+        ],
+        [
+          415,
+          190,
+        ],
+        [
+          438,
+          190,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          285,
+        ],
+        [
+          415,
+          285,
+        ],
+        [
+          415,
+          335,
+        ],
+        [
+          430,
+          335,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          395,
+        ],
+        [
+          415,
+          395,
+        ],
+        [
+          415,
+          350,
+        ],
+        [
+          430,
+          350,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          65,
+        ],
+        [
+          415,
+          65,
+        ],
+        [
+          415,
+          160,
+        ],
+        [
+          438,
+          160,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          490,
+          345,
+        ],
+        [
+          690,
+          345,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          505,
+          175,
+        ],
+        [
+          690,
+          175,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > SEL Function Blocks 1`] = `
+{
+  "canvas": [
+    1310,
+    380,
+  ],
+  "junctions": [
+    [
+      675,
+      225,
+    ],
+  ],
+  "labels": [],
+  "nodes": [
+    {
+      "block": "COMPARE",
+      "box": [
+        430,
+        200,
+        65,
+        50,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          215,
+          "+",
+          null,
+          0,
+        ],
+        [
+          430,
+          235,
+          "-",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          495,
+          225,
+          "OUT",
+          0,
+        ],
+      ],
+      "type": "COMPARE",
+    },
+    {
+      "block": "FALLING",
+      "box": [
+        430,
+        50,
+        50,
+        40,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          70,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          480,
+          70,
+          "OUT",
+          0,
+        ],
+      ],
+      "type": "FALLING",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        160,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "IA",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          170,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        260,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "IPICKUP",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          270,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        360,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "RESET",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          370,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        60,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "BLOCK",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          70,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        1210,
+        215,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1210,
+          225,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "ALARM",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        1210,
+        290,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1210,
+          300,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "TRIP",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        1210,
+        60,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1210,
+          70,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "RESTART",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": "RISING",
+      "box": [
+        690,
+        205,
+        50,
+        40,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          225,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          740,
+          225,
+          "OUT",
+          0,
+        ],
+      ],
+      "type": "RISING",
+    },
+    {
+      "block": "SR",
+      "box": [
+        690,
+        285,
+        60,
+        55,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          300,
+          "S",
+          null,
+          0,
+        ],
+        [
+          690,
+          325,
+          "R",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          750,
+          300,
+          "Q",
+          0,
+        ],
+      ],
+      "type": "SR",
+    },
+    {
+      "block": "TIMER",
+      "box": [
+        950,
+        275,
+        85,
+        50,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          950,
+          300,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          1035,
+          300,
+          "OUT",
+          0,
+        ],
+      ],
+      "type": "TIMER",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          1035,
+          300,
+        ],
+        [
+          1210,
+          300,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          170,
+        ],
+        [
+          415,
+          170,
+        ],
+        [
+          415,
+          215,
+        ],
+        [
+          430,
+          215,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          270,
+        ],
+        [
+          415,
+          270,
+        ],
+        [
+          415,
+          235,
+        ],
+        [
+          430,
+          235,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          370,
+        ],
+        [
+          675,
+          370,
+        ],
+        [
+          675,
+          325,
+        ],
+        [
+          690,
+          325,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          70,
+        ],
+        [
+          430,
+          70,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          480,
+          70,
+        ],
+        [
+          1210,
+          70,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          225,
+        ],
+        [
+          675,
+          225,
+        ],
+        [
+          675,
+          300,
+        ],
+        [
+          690,
+          300,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          225,
+        ],
+        [
+          690,
+          225,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          740,
+          225,
+        ],
+        [
+          1210,
+          225,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          750,
+          300,
+        ],
+        [
+          950,
+          300,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
+{
+  "canvas": [
+    1570,
+    500,
+  ],
+  "junctions": [
+    [
+      675,
+      300,
+    ],
+    [
+      675,
+      345,
+    ],
+  ],
+  "labels": [
+    [
+      1030,
+      90,
+      85,
+      35,
+      "Trip Permit",
+      "Seal-in",
+    ],
+  ],
+  "nodes": [
+    {
+      "block": "COMPARE",
+      "box": [
+        430,
+        320,
+        65,
+        50,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          335,
+          "+",
+          null,
+          0,
+        ],
+        [
+          430,
+          355,
+          "-",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          495,
+          345,
+          "OUT",
+          0,
+        ],
+      ],
+      "type": "COMPARE",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        280,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "IA",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          290,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        380,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "IPICKUP",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          390,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        480,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "RESET",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          490,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        50,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "C",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          60,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        950,
+        85,
+        75,
+        60,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          958,
+          100,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          958,
+          130,
+          "in_2",
+          null,
+          0,
+        ],
+        [
+          960,
+          115,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          1025,
+          115,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        1470,
+        105,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1470,
+          115,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "TRIP",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        1470,
+        335,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1470,
+          345,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "ALARM",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        1470,
+        375,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1470,
+          385,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "B",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": "RISING",
+      "box": [
+        690,
+        325,
+        50,
+        40,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          345,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          740,
+          345,
+          "OUT",
+          0,
+        ],
+      ],
+      "type": "RISING",
+    },
+    {
+      "block": "SR",
+      "box": [
+        690,
+        405,
+        60,
+        55,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          420,
+          "S",
+          null,
+          0,
+        ],
+        [
+          690,
+          445,
+          "R",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          750,
+          420,
+          "Q",
+          0,
+        ],
+      ],
+      "type": "SR",
+    },
+    {
+      "block": "TIMER",
+      "box": [
+        1210,
+        90,
+        85,
+        50,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1210,
+          115,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          1295,
+          115,
+          "OUT",
+          0,
+        ],
+      ],
+      "type": "TIMER",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          1025,
+          115,
+        ],
+        [
+          1210,
+          115,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          1295,
+          115,
+        ],
+        [
+          1470,
+          115,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          290,
+        ],
+        [
+          415,
+          290,
+        ],
+        [
+          415,
+          335,
+        ],
+        [
+          430,
+          335,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          390,
+        ],
+        [
+          415,
+          390,
+        ],
+        [
+          415,
+          355,
+        ],
+        [
+          430,
+          355,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          490,
+        ],
+        [
+          675,
+          490,
+        ],
+        [
+          675,
+          445,
+        ],
+        [
+          690,
+          445,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          60,
+        ],
+        [
+          935,
+          60,
+        ],
+        [
+          935,
+          100,
+        ],
+        [
+          958,
+          100,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          345,
+        ],
+        [
+          675,
+          345,
+        ],
+        [
+          675,
+          115,
+        ],
+        [
+          960,
+          115,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          345,
+        ],
+        [
+          675,
+          345,
+        ],
+        [
+          675,
+          300,
+        ],
+        [
+          1445,
+          300,
+        ],
+        [
+          1445,
+          385,
+        ],
+        [
+          1470,
+          385,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          345,
+        ],
+        [
+          675,
+          345,
+        ],
+        [
+          675,
+          420,
+        ],
+        [
+          690,
+          420,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          345,
+        ],
+        [
+          690,
+          345,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          740,
+          345,
+        ],
+        [
+          1470,
+          345,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          750,
+          420,
+        ],
+        [
+          945,
+          420,
+        ],
+        [
+          945,
+          130,
+        ],
+        [
+          958,
+          130,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > Simple AND Gate 1`] = `
+{
+  "canvas": [
+    790,
+    170,
+  ],
+  "junctions": [],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        430,
+        90,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          105,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          430,
+          120,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          490,
+          115,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        150,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "B",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          160,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        50,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "A",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          60,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        105,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          115,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "OUT",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          160,
+        ],
+        [
+          415,
+          160,
+        ],
+        [
+          415,
+          120,
+        ],
+        [
+          430,
+          120,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          60,
+        ],
+        [
+          415,
+          60,
+        ],
+        [
+          415,
+          105,
+        ],
+        [
+          430,
+          105,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          490,
+          115,
+        ],
+        [
+          690,
+          115,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > Simple OR Gate 1`] = `
+{
+  "canvas": [
+    790,
+    170,
+  ],
+  "junctions": [],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        170,
+        150,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "B",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          160,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        50,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "A",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          60,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        90,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          439,
+          105,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          439,
+          120,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          490,
+          115,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        105,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          115,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "OUT",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          160,
+        ],
+        [
+          415,
+          160,
+        ],
+        [
+          415,
+          120,
+        ],
+        [
+          439,
+          120,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          60,
+        ],
+        [
+          415,
+          60,
+        ],
+        [
+          415,
+          105,
+        ],
+        [
+          439,
+          105,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          490,
+          115,
+        ],
+        [
+          690,
+          115,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > Square Ports 1`] = `
+{
+  "canvas": [
+    790,
+    170,
+  ],
+  "junctions": [],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        430,
+        90,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          105,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          430,
+          120,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          490,
+          115,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        150,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "B",
+      "name": "Signal B",
+      "outputs": [
+        [
+          270,
+          160,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        50,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "A",
+      "name": "Signal A",
+      "outputs": [
+        [
+          270,
+          60,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        105,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          115,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "O1",
+      "name": "Result",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          160,
+        ],
+        [
+          415,
+          160,
+        ],
+        [
+          415,
+          120,
+        ],
+        [
+          430,
+          120,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          60,
+        ],
+        [
+          415,
+          60,
+        ],
+        [
+          415,
+          105,
+        ],
+        [
+          430,
+          105,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          490,
+          115,
+        ],
+        [
+          690,
+          115,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > Three-Input AND 1`] = `
+{
+  "canvas": [
+    790,
+    270,
+  ],
+  "junctions": [],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        430,
+        130,
+        75,
+        60,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          145,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          430,
+          160,
+          "in_1",
+          null,
+          0,
+        ],
+        [
+          430,
+          175,
+          "in_2",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          505,
+          160,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        150,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "B",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          160,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        250,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "C",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          260,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        50,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "A",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          60,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        150,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          160,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "OUT",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          160,
+        ],
+        [
+          430,
+          160,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          260,
+        ],
+        [
+          415,
+          260,
+        ],
+        [
+          415,
+          175,
+        ],
+        [
+          430,
+          175,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          60,
+        ],
+        [
+          415,
+          60,
+        ],
+        [
+          415,
+          145,
+        ],
+        [
+          430,
+          145,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          505,
+          160,
+        ],
+        [
+          690,
+          160,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > Trip Logic 1`] = `
+{
+  "canvas": [
+    1310,
+    380,
+  ],
+  "junctions": [],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        950,
+        200,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          950,
+          215,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          950,
+          230,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          1010,
+          225,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        160,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "OVERCURRENT",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          170,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        260,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "MANUAL_TRIP",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          270,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        360,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "REMOTE_TRIP",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          370,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        60,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "EARTH_FAULT",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          70,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        50,
+        65,
+        40,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          70,
+          "in_0",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          495,
+          70,
+          "out",
+          0,
+        ],
+      ],
+      "type": "NOT",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        300,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          439,
+          315,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          439,
+          330,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          490,
+          325,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        100,
+        60,
+        45,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          699,
+          115,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          699,
+          130,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          750,
+          125,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        1210,
+        215,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1210,
+          225,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "MAIN_TRIP",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          1010,
+          225,
+        ],
+        [
+          1210,
+          225,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          170,
+        ],
+        [
+          675,
+          170,
+        ],
+        [
+          675,
+          130,
+        ],
+        [
+          699,
+          130,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          270,
+        ],
+        [
+          415,
+          270,
+        ],
+        [
+          415,
+          315,
+        ],
+        [
+          439,
+          315,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          370,
+        ],
+        [
+          415,
+          370,
+        ],
+        [
+          415,
+          330,
+        ],
+        [
+          439,
+          330,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          70,
+        ],
+        [
+          430,
+          70,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          490,
+          325,
+        ],
+        [
+          935,
+          325,
+        ],
+        [
+          935,
+          230,
+        ],
+        [
+          950,
+          230,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          70,
+        ],
+        [
+          675,
+          70,
+        ],
+        [
+          675,
+          115,
+        ],
+        [
+          699,
+          115,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          750,
+          125,
+        ],
+        [
+          935,
+          125,
+        ],
+        [
+          935,
+          215,
+        ],
+        [
+          950,
+          215,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > Triple OR 1`] = `
+{
+  "canvas": [
+    790,
+    270,
+  ],
+  "junctions": [],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        170,
+        150,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "PRESSURE",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          160,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        250,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "TEMP",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          260,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        50,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "FLOW",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          60,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        130,
+        75,
+        60,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          438,
+          145,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          438,
+          175,
+          "in_2",
+          null,
+          0,
+        ],
+        [
+          440,
+          160,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          505,
+          160,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        150,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          160,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "ALARM",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          160,
+        ],
+        [
+          440,
+          160,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          260,
+        ],
+        [
+          415,
+          260,
+        ],
+        [
+          415,
+          175,
+        ],
+        [
+          438,
+          175,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          60,
+        ],
+        [
+          415,
+          60,
+        ],
+        [
+          415,
+          145,
+        ],
+        [
+          438,
+          145,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          505,
+          160,
+        ],
+        [
+          690,
+          160,
+        ],
+      ],
+    },
+  ],
+}
+`;

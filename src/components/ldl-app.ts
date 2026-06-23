@@ -136,6 +136,7 @@ export class LdlApp extends LitElement {
   @state() private parseErrors: { message: string; line: number; column: number }[] = [];
   @state() private currentExample = 'Simple AND Gate';
   @state() private sourceText = EXAMPLES['Simple AND Gate'];
+  @state() private modified = false;
   @state() private showLabels = true;
   @state() private showIds = false;
   @state() private currentTheme: AppTheme = getCurrentTheme();
@@ -145,6 +146,7 @@ export class LdlApp extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this.applyUITheme();
+    this.loadState();
     this.unsubscribeTheme = onThemeChange((theme) => {
       this.currentTheme = theme;
       this.applyUITheme();
@@ -153,12 +155,42 @@ export class LdlApp extends LitElement {
     this.updateDiagram(this.sourceText);
   }
 
+  // Persist the current diagram so a reload/rebuild restores it. An unmodified example is
+  // re-loaded from its (possibly updated) definition; a modified diagram keeps the user's edits.
+  private static STORAGE_KEY = 'ldl-diagram-state';
+
+  private loadState() {
+    try {
+      const raw = localStorage.getItem(LdlApp.STORAGE_KEY);
+      if (!raw) return;
+      const s = JSON.parse(raw) as { example?: string; source?: string; modified?: boolean };
+      if (s.modified && typeof s.source === 'string') {
+        this.sourceText = s.source;
+        if (s.example && EXAMPLES[s.example]) this.currentExample = s.example;
+        this.modified = true;
+      } else if (s.example && EXAMPLES[s.example]) {
+        this.currentExample = s.example;
+        this.sourceText = EXAMPLES[s.example];
+        this.modified = false;
+      }
+    } catch { /* ignore unavailable/corrupt storage */ }
+  }
+
+  private saveState() {
+    try {
+      localStorage.setItem(LdlApp.STORAGE_KEY, JSON.stringify({
+        example: this.currentExample, source: this.sourceText, modified: this.modified,
+      }));
+    } catch { /* ignore unavailable storage */ }
+  }
+
   disconnectedCallback() {
     super.disconnectedCallback();
     if (this.unsubscribeTheme) {
       this.unsubscribeTheme();
       this.unsubscribeTheme = null;
     }
+    if (this.editDebounce !== null) { clearTimeout(this.editDebounce); this.editDebounce = null; }
   }
 
   private applyUITheme() {
@@ -179,16 +211,28 @@ export class LdlApp extends LitElement {
     const select = e.target as HTMLSelectElement;
     const name = select.value;
     if (EXAMPLES[name]) {
+      if (this.editDebounce !== null) { clearTimeout(this.editDebounce); this.editDebounce = null; }
       this.currentExample = name;
       this.sourceText = EXAMPLES[name];
+      this.modified = false;
+      this.saveState();
       this.updateDiagram(this.sourceText);
     }
   }
 
+  private editDebounce: ReturnType<typeof setTimeout> | null = null;
+
   private handleSourceChange(e: Event) {
     const source = (e as CustomEvent).detail?.value ?? '';
     this.sourceText = source;
-    this.updateDiagram(source);
+    this.modified = source !== EXAMPLES[this.currentExample];
+    // Debounce the expensive parse → layout → render so typing stays smooth on large diagrams.
+    if (this.editDebounce !== null) clearTimeout(this.editDebounce);
+    this.editDebounce = setTimeout(() => {
+      this.editDebounce = null;
+      this.saveState();
+      this.updateDiagram(this.sourceText);
+    }, 200);
   }
 
   private handleToggleLabels() {

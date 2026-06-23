@@ -76,6 +76,36 @@ the last occurrence wins.
 | DECLARATION
 | Input ports keep their declared (natural-sorted) order; gate rows still follow from that fixed order
 | --
+
+| COMPACTNESS
+| NORMAL
+| Standard spacing on both axes
+| NORMAL
+
+| COMPACTNESS
+| COMPACT_V
+| Tighter vertical (row) spacing for a denser diagram (still respects minimum gaps, so wires never overlap)
+| --
+
+| COMPACTNESS
+| COMPACT_H
+| Tighter horizontal (column) spacing
+| --
+
+| COMPACTNESS
+| COMPACT
+| Tighter spacing on both axes (COMPACT_V + COMPACT_H)
+| --
+
+| COMPACTNESS
+| SPACIOUS
+| Looser vertical spacing for an airier diagram
+| --
+
+| COMPACTNESS
+| _factors_
+| Explicit spacing factors `vertical,horizontal` (e.g. `70,70` or `[60,60]`); a value > 3 is a percentage (70 → 0.70), otherwise a raw factor. A single value applies to both axes.
+| --
 |===
 
 === Examples

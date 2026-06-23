@@ -5,6 +5,9 @@ export type PortStyle = 'CIRCLE' | 'SQUARE';
 export type GateInputStyle = 'EXPAND' | 'BARS';
 export type OutputOrder = 'DECLARATION' | 'AUTO';
 export type InputOrder = 'DECLARATION' | 'AUTO';
+// COMPACT_V tightens vertical (row) spacing, COMPACT_H tightens horizontal (column) spacing,
+// COMPACT does both. NORMAL is the default; SPACIOUS loosens vertical spacing.
+export type Compactness = 'COMPACT' | 'COMPACT_H' | 'COMPACT_V' | 'NORMAL' | 'SPACIOUS';
 
 export interface RenderOptions {
   inversion: InversionStyle;
@@ -12,6 +15,10 @@ export interface RenderOptions {
   gateInputStyle: GateInputStyle;
   outputOrder: OutputOrder;
   inputOrder: InputOrder;
+  compactness: Compactness;
+  // Optional explicit spacing factors [vertical, horizontal] (e.g. COMPACTNESS = 70,70 → both
+  // axes at 70%). When set, these override the named `compactness` value.
+  compactnessFactors?: [number, number];
 }
 
 export const DEFAULT_OPTIONS: RenderOptions = {
@@ -20,6 +27,7 @@ export const DEFAULT_OPTIONS: RenderOptions = {
   gateInputStyle: 'EXPAND',
   outputOrder: 'DECLARATION',
   inputOrder: 'AUTO',
+  compactness: 'NORMAL',
 };
 
 export interface Position {
@@ -50,7 +58,23 @@ export interface SymbolRefNode {
   pos?: Position;
 }
 
-export type LogicNode = PortNode | GateNode | SymbolRefNode;
+export type BlockType = 'TIMER' | 'SR' | 'RISING' | 'FALLING' | 'COMPARE' | 'FB';
+
+// SEL-style function block, e.g. TIMER(IN, 2cyc, 5cyc) or SR#L1(SET, RESET).NQ.
+// FB is a generic user block: inputs from the call args (optionally labelled NAME=expr),
+// outputs from the .port selectors referenced, with a name/description.
+export interface BlockNode {
+  kind: 'block';
+  blockType: BlockType;
+  id?: string;                    // explicit instance id (from BLOCK#id)
+  inputs: LogicNode[];            // signal inputs
+  inputLabels?: (string | undefined)[]; // per-input port label (FB named inputs)
+  params: Record<string, string>; // settings: PU, DO, DOMINANT, ...
+  port?: string;                  // output port selector (e.g. Q, NQ)
+  pos?: Position;
+}
+
+export type LogicNode = PortNode | GateNode | SymbolRefNode | BlockNode;
 
 export interface DiagramOutput {
   name: string;
@@ -66,7 +90,7 @@ export interface ObjectDecl {
 
 export interface PortMeta {
   identifier: string;
-  property: 'Name' | 'Description' | 'Style';
+  property: 'Name' | 'Description' | 'Style' | 'Out';
   value: string;
   pos?: Position;
 }
@@ -135,6 +159,20 @@ export function resolveOptions(optionDecls: OptionDecl[]): RenderOptions {
       opts.outputOrder = value;
     } else if (name === 'INPUT_ORDER' && (value === 'DECLARATION' || value === 'AUTO')) {
       opts.inputOrder = value;
+    } else if (name === 'COMPACTNESS') {
+      if (value === 'COMPACT' || value === 'COMPACT_H' || value === 'COMPACT_V' ||
+          value === 'NORMAL' || value === 'SPACIOUS') {
+        opts.compactness = value;
+        opts.compactnessFactors = undefined;
+      } else {
+        // Explicit factors, e.g. `COMPACTNESS = 70,70` (vertical, horizontal). A value > 3 is
+        // read as a percentage (70 -> 0.70); a value <= 3 is taken as a raw factor (0.7).
+        const nums = value.replace(/[[\]\s]/g, '').split(',').map(s => parseFloat(s)).filter(n => !isNaN(n) && n > 0);
+        if (nums.length >= 1) {
+          const f = (n: number) => (n > 3 ? n / 100 : n);
+          opts.compactnessFactors = [f(nums[0]), f(nums.length >= 2 ? nums[1] : nums[0])];
+        }
+      }
     }
   }
   return opts;

@@ -1,0 +1,120 @@
+== Function Blocks (SEL-style)
+
+In addition to the boolean operators, an expression may use *function-block primitives*
+modelled on SEL relay SELogic elements. Each is written as a function call and returns a
+logic signal, so it composes with `AND`/`OR`/`NOT` and nests like any sub-expression.
+
+[cols="2m,4m,5"]
+|===
+| Block | Syntax | Description
+
+| Pickup/Dropout timer
+| `TIMER(in, pu, do)`
+| Output asserts `pu` after `in` rises and remains asserted `do` after `in` falls. Settings
+  may be positional (`TIMER(IN, 2cyc, 5cyc)`) or named (`TIMER(IN, PU=2cyc, DO=5cyc)`). A bare
+  number is read as cycles; `0` means no delay. Either delay may be omitted (defaults to 0).
+
+| SR latch
+| `SR(set, reset)`
+| Set/reset latch. `.Q` (default) asserts on `set` and de-asserts on `reset`; `.NQ` is the
+  inverted output Q̄. **Reset-dominant** by default (when both inputs are asserted, the output
+  is reset); override with `DOMINANT=SET`. Each output port is drawn only when referenced.
+
+| Rising-edge trigger
+| `RISING(in)`
+| A one-interval pulse on each 0→1 transition of `in` (SEL rising-edge / `R_TRIG`).
+
+| Falling-edge trigger
+| `FALLING(in)`
+| A one-interval pulse on each 1→0 transition of `in`.
+
+| Comparator
+| `COMPARE(plus, minus)`
+| Asserts when the `+` (first) input is greater than or equal to the `−` (second) input.
+  Drawn as a comparator triangle. Inputs are analog quantities; the output is logic.
+|===
+
+=== Generic Blocks (FB)
+
+`FB` is a *generic user block* — a square box with whatever inputs and outputs you need, for
+representing a function whose internals are not drawn. Inputs come from the call arguments
+(optionally labelled `NAME=expr`); outputs are the `.port` selectors you reference. The instance
+`name` is centred in the box, the `description` below it.
+
+[literal]
+....
+TRIP  = FB#PROT(PHASE=IA, EARTH=IN, EN=ENABLE).TRIP
+ALARM = FB#PROT(PHASE=IA, EARTH=IN, EN=ENABLE).ALARM
+PROT.Name        = "Feeder Protection"
+PROT.Description = "SEL-751A"
+....
+
+* Each argument is an input port (left side). `NAME=expr` labels that port; a bare argument is
+  an unlabelled input.
+* Each distinct `.port` referenced is an output port (right side), labelled with the port name.
+  The block instance is de-duplicated by `#id`, so the example above is one box with two outputs.
+* The box is sized to its name, port labels and port counts.
+
+=== Instance IDs and Settings
+
+A block may be given an explicit *instance id* as part of its name, written `BLOCK#id`
+immediately before the argument list (matching the `SYMBOL_NAME#ID` convention, see
+<<symbol-definitions>>). The id can then carry a name, description, or other settings via
+`id.Property`:
+
+[literal]
+....
+HOT = COMPARE#C1(IA, IPK)
+C1.Name = "50P1"
+C1.Description = "Phase overcurrent element"
+....
+
+When no id is given, the block is anonymous and the assigned output name (the left-hand side)
+is its identity.
+
+=== Output Port Selection
+
+A block's output is selected with a trailing `.port` after the call. Most blocks have a single
+output, used by default. The SR latch has two: `.Q` (the default) and `.NQ` (the inverted
+output Q̄). Selecting `.NQ` yields only Q̄, and **only the referenced output port is drawn**:
+
+[literal]
+....
+PERMIT = SR#L1(START, STOP)          // uses Q (default); only Q is drawn
+BLOCK  = SR#L1(START, STOP).NQ       // uses Q̄ only; only NQ is drawn
+....
+
+If both `.Q` and `.NQ` of the same instance are referenced, both ports are drawn.
+
+=== Composition and Feedback
+
+Blocks nest and chain freely:
+
+[literal]
+....
+LATCH = SR(RISING(START), STOP)
+RUN   = TIMER(A AND B, 0, 10cyc) AND ENABLE
+....
+
+A latch output fed back into its own set/reset logic (the canonical seal-in) is drawn as a
+loop-back wire (see <<feedback-loops>>).
+
+A previously-defined output used as a *block argument* is substituted with its driving signal —
+the block taps the same source (a fan-out) rather than gaining a duplicate input. This lets a
+named intermediate be threaded into a block:
+
+[literal]
+....
+A    = SR(COMPARE(IA, IPICKUP), RESET)
+TRIP = TIMER(A, 0, 30cyc)              // the SR latch feeds the timer; A is not duplicated
+....
+
+=== Rendering (SEL Style)
+
+* *TIMER* — a rectangle with a diagonal ramp from the bottom-left to the top-right corner; the
+  pickup (`PU`) delay is shown in the upper-left, the dropout (`DO`) delay in the lower-right.
+* *SR* — a rectangle with `S` (top-left) and `R` (bottom-left) input ports and `Q` on the
+  right; the inverted output `Q̄` is added at the lower right only when referenced.
+* *RISING* / *FALLING* — a small block bearing a rising/falling step glyph.
+* *COMPARE* — a comparator triangle with `+` and `−` input ports on the left and the output
+  on the right.

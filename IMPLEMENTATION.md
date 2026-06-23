@@ -14,9 +14,13 @@ Last updated: 2026-06-17
 | Feature                                           | Status  | Notes                                                                                                        |
 | ------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------ |
 | Boolean expressions (AND, OR, NOT)                | Done    | Precedence: NOT > AND > OR, parenthetical grouping                                                           |
+| Consumed intermediates / signal sharing           | Done    | A name referenced in another assignment is shared (its driver fans out) and NOT drawn as an output, unless it's a sink, a feedback self-reference, or forced with `NAME.OUT = TRUE`. `resolveName` memoises name→driver. A consumed intermediate with `.Name`/`.Description` gets a net label at its fan-out junction (`LayoutResult.labels`), registered as a routing obstacle so wires route around it. See spec `expressions.adoc` |
+| Feedback / seal-in loops                          | Done    | An output used inside its own (cyclic) definition loops back instead of becoming a new input; drawn as a loop-back lane below the diagram (e.g. Breaker Failure SEL-751A) |
+| SEL function blocks (TIMER/SR/RISING/FALLING/COMPARE) | Done    | Function-call primitives in expressions: `TIMER#id(in, pu, do)`, `SR(set, reset).Q/.NQ`, `RISING/FALLING(in)`, `COMPARE(+, −)`. SEL-style symbols (TIMER = diagonal ramp, PU upper-left / DO lower-right). Block name above / description below the body. A defined output used as a block argument is substituted with its driver (fan-out), not duplicated. See spec `function-blocks.adoc`; examples "SEL Function Blocks", "Complex Protection (SEL)" |
+| Generic block (FB)                                | Done    | `FB#id(PHASE=IA, EARTH=IN, …).TRIP` — square box, labelled inputs from the (optionally named) args, named outputs from `.port` selectors, name centred in the box, description below. Box scales with the input/output counts and is sized to encompass its ports on the grid (no jogs). Example "Generic Block (FB)" |
 | Derived operators (NAND, NOR, XOR, XNOR)          | Missing | AST types exist; parser ignores keywords                                                                     |
 | Expression continuation lines                     | Done    |                                                                                                              |
-| Inversion rendering (GATES / BUBBLES)             | Done    | Double-inversion cancellation included                                                                       |
+| Inversion rendering (GATES / BUBBLES)             | Done    | Double-inversion cancellation included. Bubbles follow their inverted source to the port it lands on (sources map to ports in ascending-Y order), so `... AND NOT X` with INPUT_ORDER=AUTO bubbles the correct input |
 | Object declarations                               | Done    | `SYMBOL_NAME#ID` syntax                                                                                      |
 | Port metadata (`.Name`, `.Description`, `.Style`) | Partial | `.Name` and `.Description` work; `.Style` parsed but never applied to port rendering                         |
 | Implicit ports                                    | Done    | Input/output ports created from expression vars                                                              |
@@ -27,6 +31,7 @@ Last updated: 2026-06-17
 | `OPTION GATE_INPUT_STYLE`                         | Done    | EXPAND (default) and BARS (BARS routing known-broken, out of scope)                                          |
 | `OPTION OUTPUT_ORDER`                             | Done    | DECLARATION (default) keeps declared output order; AUTO reorders outputs by source gate Y (opt-in: can add output-column congestion in some diagrams) |
 | `OPTION INPUT_ORDER`                              | Done    | AUTO (default) reorders inputs via Sugiyama barycentre; DECLARATION keeps declared order                     |
+| `OPTION COMPACTNESS`                              | Done    | NORMAL (default) / COMPACT_V (tighten rows) / COMPACT_H (tighten columns) / COMPACT (both) / SPACIOUS; min gaps still enforced |
 | `OPTION LABEL_STYLE`                              | Missing | Only SIDE behavior exists; ABOVE_BELOW not implemented                                                       |
 | `CONNECT` explicit wires                          | Missing | Parser stores `ConnectDecl[]` but renderer never reads them                                                  |
 | `STYLE ... END STYLE`                             | Partial | Parser stores blocks in `StyleDecl[]` but renderer never embeds CSS                                          |
@@ -79,6 +84,9 @@ Last updated: 2026-06-17
 | Layout tests        | Done   | 17 tests                                                                                                                                                                                                                                                                                                                                                                                              |
 | Layout invariants   | Done   | `tests/unit/invariants.spec.ts` — a fixed set of universal layout rules (pure functions over `LayoutResult`) run table-driven against **every** example in `src/examples.ts` plus synthetic stress cases. Adding an example automatically gets full coverage, so we stop re-solving the same regressions per-example. Replaces the old hardcoded-example `layout-rules` / `layout-compliance` suites. |
 | Math renderer tests | Done   | 10 tests                                                                                                                                                                                                                                                                                                                                                                                              |
+| Graph tests         | Done   | `tests/unit/graph.spec.ts` — unit tests for the extracted `buildGraph` module (flattening, intermediate sharing, `.OUT`, bubble absorption)                                                                                                                                                                                                                                                            |
+| Visual regression   | Done   | `tests/unit/visual-regression.spec.ts` — a deterministic, id-independent geometry digest of every example, snapshotted. A behaviour-preserving refactor leaves snapshots unchanged; a deliberate layout change is a reviewable diff (`vitest -u` to accept). The safety net for the layout refactor + placement work |
+| Bend/crossing metrics | Done | `tests/unit/bend-metrics.spec.ts` — per-example straight/bent/bends/crossings dashboard, snapshotted. Quantifies placement quality so the bend-aware coordinate work (Issue 10) is measurable and guarded |
 | Visual checks       | Done   | `render-examples` harness emits SVG per example; `rsvg-convert` → PNG for visual spot-checks against the spec                                                                                                                                                                                                                                                                                         |
 
 ### Layout invariants (the rules)
@@ -112,6 +120,24 @@ Routing is split between two layers, and the division of labour is the key desig
 A _dogleg_ (forbidden) is a small/needless jog: a vertical run shorter than `MIN_DOGLEG`
 between two horizontal segments. A _Z-route_ (allowed) is `H → V(≥MIN_DOGLEG) → H`.
 
+### Routing Performance
+
+`routeWireAStar` tries cheap deterministic routes before any grid search, so cost scales
+with diagram complexity rather than canvas size:
+
+1. **Straight line** when source and dest share a Y and nothing blocks.
+2. **Clean Z** (`tryCleanZ`): a horizontal–vertical–horizontal route whose three segments
+   clear all gate bodies and all other nets — covers the common case with no allocation.
+3. **A\* grid search** only when neither fast path applies. The grid is **bounded to the
+   source→dest bounding box plus a 160px margin** (not the whole canvas); if the goal is
+   unreachable in that region it retries on the full canvas. This keeps per-wire allocation
+   and search proportional to the wire's span.
+
+Measured layout time (parse → layout, warm): trivial/medium examples 1–3 ms; a 60-node
+balanced tree ~65 ms; a pathological 92-node single-30-input-OR ~0.6 s. Budget: < 0.5 s
+medium, < 1 s large. The clean-Z fast path and bounded grid together cut the worst case
+from ~2.0 s to ~0.6 s.
+
 ### A\* Router Constants
 
 | Constant            | Value | Purpose                                                                                |
@@ -124,6 +150,8 @@ between two horizontal segments. A _Z-route_ (allowed) is `H → V(≥MIN_DOGLEG
 | BEND_PENALTY        | —     | Penalty for direction change; tuned so the optimum has ≤2 bends                        |
 | SAME_SOURCE_BONUS   | —     | Discount for sharing a trunk with same-source wires (fan-out)                          |
 | GATE_BUFFER_RATIO   | 0.2   | 20% buffer zone around gate bodies                                                     |
+| GATE_BUFFER_MIN     | 10    | Min horizontal clearance (px) wires keep from a gate body                              |
+| GATE_BUFFER_MIN_Y   | 20    | Min vertical clearance (px) a passing horizontal wire keeps off a gate top/bottom (2× wire gap) |
 
 (Removed: `MIDPOINT_COST_SCALE` midpoint-centering bias and the `fixSourceDogleg` /
 `fixDestDogleg` / `removeSmallZigzags` / `balancePath` post-processing patches — superseded
@@ -131,12 +159,133 @@ by layout-level endpoint alignment.)
 
 Key files:
 
+- `src/renderer/graph.ts`: **Phase 1 — `buildGraph`** (AST → flattened logic graph: resolve &
+  share signals, BUBBLES absorption, depth assignment). Extracted from `layout.ts` (2026-06) as
+  the first step of the pipeline refactor (direction #1); pure of geometry and unit-tested.
 - `src/renderer/astar-router.ts`: A\* router, cost grid, orthogonalize()
-- `src/renderer/layout.ts`: endpoint-alignment passes, fan-out trunk/branches, junction
-  dots, OR curve-tap ports, channel spacing, allObstacles
+- `src/renderer/layout.ts`: geometry — coordinate assignment, node creation, endpoint-alignment
+  passes, fan-out trunk/branches, junction dots, OR curve-tap ports, channel spacing, allObstacles
 - `src/renderer/gates.ts`, `src/renderer/svg-renderer.ts`: OR curve geometry, bubble placement
 
+## SEL Function Blocks
+
+Five SEL-style primitives in the expression language (spec: `function-blocks.adoc`).
+Implemented:
+
+- **Syntax**: function calls in expressions — `TIMER(in, pu, do)`, `SR(set, reset)`,
+  `RISING(in)`, `FALLING(in)`, `COMPARE(plus, minus)` — composable/nestable like gates. An
+  optional instance id is part of the name before the args (`COMPARE#C1(IA, IPK)`); settings/
+  metadata via `id.Property`. A trailing `.port` selects an output (`SR#L1(S,R).NQ`); only
+  referenced output ports are drawn.
+- **TIMER**: settings positional or named (`PU=`/`DO=`), bare number = cycles, `0` = no delay.
+- **SR**: reset-dominant default, `DOMINANT=SET` to flip; inverted output Q̄ drawn only if used.
+- **COMPARE**: comparator triangle, asserts `+` ≥ `−`.
+- **RISING/FALLING**: one-interval edge pulse.
+
+Implementation steps:
+
+1. **Lexer/parser**: in `parsePrimary`, an identifier followed by `(` parses a call; accept
+   the durations the lexer already tokenises (`5cyc`, `0.5s`) and named args; optional `#id`.
+2. **AST**: new `BlockNode { kind:'block', blockType, inputs, params, id? }` (separate from
+   `GateNode` — carries settings and named ports).
+3. **Layout** (`layout.ts` node-creation): per-block body size + ports — TIMER/RISING/FALLING
+   1-in/1-out; SR S+R in, Q (+Q̄ if used) out; COMPARE +/− in, 1 out. Feed into the existing
+   priority placement, routing, and feedback (latch Q loop-back already supported).
+4. **Render** (`gates.ts` + `svg-renderer.ts`): SEL bodies — timer rectangle with PU/DO + edge
+   glyphs, SR box with S/R/Q labels, edge step glyphs, comparator triangle with +/−.
+5. **Tests/examples**: invariants over a new example per block; a seal-in built from `SR` +
+   `RISING`.
+
+## Outstanding Items (Prioritised Backlog)
+
+Captured 2026-06 from user review. Roughly priority-ordered; tiers group by kind.
+
+### Tier 1 — Rendering correctness (visible defects in current output)
+
+1. **Gate symbol geometry: centres and ports must land on the 5px grid.**
+   - The OR gate's right tip is drawn at `(w, h/2)` (`gates.ts` `orGateBody`, two cubic Béziers
+     meeting at `h/2`). When `h` is not an even grid multiple, `h/2` is off-grid: the two output
+     arcs don't meet cleanly, and the output wire/junction dot sits at a grid Y that differs from
+     the tip — so the arcs and the dot don't coincide. Fix: force gate heights to an **even**
+     number of grid cells so the vertical centre (and thus the output tip + port + dot) is exactly
+     on-grid; make both arcs terminate on that point.
+   - Same root for the **AND gate**: its output must be dead-centre and its input ports on-grid.
+     Audit `baseNodeHeight`/port-Y assignment so every gate's centre and every port snap to grid
+     regardless of input count.
+
+2. **Input/output channel allocation to prevent wire overlaps** (e.g. `FB#DAN(IN=ISET, TRIG=DAN,
+   SEAL=ZZ)`). The `SEAL` feedback loop-back and the `IN` input run in the same vertical track just
+   left of the block and overlap. The block should be placed lower (leaving a clear feedback lane)
+   so `IN` enters straight and the `TRIG`/feedback wire turns a single clean right angle. Generalise
+   the obstacle-aware lane reservation to **block/gate input and feedback ports**, allocating each
+   incoming wire its own channel (no two nets sharing a vertical track).
+
+### Tier 2 — Layout quality (avoidable crossovers)
+
+3. **Better placement of single-consumer inputs to remove crossovers.** In *Labelled Gates*, `HBLK`
+   would sit better **between `NEGSEQ` and `O502`** (no crossover); in *Complex Protection (SEL)*,
+   `CB52A` between `RESET` and `IDIFF` (with a little spacing) removes crossings.
+   **Right approach:** this is layered-graph crossing minimisation. Today `INPUT_ORDER = AUTO` does a
+   single barycentre pass and inputs keep uniform spacing in declared-ish order. Improve by
+   (a) ordering each input at the **barycentre/median of its consumer's port Y** — which may place
+   it *between* other inputs, not at the top/bottom; (b) iterating median ordering over all layers
+   with alternating up/down sweeps until stable (standard Sugiyama); and (c) allowing **non-uniform
+   row insertion** so an input can drop into a gap between two existing rows ("a little space")
+   instead of pushing everything. Guard with the bend/crossing metric so no example regresses.
+
+### Tier 3 — Authoring & feature ergonomics
+
+4. **Name a gate directly: `AND#MYID` (and `OR#`, `NOT#`)** so a gate can carry `.Name`/`.Description`
+   without the pass-through-intermediate trick. Parser currently only accepts block/object `#id`
+   forms; extend to bare gate operators so `AND#THISISMYID(...)`-style labelling works.
+
+5. **Add an output by a bare port assignment: `A = FB#PROT.ALARM`.** A statement that just binds a
+   block output port to a new name should create that output (today outputs come from full
+   expressions). Define the semantics for re-referencing an already-instantiated block (`FB#PROT`)
+   and selecting another of its ports.
+
+6. **NOT-only through-connection should always show a NOT gate by convention**, even under
+   `OPTION INVERSION = BUBBLES`. A bare `O = NOT A` (input straight through a single inversion to an
+   output) reads better as an explicit NOT symbol than a lone port bubble.
+
+7. **Rename `OPTION COMPACTNESS` → `SIZE`** (user-facing term for what it controls). Keep
+   `COMPACTNESS` as a deprecated alias for back-compat. Update spec + examples.
+
+8. **Fix `OPTION GATE_INPUT_STYLE = BARS`** (currently known-broken, out of scope). Target: draw
+   stacked input **bars** feeding the gate as in `or_bars.png` (nested bracket/bus-bar inputs) — the
+   clean way to show large fan-in. Pairs naturally with the large-fan-in work.
+
+### Tier 4 — Output structure, theming, export
+
+9. **Semantic, usable SVG structure.** Emit nested `<g>` per logical object with stable `id`s:
+   each gate/block as `<g id="..." class="gate or|and|...">` containing its body, and each port as a
+   child group bundling its **dot + name + description**; outputs likewise; junction dots grouped
+   with their owning source/net. Use `<defs>` + `<symbol>`/`<use>` for repeated identical glyphs
+   (gate bodies, dots). Consider separate **layers** (groups) for wires / bodies / dots / port-names
+   / descriptions so a consumer can toggle or restyle each. This is the enabler for items 10–12
+   (style-by-id, hide-dots, click-to-identify) and improves accessibility.
+
+10. **Theming.** Stroke colour and thickness; ability to colour individual lines/paths and fill
+    particular boxes **by their ID**. Builds on the class/id structure from item 9 (CSS-driven).
+
+11. **Options to hide junction dots** — on gates/objects and on inputs/outputs, as separate options
+    plus a global toggle.
+
+12. **Click an ID also reveals gate/object IDs** (not just input/output IDs), so every element is
+    addressable for styling/linking. Depends on the grouped-by-id SVG (item 9).
+
+13. **PNG export with selectable resolution** (e.g. a dropdown of scales/DPI in the app).
+
 ## Current Issues
+
+0. ~~**A\* router falls back to a diagonal straight line when it cannot route a wire
+   orthogonally.**~~ **RESOLVED** — both fallbacks in `astar-router.ts` (the `orthogonalize`
+   degenerate-path case and the final `solve() ?? solve() ?? …` when A\* fails in both the bounded
+   region and the full canvas) returned a direct `[source, dest]` line, which is diagonal when the
+   endpoints differ in both axes. Replaced with `orthFallback()` — a straight line when they share
+   a Y, otherwise a clean Z (exit and enter horizontally). Guarded by `tests/unit/router-fallback.spec.ts`
+   (asserts zero diagonal segments across every example plus a cross-connected stress case). The
+   stress case that exposed it now routes fully orthogonally with no gate-body crossings.
 
 1. ~~In the demo, if example goes past the screen the example selector at the top gets lost. The top bars should always stay at the top even if the text input is large or the diagram is large.~~ **RESOLVED** — root cause was `global.css` `ldl-app { display: block }` overriding the component's `:host { display: flex }`, so the column flex layout never constrained `.main` to the viewport; the toolbar stayed but the panes could grow past the screen. Fixed by making `ldl-app` `display: flex; flex-direction: column` in `global.css` and adding explicit `min-height: 0` to the flex panes.
 
@@ -166,3 +315,118 @@ Key files:
    - Keep it guarded by the invariants suite + visual spot-checks, since column re-ordering affects every example.
 
    This is a self-contained follow-up; the routing-quality work in issues 1–9 is independent of it.
+
+   **Instrumentation (2026-06).** Before changing placement, two guards are now in place so the
+   change is safe and measurable: a **geometry snapshot** (`visual-regression.spec.ts`) that makes
+   any layout change a reviewable diff, and a **bend/crossing metric** (`bend-metrics.spec.ts`)
+   that quantifies placement quality per example (baseline hotspots: Complex Protection (SEL)
+   16 bent/10 crossings, Combined Options 7 crossings, Interlocking 12 bent, Boolean Algebra
+   5 bent/1 crossing). The bend-aware sweep change should reduce these without raising any
+   example's counts. The placement algorithm change itself is the remaining work.
+
+   **Attempts (2026-06, measured + reverted).** Two levers were tried against the instruments
+   and both *traded* defects rather than improving net — confirming the placement, alignment and
+   routing passes are tightly coupled:
+   - **Bidirectional ordering** (order each column by median row of inputs *and* consumers): near-
+     neutral metrics (bent 124→121, crossings 31→**32**) and broke 2 invariants on Complex
+     Protection (SEL) — a real 15px dogleg into an AND and a 10px cross-net horizontal overlap at
+     y=920. Visually it cleanly *groups* the OC-trip chain (a genuine plus) but adds a large empty
+     vertical band and the overlap. A trade, not a win.
+   - **Per-wire fan-in fallback** (reshape each fan-in wire into the first free valid channel
+     instead of the all-or-nothing group reshape): *fixed* the bidirectional dogleg (root cause:
+     two inputs landing on ports 15px apart, one wire overshooting to the other's Y), broke no
+     default invariants, but **regressed default crossings 31→35** and the bidirectional overlap
+     remained. The all-or-nothing fan-in is conservative on purpose; relaxing it trades crossings.
+
+   - **Per-wire fan-in "rescue" fallback** (strict crossing-safe channel, only rescue wires with a
+     sub-MIN_DOGLEG jog): left default layouts byte-identical (zero regression), but **did not fix
+     the bidirectional defects** either.
+
+   **Root cause (definitive).** Instrumenting the failing wire (`in_17 → and_18` under
+   bidirectional ordering on Complex Protection (SEL)) showed `channelOk` rejects its clean
+   channel via `hGateClear` — the **`FALLING` block `falling_24` sits at y875 directly in the
+   wire's straight path**. The bidirectional ordering placed a gate body *in another wire's path*.
+   Routing around it forces a sub-MIN jog because the block body (855–895) overlaps the target
+   input port's level (905). This is a **placement** problem, not a routing/alignment one: no
+   fan-in or alignment change can straighten a wire whose path is physically blocked by a gate the
+   ordering put there.
+
+   Conclusion: making bidirectional ordering viable needs **obstacle-aware placement** (don't drop
+   a gate into a wire's lane).
+
+   **Obstacle-aware placement — LANDED (2026-06).** Implemented the Sugiyama long-edge technique:
+   every edge spanning more than one depth column is decomposed into a chain of thin `DUMMY` nodes
+   (one per intermediate column) that **reserve a vertical lane** during coordinate assignment, so
+   a real gate is never placed in a wire's straight path. Key details that made it a clean win
+   (not the earlier regressions):
+   - The **ordering (rowMap) is computed on real nodes only** — dummies don't reorder gates; each
+     dummy is slotted at the row *interpolated* between the edge's endpoints (on the wire's line).
+     This avoids the gate-reordering that regressed default layouts in the first attempt.
+   - Dummies have height 0 (the lane spacing comes from `VGAP`) and are **removed after placement**
+     — geometry and routing see only real nodes, now placed clear of the lanes; routing uses the
+     original edges through the cleared lane.
+   - A conservative **jog-straightening pass** collapses any gratuitous sub-`MIN_DOGLEG` vertical
+     step the new spacing leaves when the span is gate-clear (only interior jogs, never a terminal
+     port).
+
+   Result across all 24 examples (vs the previous default): **crossings 31 → 28, bent wires
+   124 → 122, doglegs 0 → 0, all invariants pass**; total height +105px (~4px/example). Complex
+   Protection (SEL), Interlocking, Boolean Algebra and the rest are visibly cleaner (gates get
+   breathing room, fewer mid-column crossings). Guarded by the geometry snapshot + bend metric.
+   This is now the default placement; the bidirectional-ordering experiment is no longer needed.
+
+   **Progress (2026-06).** The target is now specified — see "Visual Quality Objectives" and
+   "Coordinate Assignment (Two-Sided Alignment)" in `spec/sections/layout-rules.adoc`.
+   Delivered so far:
+   - **Output placement via `OUTPUT_ORDER = AUTO`** — the practical lever for the user-visible
+     problem. Outputs reorder by source-gate Y so each output wire is straight instead of a
+     long vertical (big improvement on Complex Protection / Overcurrent, which now enable it).
+     Kept opt-in (not the global default) because AUTO still regresses *Inversion Bubbles*:
+     two outputs land on the same congested track and one wire gets a 5px jog that can't be
+     straightened without overlapping another net. Making AUTO the global default is gated on
+     fixing that routing congestion.
+   - **`OPTION COMPACTNESS`** (NORMAL / COMPACT_V / COMPACT_H / COMPACT / SPACIOUS) — scales
+     row spacing (vertical) and/or column spacing (horizontal) so a diagram can be denser or
+     airier on either axis; the collision/protected-zone passes still enforce minimum gaps so
+     it never overlaps.
+   - A two-sided gate-alignment pass (nudge each gate to the median Y of its sources *and*
+     consumers) was prototyped but **reverted**: it passed all invariants yet its aesthetic
+     results were mixed (it reordered gates and added a bend on Boolean Algebra's A+B).
+   - A **full priority-method coordinate assignment** (Sugiyama/Tagawa: fixed per-column
+     order, alternating up/down sweeps, degree priority, port-aligned down-target) is now the
+     **landed** vertical-placement method (`assignCoordinates` in `layout.ts`), replacing the
+     old global row-rank mapping. Each node's centre is aligned to the median of its
+     neighbours on both sides; the loop ends on the down-sweep so a gate stays near the inputs
+     it fans in from (short, clean fan-in) while still picking up consumer influence. Result:
+     Complex Protection is compact with every output wire straight; Interlocking / Mixed /
+     Differential stay clean; all 283 invariants pass.
+   - Landing it required two supporting changes: (a) the **fan-in pass now reshapes *every*
+     incoming dogleg wire** into a clean nested channel (not just the ones A\* happened to
+     leave as 4-point), so congested multi-input gates get straight nested fan-in; and (b) the
+     clean-Z router fast path searches the **whole source→dest span** for a free channel, so
+     many wires fanning into one gate each find a distinct channel without an expensive grid
+     search. Timing stays in budget: trivial/medium 1–2 ms, a 60-node tree ~200 ms, the
+     pathological 92-node single-30-input-OR ~0.9 s.
+
+11. **Robustness fuzz (2026-06): correctness solid, two soft-quality gaps.** Ran a 44-case corpus
+    (`tests/unit/robustness.spec.ts` — simple gates, deep/wide trees, fan-out DAGs, feedback, every
+    block type, generic FB, labels, all options, pathological cases). **Every case passes the
+    correctness invariants**: no diagonal segments, no wire through a gate body, full connectivity,
+    no overlapping gate bodies. Two soft-quality gaps remain (not asserted; tracked here):
+
+    - ~~**Large fan-in gates (≈20+ inputs) cram their taps and tangle.**~~ **RESOLVED** — the
+      nested fan-in used a fixed 15px channel step, so a many-input gate ran its deep channels off
+      the left edge; they clamped onto the same X, the all-or-nothing reshape failed, and the wires
+      stayed as crossing-heavy raw routes (30-input OR ≈ 138 crossings). The channel step is now
+      **adaptive** (tightened to fit the room left of the gate), so AND/OR fan-ins of 20 and 30
+      inputs nest cleanly with **zero crossings**. Realistic gates (≤~8 inputs) keep the 15px step
+      unchanged (no example geometry changes).
+    - **Sub-`MIN_DOGLEG` jogs — mostly fixed.** The seal-in latch `NOT → AND` 15px jog is
+      **RESOLVED** (the residual dogleg pass was pairing the feedback port — which has no left-hand
+      source — to a real source by sorted index and shifting the whole gate; feedback ports are now
+      excluded). **All 24 built-in examples now have zero doglegs.** Two residual jogs remain *only
+      in synthetic stress cases*, both deep placement-coupling: (a) an edge-block output → output
+      node where the long-edge lane reserved for it is offset by a competing gate at the same depth
+      (the lane-vs-gate priority tension), and (b) an input into a wide OR whose curve-tap Y differs
+      from the fan-in channel Y. Both are ≤25px and cosmetic; fixing them safely needs the deeper
+      placement rework (lane priority / curve-tap-aware fan-in) rather than a local patch.

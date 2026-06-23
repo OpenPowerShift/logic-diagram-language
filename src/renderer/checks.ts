@@ -84,13 +84,13 @@ export function validateLayout(layout: LayoutResult): CheckResult[] {
   //    every gate/output input port has an incoming wire.
   let disconnected = 0;
   for (const w of wires) {
+    if (w.feedback) continue; // loop-back wires tap the output's signal line, not an output port
     const from = byId.get(w.fromId);
     const to = byId.get(w.toId);
     if (!from || !to) { disconnected++; continue; }
     const p0 = w.points[0];
     const pN = w.points[w.points.length - 1];
-    const src = from.outputs[0];
-    const startOk = !!src && Math.abs(p0.x - src.absX) < 1 && Math.abs(p0.y - src.absY) < 1;
+    const startOk = from.outputs.some(src => Math.abs(p0.x - src.absX) < 1 && Math.abs(p0.y - src.absY) < 1);
     const endOk = to.inputs.some(p => Math.abs(pN.x - p.absX) < 1 && Math.abs(pN.y - p.absY) < 1);
     if (!startOk || !endOk) disconnected++;
   }

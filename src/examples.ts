@@ -1,4 +1,82 @@
 export const EXAMPLES: Record<string, string> = {
+  'Breaker Failure (SEL-751A)': `// Breaker failure logic with feedback seal-in
+OPTION OUTPUT_ORDER = AUTO
+OPTION INPUT_ORDER = AUTO
+
+BFT = BFI OR BFT AND ((CB52A AND CB52ABFY) OR (I1I2 AND INOM))
+
+BFI.Description = "Relay Word Bit"
+
+CB52A.Name = "52A"
+CB52ABFY.Name = "52ABF = Y"
+CB52ABFY.Description = "Setting"
+
+I1I2.Name = "$\\mathrm{|I1|+|I2|}$"
+INOM.Name = "$\\mathrm{0.02 \\cdot I_{NOM}}$"
+
+// SEL-751A Instruction Manual Figure 4.55 Breaker Failure Logic`,
+
+  'SEL Function Blocks': `// SEL-style timer, SR latch, comparator and edge triggers
+OPTION OUTPUT_ORDER = AUTO
+A = SR(COMPARE(IA, IPICKUP), RESET)
+TRIP = TIMER(A, 0, 30cyc)
+ALARM = RISING(COMPARE(IA, IPICKUP))
+RESTART = FALLING(BLOCK)`,
+
+  'Labelled Gates': `// Name a gate by assigning it to an intermediate, then label it — the
+// name/description appear at the gate's output and wires route around them.
+OPTION OUTPUT_ORDER = AUTO
+PH  = O51 OR O50 OR NEGSEQ
+EF  = E51N OR E50N
+HS  = O502 OR E50N2
+SUP = PH AND NOT HBLK
+TRIP = SUP OR EF OR HS
+PH.Name = "Phase OC"
+PH.Description = "51/50/46"
+EF.Name = "Earth Fault"
+EF.Description = "51N/50N"
+HS.Name = "High-Set"
+HS.Description = "50-2"
+SUP.Name = "Supervised"
+SUP.Description = "harmonic block"`,
+
+  'Complex Protection (SEL)': `// SEL scheme exercising every block type with gate logic
+OPTION OUTPUT_ORDER = AUTO
+
+OC_TRIP = TIMER#TD(SR#TL(COMPARE#C50(IA, IPICKUP) AND NOT BLOCK, RESET), 2cyc, 0)
+BF_TRIP = TIMER#BFT(COMPARE#C87(IDIFF, IREST) AND CB52A, 0, 12cyc)
+ALARM = RISING(START) OR EXT_ALARM
+RECLOSE = FALLING(CB52A) AND NOT LOCKOUT
+
+C50.Name = "50P1"
+C50.Description = "Phase OC"
+C87.Name = "87"
+C87.Description = "Differential"
+TL.Name = "Trip Latch"
+TD.Name = "62T"
+TD.Description = "Trip delay"
+BFT.Name = "62BF"
+BFT.Description = "BF delay"`,
+
+  'Shared Intermediates': `// Consumed intermediates: A is internal but labelled at its junction;
+// B is forced to an output with .OUT = TRUE
+OPTION OUTPUT_ORDER = AUTO
+B = COMPARE(IA, IPICKUP)
+A = SR(B, RESET) OR B OR C
+TRIP = TIMER(A, 0, 30cyc)
+ALARM = RISING(COMPARE(IA, IPICKUP))
+A.Name = "Trip Permit"
+A.Description = "Seal-in"
+B.OUT = TRUE`,
+
+  'Generic Block (FB)': `// Generic user block: named inputs/outputs, name and description
+OPTION OUTPUT_ORDER = AUTO
+TRIP  = FB#PROT(PHASE=IA, EARTH=IN, EN=ENABLE).TRIP
+ALARM = FB#PROT(PHASE=IA, EARTH=IN, EN=ENABLE).ALARM
+CLOSE = FB#PROT(PHASE=IA, EARTH=IN, EN=ENABLE).CLOSE
+PROT.Name = "Feeder Protection"
+PROT.Description = "SEL-751A"`,
+
   'Simple AND Gate': `// Simple AND gate
 OUT = A AND B`,
 
@@ -11,11 +89,9 @@ OUT = NOT A`,
   'Combined Logic (CBFPS)': `// Protection logic for CBFPS
 CBFPS = AB AND DC OR (NOT DC AND GF)`,
 
-  'Trip Logic': `// Trip Logic with OR and NOT
+  'Trip Logic': `// Trip Logic: TRIP is a consumed intermediate (not shown); MAIN_TRIP is the output
 TRIP = OVERCURRENT OR (NOT EARTH_FAULT)
-
-// Combined trip
-MAIN_TRIP = TRIP AND MANUAL_TRIP`,
+MAIN_TRIP = TRIP AND (MANUAL_TRIP OR REMOTE_TRIP)`,
 
   'Three-Input AND': `// Three inputs into an AND gate
 OUT = A AND B AND C`,
@@ -27,13 +103,14 @@ ALARM = TEMP OR PRESSURE OR FLOW`,
 OUT = NOT NOT A`,
 
   'Complex Protection': `// Complex protection scheme
+OPTION OUTPUT_ORDER = AUTO
 TRIP_1 = OVERCURRENT_A OR OVERCURRENT_B
 TRIP_2 = EARTH_FAULT AND NOT BLOCK
 MAIN_TRIP = TRIP_1 AND TRIP_2`,
 
-  'Mixed Logic': `// Mixed AND/OR with negation
+  'Mixed Logic': `// Mixed AND/OR with negation: RESULT is consumed (not shown), OUTPUT is the result
 RESULT = (A AND B) OR (C AND NOT D)
-OUTPUT = RESULT AND ENABLE`,
+OUTPUT = RESULT AND (ENABLE OR FORCE)`,
 
   'Interlocking Q01 Close': `// Interlocking Example for Collector Feeder Q01 (Close)
 
@@ -133,6 +210,7 @@ O1.Name = "Master Trip"
 O1.Description = "(BO 1.1)"`,
 
   'Overcurrent Protection': `// Overcurrent protection with math labels
+OPTION OUTPUT_ORDER = AUTO
 I1.Name = "$I_a$"
 I1.Description = "Phase A current"
 

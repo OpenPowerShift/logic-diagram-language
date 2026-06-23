@@ -47,6 +47,19 @@ export function renderDiagram(diagram: Diagram, portMeta?: PortMeta[], showLabel
     svgJunctions.push(renderJunctionDot(junction.x, junction.y, theme));
   }
 
+  if (showLabels) for (const lbl of layout.labels) {
+    // Net label for a consumed intermediate, drawn above its fan-out junction.
+    const cx = lbl.x + lbl.width / 2;
+    let ty = lbl.y + 11;
+    if (lbl.name) {
+      svgLabels.push(`<text class="ldl-label ldl-name" x="${cx}" y="${ty}" text-anchor="middle" fill="${theme.nameFill}" font-size="11" font-family="sans-serif" font-weight="600">${esc(lbl.name)}</text>`);
+      ty += 12;
+    }
+    if (lbl.description) {
+      svgLabels.push(`<text class="ldl-label ldl-description" x="${cx}" y="${ty}" text-anchor="middle" fill="${theme.descFill}" font-size="9" font-family="sans-serif">${esc(lbl.description)}</text>`);
+    }
+  }
+
   // Content bounds include port label text, which can extend past the node bounding boxes
   // (long output names overflow to the right, long input names to the left). Without this
   // the viewBox clips them — the cause of right-side truncation in SVG/PDF export.
@@ -65,6 +78,10 @@ export function renderDiagram(diagram: Diagram, portMeta?: PortMeta[], showLabel
       minY = Math.min(minY, p.absY - 18);
       maxY = Math.max(maxY, p.absY + 18);
     }
+  }
+  if (showLabels) for (const lbl of layout.labels) {
+    minX = Math.min(minX, lbl.x); maxX = Math.max(maxX, lbl.x + lbl.width);
+    minY = Math.min(minY, lbl.y); maxY = Math.max(maxY, lbl.y + lbl.height);
   }
 
   const pad = 30;
@@ -152,9 +169,90 @@ function renderNodeBody(node: LayoutNode, bodies: string[], opts: RenderOptions,
     case 'NOT':
       renderNotNodeBody(node, bodies, theme);
       break;
+    case 'TIMER':
+    case 'SR':
+    case 'RISING':
+    case 'FALLING':
+    case 'COMPARE':
+      renderBlockNodeBody(node, bodies, theme);
+      break;
+    case 'FB':
+      renderFbNodeBody(node, bodies, theme);
+      break;
     default:
       renderGateNodeBody(node, 'and', '&', bodies, theme);
   }
+}
+
+// Small rising/falling edge step glyphs (a low-high or high-low step), used on TIMER (PU/DO)
+// and the RISING/FALLING blocks.
+function edgeGlyph(x: number, y: number, rising: boolean, stroke: string): string {
+  const d = rising ? `M ${x} ${y + 8} L ${x + 6} ${y + 8} L ${x + 6} ${y} L ${x + 14} ${y}`
+                   : `M ${x} ${y} L ${x + 6} ${y} L ${x + 6} ${y + 8} L ${x + 14} ${y + 8}`;
+  return `  <path d="${d}" fill="none" stroke="${stroke}" stroke-width="1.5"/>`;
+}
+
+function fmtDuration(v?: string): string {
+  if (v === undefined || v === '') return '0';
+  return /[a-z]/i.test(v) ? v : `${v}cyc`;
+}
+
+// Generic user block: a square box with the name centred inside, labelled input ports on the
+// left and labelled output ports on the right. The description is rendered below (renderNodeLabels).
+function renderFbNodeBody(node: LayoutNode, bodies: string[], theme: DiagramTheme): void {
+  const x = node.absX, y = node.absY, w = node.width, h = node.height;
+  const stroke = theme.stroke, fill = theme.fill;
+  const parts: string[] = [`<g class="ldl-symbol ldl-block ldl-block-fb" id="${esc(node.id)}">`];
+  parts.push(`  <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2" fill="${fill}" stroke="${stroke}" stroke-width="2.5"/>`);
+  if (node.name) {
+    parts.push(`  <text x="${x + w / 2}" y="${y + h / 2 + 4}" text-anchor="middle" fill="${stroke}" font-size="11" font-weight="700" font-family="sans-serif">${esc(node.name)}</text>`);
+  }
+  for (const p of node.inputs) {
+    if (p.label) parts.push(`  <text x="${x + 6}" y="${p.absY + 3.5}" text-anchor="start" fill="${stroke}" font-size="9" font-family="sans-serif">${esc(p.label)}</text>`);
+  }
+  for (const p of node.outputs) {
+    if (p.label) parts.push(`  <text x="${x + w - 6}" y="${p.absY + 3.5}" text-anchor="end" fill="${stroke}" font-size="9" font-family="sans-serif">${esc(p.label)}</text>`);
+  }
+  parts.push('</g>');
+  bodies.push(parts.join('\n'));
+}
+
+// SEL-style function blocks: rectangle for TIMER/SR/RISING/FALLING, comparator triangle for
+// COMPARE. Labels mirror SEL documentation (PU/DO, S/R/Q, +/−).
+function renderBlockNodeBody(node: LayoutNode, bodies: string[], theme: DiagramTheme): void {
+  const x = node.absX, y = node.absY, w = node.width, h = node.height;
+  const stroke = theme.stroke, fill = theme.fill;
+  const txt = (tx: number, ty: number, s: string, size = 11, anchor = 'middle') =>
+    `  <text x="${tx}" y="${ty}" text-anchor="${anchor}" fill="${stroke}" font-size="${size}" font-weight="700" font-family="sans-serif">${esc(s)}</text>`;
+  const parts: string[] = [`<g class="ldl-symbol ldl-block ldl-block-${(node.blockType ?? '').toLowerCase()}" id="${esc(node.id)}">`];
+
+  // Port labels track the actual port Y (ports can be shifted/expanded to straighten wires).
+  if (node.blockType === 'COMPARE') {
+    parts.push(`  <path d="M ${x} ${y} L ${x} ${y + h} L ${x + w} ${y + h / 2} Z" fill="${fill}" stroke="${stroke}" stroke-width="2.5"/>`);
+    if (node.inputs[0]) parts.push(txt(x + 13, node.inputs[0].absY + 5, '+', 14));
+    if (node.inputs[1]) parts.push(txt(x + 13, node.inputs[1].absY + 5, '−', 14));
+  } else {
+    parts.push(`  <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2" fill="${fill}" stroke="${stroke}" stroke-width="2.5"/>`);
+    if (node.blockType === 'SR') {
+      if (node.inputs[0]) parts.push(txt(x + 12, node.inputs[0].absY + 4, 'S'));
+      if (node.inputs[1]) parts.push(txt(x + 12, node.inputs[1].absY + 4, 'R'));
+      for (const o of node.outputs) {
+        const ly = o.absY;
+        parts.push(txt(x + w - 12, ly + 4, 'Q'));
+        if (o.name === 'NQ') parts.push(`  <line x1="${x + w - 17}" y1="${ly - 7}" x2="${x + w - 7}" y2="${ly - 7}" stroke="${stroke}" stroke-width="1.5"/>`);
+      }
+    } else if (node.blockType === 'TIMER') {
+      // Diagonal ramp from bottom-left to top-right; pickup (PU) in the upper-left, dropout (DO)
+      // in the lower-right — the SEL timer convention.
+      parts.push(`  <line x1="${x}" y1="${y + h}" x2="${x + w}" y2="${y}" stroke="${stroke}" stroke-width="1.5"/>`);
+      parts.push(txt(x + w * 0.30, y + h * 0.36, fmtDuration(node.params?.PU), 10));
+      parts.push(txt(x + w * 0.70, y + h * 0.78, fmtDuration(node.params?.DO), 10));
+    } else if (node.blockType === 'RISING' || node.blockType === 'FALLING') {
+      parts.push(edgeGlyph(x + w / 2 - 7, y + h / 2 - 4, node.blockType === 'RISING', stroke));
+    }
+  }
+  parts.push('</g>');
+  bodies.push(parts.join('\n'));
 }
 
 function renderNodePorts(node: LayoutNode, ports: string[], opts: RenderOptions, theme: DiagramTheme): void {
@@ -239,6 +337,16 @@ function renderNodeLabels(node: LayoutNode, showLabels: boolean, labels: string[
       } else {
         labels.push(renderOutputPortLabel(labelLeft, port.absY, node.label ?? '', theme, node.name, node.description));
       }
+    }
+  } else if (node.blockType && (node.name || node.description)) {
+    // SEL function blocks show their instance name above and description below the body. A generic
+    // FB block shows its name inside the box (renderFbNodeBody), so only the description goes below.
+    const cx = node.absX + node.width / 2;
+    if (node.name && node.blockType !== 'FB') {
+      labels.push(`<text class="ldl-label ldl-name" x="${cx}" y="${node.absY - 7}" text-anchor="middle" fill="${theme.nameFill}" font-size="12" font-family="sans-serif" font-weight="600">${esc(node.name)}</text>`);
+    }
+    if (node.description) {
+      labels.push(`<text class="ldl-label ldl-description" x="${cx}" y="${node.absY + node.height + 15}" text-anchor="middle" fill="${theme.descFill}" font-size="9" font-family="sans-serif">${esc(node.description)}</text>`);
     }
   }
 }

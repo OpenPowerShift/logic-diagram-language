@@ -16,6 +16,8 @@ include::sections/options.adoc[]
 
 include::sections/expressions.adoc[]
 
+include::sections/function-blocks.adoc[]
+
 include::sections/objects.adoc[]
 
 include::sections/ports.adoc[]

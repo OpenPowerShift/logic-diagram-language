@@ -11,6 +11,57 @@ OUTPUT = EXPR
 
 Where `EXPR` is composed of identifiers and the operators `AND`, `OR`, `NOT`, with parenthetical grouping.
 
+=== Intermediate Signals and Outputs
+
+Every assignment names a signal. A name that is *referenced inside another assignment* is a
+*consumed intermediate*: it is shared (its driving gate/block fans out to the consumers) and is
+**not drawn as an output** on the right. Only names that are not consumed — the sinks, furthest
+to the right — are drawn as outputs.
+
+[literal]
+....
+B    = COMPARE(IA, IPICKUP)      // consumed by A and others -> internal, not an output
+A    = SR(B, RESET) OR B OR C    // consumed by TRIP -> internal, not an output
+TRIP = TIMER(A, 0, 30cyc)        // not consumed -> output
+....
+
+To force a consumed intermediate to also be shown as an output, set `NAME.OUT = TRUE`:
+
+[literal]
+....
+B.OUT = TRUE                     // B is now drawn as an output as well as feeding its consumers
+....
+
+A name that references *itself* (a feedback/seal-in, e.g. `Q = SET OR (Q AND NOT RESET)`) is
+always drawn — the self-reference is a loop-back, not a consumer.
+
+A consumed intermediate can still be *labelled at its fan-out junction* — a net label on the
+shared signal — by giving it a name and/or description. The label is drawn just above the
+driving gate/block's output, and wires route around it:
+
+[literal]
+....
+A           = SR(B, RESET) OR B OR C
+A.Name        = "Trip Permit"
+A.Description = "Seal-in"        // A stays internal but its junction is labelled
+....
+
+This is also how a *gate* is labelled: name the gate by assigning it to an intermediate, then
+set the name/description — they appear at the gate's output and wires route around them. For a
+gate that only drives an output, use a pass-through assignment so the gate stays internal:
+
+[literal]
+....
+PH = O51 OR O50 OR NEGSEQ        // name the OR gate "PH"
+PH.Name        = "Phase OC"
+PH.Description = "51/50/46"
+TRIP = PH AND ENABLE             // ... used here, so PH is internal and labelled
+
+OC   = E51N OR E50N              // a gate that only drives an output:
+TRIP2 = OC                       // pass-through keeps OC internal (labelled), TRIP2 is the output
+OC.Name = "Earth Fault"
+....
+
 === Operator Precedence
 
 Operators are listed from highest to lowest precedence:

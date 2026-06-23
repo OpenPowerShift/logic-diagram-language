@@ -2,6 +2,39 @@
 
 The renderer MUST follow these layout rules to produce clear, non-overlapping diagrams.
 
+[#visual-quality]
+=== Visual Quality Objectives
+
+A diagram is "visually good" when an engineer can trace every signal at a glance. The
+renderer optimises for the following objectives, in roughly this priority order, and the
+detailed rules in the rest of this section exist to serve them:
+
+. **Left-to-right signal flow.** Inputs on the left, outputs on the right, gates in columns
+  ordered by their dependency depth. A reader's eye always moves one way.
+. **Connected and unambiguous.** Every port is wired to exactly what it should be; tap-off
+  (fan-out) points are marked with a junction dot; crossings without a dot are never
+  connections.
+. **Few crossings.** Wires cross as little as possible. Nodes within a column are ordered to
+  minimise crossings (see <<row-optimisation>>). Some crossings are topologically
+  unavoidable and are accepted.
+. **Straight, low-bend wires.** A wire is a straight line wherever its endpoints align, and
+  otherwise a single clean Z (one vertical run, at least `MIN_DOGLEG` tall). Small jogs are
+  never produced.
+. **Aligned gates.** A gate is positioned vertically at the centre of the signals it
+  connects — both the sources feeding it and the destination it drives — so its wires are
+  as short and straight as possible (see <<coordinate-assignment>>). A single-input gate
+  (e.g. NOT) is placed in line with its source and sink.
+. **Even spacing, no overlap.** Gate bodies never overlap; ports within a gate keep a
+  uniform gap; parallel wires keep clear of one another and of gate bodies.
+. **Symmetry and balance.** Fan-in and fan-out are arranged symmetrically about the gate
+  they serve.
+. **Compact but not cramped.** The diagram is as small as it can be without violating the
+  spacing rules, giving a readable aspect ratio.
+. **Stable and fast.** Layout is deterministic (the same source always yields the same
+  diagram) and fast: well under 0.5 s for medium diagrams and under 1 s for large ones.
+  Routing tries cheap deterministic routes (straight line, then a clean Z) before falling
+  back to grid-based pathfinding, so cost scales with diagram complexity, not canvas size.
+
 === Column Assignment
 
 Gates are assigned to columns based on their depth in the expression tree:
@@ -17,6 +50,8 @@ Outputs of a gate at column *c* align horizontally with the inputs of gates at c
 * Gate inputs MUST be vertically spaced so that each input sits on the same vertical grid row as its upstream source.
 * When multiple inputs connect to the same source, they implicitly fan out. Fan-out wires MUST be spaced apart vertically so they do not overlap.
 * Horizontal wire segments MUST NOT overlap. If two horizontal wires would occupy the same row, the renderer MUST increment the row of one wire to resolve the conflict.
+* A horizontal wire passing above or below a gate body (one it does not connect to) MUST keep a clear vertical gap of at least **2x the wire gap** off the gate's top/bottom edge, so it never looks crammed against the body. The wire's own source/destination gate is exempt (it connects there). The router keeps the larger clearance vertically while keeping the normal (smaller) clearance horizontally, so fan-in channels just left of a gate are unaffected.
+* Adjacent gate bodies in the same column MUST keep a minimum vertical gap (the protected zone, see the pipeline). When a gate is pushed apart to satisfy this, the small offset added to its wires is kept >= `MIN_DOGLEG` so they stay clean Z-routes.
 
 [#row-optimisation]
 ==== Row Optimisation (Sugiyama Barycentre Method)
@@ -31,6 +66,29 @@ The algorithm iterates up to 3 times:
 . Recompute the row positions of gates at deeper depths using `(minRow + maxRow) / 2` of their inputs.
 
 Gate row positions are NOT compressed within depth groups — each gate stays at the barycentre of its inputs, even if this leaves gaps between gates at the same depth. This ensures gates are visually close to their inputs.
+
+[#coordinate-assignment]
+==== Coordinate Assignment (Two-Sided Alignment)
+
+Ordering (above) only fixes the *relative* order of nodes in each column; this step fixes
+their actual vertical positions. A gate should sit at the centre of *all* the signals it
+connects — both the sources feeding its inputs and the destination it drives — not just its
+inputs. Aligning to one side only (inputs) is what leaves a gate offset from its consumer
+and forces needless bends (e.g. a NOT pushed up away from the output it feeds).
+
+The renderer therefore performs alternating alignment sweeps after the initial barycentre
+ordering:
+
+. **Downward sweep** (sources → sinks): position each gate/output at the median Y of the
+  nodes feeding it.
+. **Upward sweep** (sinks → sources): nudge each gate toward the median Y of the nodes it
+  drives.
+
+Each sweep preserves the column ordering and enforces a minimum vertical separation between
+adjacent nodes in a column (so nodes never overlap). A few iterations converge to a stable
+assignment in which most wires are straight and the rest are clean single-bend Z-routes.
+This is a lightweight form of the priority/median coordinate-assignment methods used in
+layered graph drawing, chosen for speed.
 
 [#input-reordering]
 ==== Gate Input Port Assignment
@@ -50,6 +108,7 @@ The pipeline executes in this order:
 . Gate height adjustment (expand gates to align ports with sources)
 . Position optimisation (shift non-expanded gates to minimise small doglegs)
 . Dogleg enforcement (ensure all doglegs are either straight-through or at least `MIN_DOGLEG` tall)
+. Protected zone (enforce a minimum vertical gap between adjacent gate bodies in a column, so gates that share an input are not jammed together; the small offset this adds to a pushed gate's wires is kept >= `MIN_DOGLEG` so they stay clean Z-routes)
 . Output re-alignment (output ports aligned with source gate output Y)
 . Wire routing (obstacle-aware, with gate bounding boxes from final positions)
 
@@ -70,6 +129,21 @@ Wires between ports follow these rules:
 . The wire enters the destination port horizontally. For AND/NOT inputs it enters at the
   straight bounding-box left edge; for OR inputs it terminates **on the concave curve**
   (see <<or-curve-ports>>).
+
+[#feedback-loops]
+=== Feedback (Loop-Back) Wires
+
+When an output name is used inside its own definition (directly or transitively) — a
+self/cyclic reference such as a seal-in latch `Q = SET OR (Q AND NOT RESET)` — it MUST NOT
+be added as a new input. Instead it loops back: the output's signal feeds back into the gate
+that consumes it. The feedback shares the output's driving signal (it taps the gate that
+drives the output) and is routed by the obstacle-aware pathfinder as a local loop around the
+gates — not a fixed full-width lane. The loop keeps a clear distance (at least 3x the wire
+gap) off the driver output and the consumer input, and it enters the consumer on the side it
+approaches from (over the top → top input port; under the bottom → bottom input port),
+whichever gives fewer crossings. Feedback wires are exempt from the left-to-right flow and
+no-backward-segment rules (they are loops by nature). A forward reference to an
+*already-defined* output is not a feedback edge.
 . When the source and destination Y differ by less than 1px, the wire MUST be a straight
   horizontal line with no vertical segment.
 . Wires MUST NOT backtrack; a vertical segment's X MUST be >= the source port's X + 15px.

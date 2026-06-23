@@ -1,8 +1,10 @@
 import type {
-  GateType, LogicNode, PortNode, GateNode, SymbolRefNode,
+  GateType, LogicNode, PortNode, GateNode, SymbolRefNode, BlockNode, BlockType,
   Diagram, DiagramOutput, ObjectDecl, AttributeDecl, ConnectDecl,
   StyleDecl, ParseError, ParseResult, PortMeta, OptionDecl,
 } from './ast.js';
+
+const BLOCK_TYPES = new Set<BlockType>(['TIMER', 'SR', 'RISING', 'FALLING', 'COMPARE', 'FB']);
 
 const KEYWORDS = new Set([
   'and', 'or', 'not', 'nand', 'nor', 'xor', 'xnor',
@@ -121,7 +123,7 @@ function tokenize(source: string): { tokens: Token[]; errors: ParseError[] } {
       }
 
       const rest = source.slice(pos);
-      const durationMatch = rest.match(/^(ms|s(?![a-zA-Z])|m(?![a-zA-Z]))/);
+      const durationMatch = rest.match(/^(ms|cycles|cycle|cyc|s(?![a-zA-Z])|m(?![a-zA-Z]))/);
       if (durationMatch) {
         pos += durationMatch[0].length;
         col += durationMatch[0].length;
@@ -157,7 +159,7 @@ function tokenize(source: string): { tokens: Token[]; errors: ParseError[] } {
       continue;
     }
 
-    if ('=.()#{}'.includes(ch)) {
+    if ('=.()#{},[]'.includes(ch)) {
       tokens.push({ type: 'OP', value: ch, line, column: col, offset: pos });
       pos++;
       col++;
@@ -256,7 +258,13 @@ class Parser {
         const nameToken = this.peek();
         const name = this.advance()?.value ?? '';
         this.expect('OP', '=');
-        const value = this.advance()?.value ?? '';
+        // Accumulate every token on the value's line, so list/bracket values work too —
+        // e.g. `COMPACTNESS = 70,70` or `COMPACTNESS = [60,60]`.
+        const valueToken = this.peek();
+        let value = this.advance()?.value ?? '';
+        while (this.peek() && this.peek()!.type !== 'EOF' && this.peek()!.line === valueToken?.line) {
+          value += this.advance()!.value;
+        }
         options.push({ name, value, pos: { line: nameToken.line, column: nameToken.column, offset: nameToken.offset } });
       } else if (this.isKeyword('STYLE')) {
         this.advance();
@@ -287,7 +295,7 @@ class Parser {
           if (obj) objects.push(obj);
         } else if (la2 && la2.value === '.' && la3) {
           const propName = la3.value;
-          if (propName === 'Name' || propName === 'Description' || propName === 'Style') {
+          if (propName === 'Name' || propName === 'Description' || propName === 'Style' || propName.toUpperCase() === 'OUT') {
             const meta = this.parsePortMeta();
             if (meta) portMeta.push(meta);
           } else {
@@ -314,9 +322,10 @@ class Parser {
     this.expect('OP', '=');
     const value = this.peek().type === 'STRING' ? this.advance()?.value ?? '' : this.advance()?.value ?? '';
 
-    let property: 'Name' | 'Description' | 'Style' = 'Name';
+    let property: 'Name' | 'Description' | 'Style' | 'Out' = 'Name';
     if (propName === 'Description') property = 'Description';
     else if (propName === 'Style') property = 'Style';
+    else if (propName.toUpperCase() === 'OUT') property = 'Out';
 
     return {
       identifier,
@@ -374,11 +383,14 @@ class Parser {
 
     if (token.type === 'SYMBOL_NAME') {
       const symbolName = this.advance()!.value;
-      const hasHash = this.peek().value === '#';
-      const hasDot = this.peek().value === '.';
-      if (hasHash || hasDot) {
-        const id = this.match('OP', '#') ? this.advance()?.value : undefined;
-        const portName = this.match('OP', '.') ? this.advance()?.value : undefined;
+      // Optional instance id is part of the name: BLOCK#id(...) or SYMBOL_NAME#ID.
+      const id = this.match('OP', '#') ? this.advance()?.value : undefined;
+      // A known block type followed by '(' is a function-block call.
+      if (BLOCK_TYPES.has(symbolName as BlockType) && this.peek().value === '(') {
+        return this.parseBlockCall(symbolName as BlockType, id);
+      }
+      const portName = this.match('OP', '.') ? this.advance()?.value : undefined;
+      if (id !== undefined || portName !== undefined) {
         return { kind: 'symbolRef', symbolName, id, portName } as SymbolRefNode;
       }
       return { kind: 'port', name: symbolName } as PortNode;
@@ -397,6 +409,45 @@ class Parser {
     });
     this.advance();
     return { kind: 'port', name: '__error__' } as PortNode;
+  }
+
+  // Parse a SEL function-block call: BLOCK#id( arg, arg, NAME=value, ... ).port
+  // Arguments are signal expressions; durations/numbers are positional settings (PU then DO
+  // for a timer); `NAME=value` items are named settings (PU, DO, DOMINANT, ...).
+  private parseBlockCall(blockType: BlockType, id?: string): BlockNode {
+    this.expect('OP', '(');
+    const inputs: LogicNode[] = [];
+    const inputLabels: (string | undefined)[] = [];
+    const params: Record<string, string> = {};
+    let posNum = 0;
+    if (this.peek().value !== ')') {
+      do {
+        const t = this.peek();
+        const next = this.peekAt(1);
+        if ((t.type === 'IDENT' || t.type === 'SYMBOL_NAME') && next.value === '=') {
+          const key = this.advance()!.value;
+          this.advance(); // '='
+          if (blockType === 'FB') {
+            // A generic block's named argument is a labelled input port, not a setting.
+            inputs.push(this.parseOrExpr());
+            inputLabels.push(key);
+          } else {
+            params[key.toUpperCase()] = this.advance()?.value ?? '';
+          }
+        } else if ((t.type === 'DURATION' || t.type === 'NUMBER') && blockType !== 'FB') {
+          const v = this.advance()!.value;
+          if (blockType === 'TIMER') params[posNum === 0 ? 'PU' : 'DO'] = v;
+          else params[`P${posNum}`] = v;
+          posNum++;
+        } else {
+          inputs.push(this.parseOrExpr());
+          inputLabels.push(undefined);
+        }
+      } while (this.match('OP', ','));
+    }
+    this.expect('OP', ')');
+    const port = this.match('OP', '.') ? this.advance()?.value : undefined;
+    return { kind: 'block', blockType, id, inputs, inputLabels, params, port };
   }
 
   private parseObjectDecl(): ObjectDecl | null {
