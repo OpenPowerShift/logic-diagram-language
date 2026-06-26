@@ -202,23 +202,27 @@ Captured 2026-06 from user review. Roughly priority-ordered; tiers group by kind
 
 ### Tier 1 — Rendering correctness (visible defects in current output)
 
-1. **Gate symbol geometry: centres and ports must land on the 5px grid.**
-   - The OR gate's right tip is drawn at `(w, h/2)` (`gates.ts` `orGateBody`, two cubic Béziers
-     meeting at `h/2`). When `h` is not an even grid multiple, `h/2` is off-grid: the two output
-     arcs don't meet cleanly, and the output wire/junction dot sits at a grid Y that differs from
-     the tip — so the arcs and the dot don't coincide. Fix: force gate heights to an **even**
-     number of grid cells so the vertical centre (and thus the output tip + port + dot) is exactly
-     on-grid; make both arcs terminate on that point.
-   - Same root for the **AND gate**: its output must be dead-centre and its input ports on-grid.
-     Audit `baseNodeHeight`/port-Y assignment so every gate's centre and every port snap to grid
-     regardless of input count.
+1. **Gate symbol geometry: centres and ports must land on the 5px grid.** — **RESOLVED
+   (2026-06).** Added `evenGridHeight()` (ceil to a multiple of `2*GRID` = 10px) and applied it
+   in `baseNodeHeight()` and the AND/OR node-creation branch of `layout.ts`. Multi-input AND/OR
+   gates now have an on-grid vertical centre, so the OR arc tip and the output port/junction dot
+   all coincide on the grid. Verified: a 3-input AND/OR now reports `h=60` (even cells),
+   `centre_y` and `out_y` both on-grid. All 276 layout invariants + 463 tests pass; the geometry
+   snapshot shift is the intended effect (small bend/crossing deltas on Complex Protection SEL
+   and Boolean Algebra — recovered in the Tier 2 work).
 
 2. **Input/output channel allocation to prevent wire overlaps** (e.g. `FB#DAN(IN=ISET, TRIG=DAN,
-   SEAL=ZZ)`). The `SEAL` feedback loop-back and the `IN` input run in the same vertical track just
-   left of the block and overlap. The block should be placed lower (leaving a clear feedback lane)
-   so `IN` enters straight and the `TRIG`/feedback wire turns a single clean right angle. Generalise
-   the obstacle-aware lane reservation to **block/gate input and feedback ports**, allocating each
-   incoming wire its own channel (no two nets sharing a vertical track).
+   SEAL=ZZ)`). — **Effectively RESOLVED by prior infrastructure; now explicitly guarded
+   (2026-06).** The nested fan-in channel pass (FANIN_SPACING-nested verticals just left of a
+   gate/block) plus the obstacle-aware A* feedback routing (loop-back lanes above/below the
+   body) already keep regular input fan-in and feedback loop-back verticals in distinct X
+   channels. A 13-variant fuzz (`FB#DAN` with TRIG/SEAL as the self-reference, varying input
+   counts, port orders, COMPACTNESS, nested-block inputs; gate seal-ins; SR/timer seal-ins)
+   reports **0 cross-net vertical overlaps and 0 cross-net track-sharing** in the fan-in zone
+   across all variants. Seven FB+feedback and SR/timer-seal-in cases were added to the
+   robustness corpus (`tests/unit/robustness.spec.ts`) so the existing invariant #6 (no
+   cross-net overlapping parallel segments) and the body-crossing / connectivity invariants now
+   guard this class against regression.
 
 ### Tier 2 — Layout quality (avoidable crossovers)
 
