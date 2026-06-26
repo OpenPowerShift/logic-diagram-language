@@ -228,7 +228,7 @@ Captured 2026-06 from user review. Roughly priority-ordered; tiers group by kind
 
 3. **Better placement of single-consumer inputs to remove crossovers.** In *Labelled Gates*, `HBLK`
    would sit better **between `NEGSEQ` and `O502`** (no crossover); in *Complex Protection (SEL)*,
-   `CB52A` between `RESET` and `IDIFF` (with a little spacing) removes crossings.
+   `CB52A` between `RESET` and `IDIFF`** (with a little spacing) removes crossings.
    **Right approach:** this is layered-graph crossing minimisation. Today `INPUT_ORDER = AUTO` does a
    single barycentre pass and inputs keep uniform spacing in declared-ish order. Improve by
    (a) ordering each input at the **barycentre/median of its consumer's port Y** — which may place
@@ -236,6 +236,26 @@ Captured 2026-06 from user review. Roughly priority-ordered; tiers group by kind
    with alternating up/down sweeps until stable (standard Sugiyama); and (c) allowing **non-uniform
    row insertion** so an input can drop into a gap between two existing rows ("a little space")
    instead of pushing everything. Guard with the bend/crossing metric so no example regresses.
+
+   **Status: analysed (2026-06), needs deeper integration — deferred.** A post-placement pass that
+   re-sorts/re-places inputs by the median of their consumers' input-port Ys (with non-uniform Y
+   spacing) was prototyped in `layout.ts`.  Measurement: the pass moves inputs to their consumer
+   medians, but the multi-input gate alignment passes (the height-expansion / port-realignment
+   passes that align gate input ports to source Ys) had already run on the OLD input Ys, so each
+   moved input's wire acquired a 5–10px dogleg into the now-stale gate port. The dogleg-killer
+   couldn't catch them all (gate ports are at fixed positions); invariants regressed on 6 examples
+   (Breaker Failure, SEL Function Blocks, Labelled Gates, Complex Protection SEL, Shared
+   Intermediates, Generic Block, Simple AND/OR) and the bend metric worsened broadly.  Reverting.
+
+   Conclusion: a correct fix needs the input re-ordering to run **inside** the
+   `assignCoordinates` iteration — after each up/down sweep, re-sort the input column by the
+   current consumer-port medians and re-place at non-uniform Ys, so the gate alignment passes that
+   follow use the updated input Ys. That is a structural refactor of the coordinate-assignment
+   loop (combining the rowMap-only barycentre pass and `assignCoordinates` into one iterating
+   whole-graph median placement), not a post-pass. The instrumentation (geometry snapshot +
+   bend/crossing metric) is in place to guard it. Baseline hotspots remain: Complex Protection
+   (SEL) 8 crossings (was 7 before Tier 1.1's even-grid height change), Labelled Gates 1 crossing,
+   Boolean Algebra 12 bends / 2 crossings (was 10/1).
 
 ### Tier 3 — Authoring & feature ergonomics
 
