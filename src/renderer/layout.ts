@@ -97,6 +97,11 @@ const MIN_CHANNEL_SPACING = 20;
 const WIRE_PAD = MIN_WIRE_SPACING / 2;
 const BUBBLE_STUB = 5;
 const GRID = 5;
+// Round a height UP to an even number of grid cells so the vertical centre (h/2) is exactly
+// on the grid. AND/OR gate output ports and the OR arc tip both sit at h/2; without this the
+// drawn arc tip drifts off-grid and no longer coincides with the port / junction dot.
+const EVEN_CELL = 2 * GRID;
+function evenGridHeight(v: number): number { return Math.ceil(v / EVEN_CELL) * EVEN_CELL; }
 
 let _id = 0;
 function uid(prefix: string): string { return `${prefix}_${++_id}`; }
@@ -134,7 +139,7 @@ function baseNodeHeight(n: FlatNode): number {
   if (n.blockType) return blockSize(n.blockType).h + (n.name ? 18 : 0) + (n.description ? 18 : 0);
   if (n.gateType === 'NOT') return NOT_GATE_H;
   const numInputs = n.inputIds.length || 2;
-  return Math.max(AND_GATE_H_BASE, (numInputs + 1) * PORT_SPACING);
+  return evenGridHeight(Math.max(AND_GATE_H_BASE, (numInputs + 1) * PORT_SPACING));
 }
 
 // Body dimensions for a generic FB block: square-ish, sized to its port counts and labels.
@@ -563,7 +568,7 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
         h = AND_GATE_H_BASE;
         w = isMultiInput ? GATE_W_MULTI : GATE_W;
       } else {
-        h = Math.max(AND_GATE_H_BASE, (numInputs + 1) * PORT_SPACING);
+        h = evenGridHeight(Math.max(AND_GATE_H_BASE, (numInputs + 1) * PORT_SPACING));
         w = isMultiInput ? GATE_W_MULTI : GATE_W;
       }
 

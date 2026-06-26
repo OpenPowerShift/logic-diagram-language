@@ -2,10 +2,10 @@
 
 exports[`Bend/crossing metrics > Boolean Algebra 1`] = `
 {
-  "bends": 10,
-  "bent": 5,
-  "crossings": 1,
-  "straight": 5,
+  "bends": 12,
+  "bent": 6,
+  "crossings": 2,
+  "straight": 4,
   "wires": 10,
 }
 `;
@@ -44,7 +44,7 @@ exports[`Bend/crossing metrics > Complex Protection (SEL) 1`] = `
 {
   "bends": 34,
   "bent": 14,
-  "crossings": 7,
+  "crossings": 8,
   "straight": 10,
   "wires": 24,
 }
