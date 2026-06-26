@@ -75,7 +75,7 @@ export function splitIntoSegments(text: string): MathSegment[] {
 
     if (text[i] === '$') {
       const start = i + 1;
-      let end = text.indexOf('$', start);
+      const end = text.indexOf('$', start);
       if (end === -1) {
         currentPlain += text.slice(i);
         break;

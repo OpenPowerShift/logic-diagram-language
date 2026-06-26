@@ -299,7 +299,7 @@ export class LdlApp extends LitElement {
         const options = resolveOptions(result.diagram.options);
         return renderDiagram(result.diagram, result.diagram.portMeta, this.showLabels, this.showIds, options, LIGHT_DIAGRAM);
       }
-    } catch {}
+    } catch { /* fall through to cached svg */ }
     return this.svg;
   }
 
