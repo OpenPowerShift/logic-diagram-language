@@ -237,52 +237,33 @@ Captured 2026-06 from user review. Roughly priority-ordered; tiers group by kind
    row insertion** so an input can drop into a gap between two existing rows ("a little space")
    instead of pushing everything. Guard with the bend/crossing metric so no example regresses.
 
-   **Status: three attempts (2026-06); concept demonstrated, structural fix required — deferred.**
+   **Status: RESOLVED (2026-06).** The fix is a 2-hop-downstream median-driven initial placement of
+   the input column inside `assignCoordinates`. Three earlier attempts (documented below)
+   established that the root cause was `assignCoordinates`'s uniform per-column initial spacing:
+   equal-priority inputs can't cross in `place()`, so the uniform initial order trapped them.
+   The 4th attempt modified `assignCoordinates`'s **initial centre seed** for the input column
+   (depth 0) only — placing each input at the median rank of its **2-hop-downstream** successors
+   (consumer's consumer), scaled to pixel space with `minGap = rowSpacing`, instead of the uniform
+   sequential `sep()`. A 2-hop (not 1-hop) median straightens paths through intermediate gates
+   like NOTs: HBLK → not_7 → and_8 places HBLK at and_8's Y (not not_7's), so the full path is
+   straight and the not_7→and_8 vertical doesn't cross other horizontal corridors. Inputs feeding
+   directly into multi-input gates have the same 2-hop and 1-hop consumer (the gate itself), so
+   they are unaffected. The 6-iteration up/down sweep then refines from this better starting
+   point — it never regresses because the initial order is closer to the optimum, and `place()`'s
+   priority/minGap constraints still hold. All 276 invariants + 50 robustness cases pass.
 
-   **Attempt 1 — post-placement input re-sort by consumer-port medians (reverted).** Re-placing
-   inputs at the median of their consumers' input-port Ys AFTER the gate alignment passes had run
-   left stale gate-port positions; each moved input's wire acquired a 5–10px dogleg into the
-   now-fixed gate port. Invariants regressed on 6 examples (Breaker Failure, SEL Function Blocks,
-   Labelled Gates, Complex Protection SEL, Shared Intermediates, Generic Block, Simple AND/OR).
-   **Attempt 2 — all-layer iterative median Sugiyama ordering (reverted).** Replaced the
-   3-iteration input-only barycentre with full alternating up/down median sweeps over ALL layers
-   (24 iters, convergence-detected). Bend/crossing metrics IMPROVED on Complex Protection SEL
-   (34→26 bends, 8→? crossings) and Boolean Algebra (12→10 bends) but broke 3 invariants (doglegs,
-   cross-net overlapping segments, "wires exit/enter horizontally") on Complex Protection SEL,
-   Combined Logic CBFPS (crossings 0→3), Boolean Algebra. Reordering gates relative to their
-   column neighbours produces topologies the downstream alignment/collision/dogleg passes cannot
-   fully resolve: they were tuned for the old gate ordering.
-   **Attempt 3 — non-uniform input placement between `assignCoordinates` and node-creation
-   (reverted).** Re-placed inputs at the median of their consumers' assignCoordinates-Ys with
-   non-uniform spacing (minGap), NOT reordering gates — letting the existing gate-alignment passes
-   absorb the change. Three sub-variants tried:
-   - blend=1.0, minGap=50: massive quality gains — Labelled Gates bends 22→14, Complex Protection
-     SEL 34→26 bends / 8→6 crossings, Mixed Logic 20→8, Trip Logic 12→4, Complex Protection 12→4,
-     Generic Block 6→0, Simple AND/OR 4→0 — but invariants broke on Complex Protection SEL,
-     Interlocking Q01 Close, Motor Control Circuit (doglegs + cross-net parallel overlaps).
-   - blend=1.0, minGap=rowSpacing: invariant breaks persisted on 6 examples; minGap alone isn't
-     the issue.
-   - blend=0.6, minGap=rowSpacing: invariants passed but the gentler correction produced net
-     metric regressions (Interlocking +2 bends, Labelled Gates +2 bends, Differential +2 bends,
-     Overcurrent +2 bends) — too gentle to align inputs to consumers but enough to lengthen
-     wires through non-optimal channels.
+   **Measured results** (bend/crossing metric, before → after):
+   - **Labelled Gates**: 22 bends / 1 crossing → 20 bends / **0 crossings** ✓
+   - **Complex Protection (SEL)**: 34 bends / 8 crossings → 32 bends / **0 crossings** ✓
+   - **Generic Block (FB)**: 6 bends / 0 crossings → **0 bends / 0 crossings** (all 6 wires straight)
+   - All other examples: unchanged (no regressions).
 
-   **Root cause of all three failures:** `assignCoordinates` (the priority-method coordinate
-   assignment) uses UNIFORM per-column spacing — sequential `sep()` based only on the rowMap
-   ORDER. Non-uniform input positions (whether placed before, after, or instead of node creation)
-   leave gates at Ys computed from the OLD uniform input positions, so gate-input-port-Ys and
-   source-output-Ys don't fully converge under the existing downstream nudges.
-
-   **Conclusion:** the concept is demonstrably valuable — the blend=1.0 variant proves
-   Labelled Gates could go from 22→14 bends, Complex Protection SEL from 34→26 bends / 8→6
-   crossings, Mixed Logic from 20→8 bends — but a correct fix requires `assignCoordinates`
-   itself to support **non-uniform input-layer spacing** (the input column's initial centres
-   driven by consumer medians, not sequential `sep()`). That is a contained modification to
-   `assignCoordinates`, not a separate post-pass or full all-layer reorder. The instrumentation
-   (geometry snapshot + bend/crossing metric) is in place to guard it. Baseline hotspots remain:
-   Labelled Gates 22 bends / 1 crossing, Complex Protection SEL 34 bends / 8 crossings, Boolean
-   Algebra 12 bends / 2 crossings, Mixed Logic 20 bends / 0 crossings, Trip Logic 12 bends / 0
-   crossings, Interlocking Q01 Close 24 bends / 0 crossings.
+   **Earlier attempts (all reverted):**
+   1. Post-placement input re-sort by consumer-port medians — stale gate-port doglegs (6 examples).
+   2. All-layer iterative median Sugiyama ordering — improved metrics but broke 3 invariants.
+   3. Non-uniform input placement between `assignCoordinates` and node creation — blend=1.0 gave
+      massive gains but broke 3 invariants; blend=0.6 passed but net-regressed. Root cause: gates
+      at Ys computed from the OLD uniform input positions.
 
 ### Tier 3 — Authoring & feature ergonomics
 

@@ -180,6 +180,7 @@ function assignCoordinates(
   rowMap: Map<string, number>,
   maxDepth: number,
   rowSpacing: number,
+  inputOrder: 'AUTO' | 'DECLARATION' = 'AUTO',
 ): Map<string, number> {
   // Feedback edges (input is an output node looped back) are excluded from placement: the
   // back-edge would otherwise drag a gate toward the far-right output it feeds.
@@ -208,10 +209,44 @@ function assignCoordinates(
   const centre = new Map<string, number>();
   for (let d = 0; d <= maxDepth; d++) {
     const col = columns[d];
-    let y = 0;
-    for (let i = 0; i < col.length; i++) {
-      if (i > 0) y += sep(col[i - 1], col[i]);
-      centre.set(col[i].id, y);
+    if (d === 0 && inputOrder === 'AUTO' && col.length > 1) {
+      // Non-uniform initial placement for the input column: each input starts at the median
+      // rank of its 2-HOP-DOWNSTREAM successors (consumer's consumer), scaled to pixel space,
+      // pushed to clear the previous input by at least rowSpacing. A 2-hop median (not 1-hop)
+      // straightens paths through intermediate gates like NOTs: HBLK → not_7 → and_8 places
+      // HBLK at and_8's Y (not not_7's), so the full path is straight and the not_7→and_8
+      // vertical doesn't cross other horizontal corridors. Inputs feeding directly into multi-
+      // input gates have the same 2-hop and 1-hop consumer (the gate itself), so they are
+      // unaffected. Equal-priority inputs can't cross in `place()`, so seeding them at their
+      // 2-hop medians lets the 6-iteration sweep converge to a non-uniform, crossing-reduced
+      // configuration that the uniform initialisation cannot reach.
+      const medianRank = (vals: number[]) => { const s = vals.slice().sort((a, b) => a - b); const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+      const twoHopRank = (id: string): number => {
+        const cons = successors.get(id) ?? [];
+        if (cons.length === 0) return rowMap.get(id) ?? 0;
+        const ranks: number[] = [];
+        for (const c of cons) {
+          const cc = successors.get(c);
+          if (cc && cc.length > 0) ranks.push(...cc.map(x => rowMap.get(x) ?? 0));
+          else ranks.push(rowMap.get(c) ?? 0);
+        }
+        return medianRank(ranks);
+      };
+      col.sort((a, b) => twoHopRank(a.id) - twoHopRank(b.id));
+      const minGap = rowSpacing;
+      let prev = -Infinity;
+      for (const n of col) {
+        let y = twoHopRank(n.id) * rowSpacing;
+        y = Math.max(y, prev + minGap);
+        centre.set(n.id, y);
+        prev = y;
+      }
+    } else {
+      let y = 0;
+      for (let i = 0; i < col.length; i++) {
+        if (i > 0) y += sep(col[i - 1], col[i]);
+        centre.set(col[i].id, y);
+      }
     }
   }
 
@@ -441,7 +476,7 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
   // Each node's vertical centre is aligned to the median of its neighbours on BOTH sides
   // (sources and consumers), keeping the per-column barycentre order. Replaces the old global
   // row-rank mapping, which spread nodes apart and ignored the consumer side.
-  const assignedY = assignCoordinates(nodes, depthGroups, rowMap, maxDepth, rowSpacing);
+  const assignedY = assignCoordinates(nodes, depthGroups, rowMap, maxDepth, rowSpacing, opts.inputOrder);
 
   // Dummies have done their job (reserving lanes) — restore the original edges and drop them so
   // geometry and routing see only real nodes, now placed clear of the long-edge lanes.
