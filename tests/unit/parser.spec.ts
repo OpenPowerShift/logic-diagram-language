@@ -143,4 +143,31 @@ O1.Description = "(BO 3.2)"`;
       }
     });
   });
+
+  describe('bare port assignment (A = FB#ID.PORT)', () => {
+    it('parses A = FB#PROT.ALARM as a symbolRef with port selector', () => {
+      const result = parse('A = FB#PROT.ALARM');
+      expect(result.errors).toHaveLength(0);
+      expect(result.diagram.outputs).toHaveLength(1);
+      expect(result.diagram.outputs[0].name).toBe('A');
+      const expr = result.diagram.outputs[0].expression;
+      expect(expr.kind).toBe('symbolRef');
+      if (expr.kind === 'symbolRef') {
+        expect(expr.symbolName).toBe('FB');
+        expect(expr.id).toBe('PROT');
+        expect(expr.portName).toBe('ALARM');
+      }
+    });
+
+    it('parses multiple bare port assignments from the same block', () => {
+      const src = `TRIP = FB#PROT(A, B).TRIP
+ALARM = FB#PROT.ALARM
+CLOSE = FB#PROT.CLOSE`;
+      const result = parse(src);
+      expect(result.errors).toHaveLength(0);
+      expect(result.diagram.outputs).toHaveLength(3);
+      expect(result.diagram.outputs[1].name).toBe('ALARM');
+      expect(result.diagram.outputs[2].name).toBe('CLOSE');
+    });
+  });
 });

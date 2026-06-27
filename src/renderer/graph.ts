@@ -171,6 +171,32 @@ export function buildGraph(
       return makeInput(node.name);
     }
     if (node.kind === 'symbolRef') {
+      // A block-type symbol reference (e.g. `FB#PROT.ALARM`) is a port-assigned output: it
+      // reuses the existing block instance (same B#id key as the block-call form) and adds the
+      // selected port to its usedPorts, or creates a new no-input block if no prior
+      // instantiation exists. This allows binding multiple outputs to one block without
+      // repeating its arguments: `TRIP = FB#PROT(...).TRIP` + `ALARM = FB#PROT.ALARM`.
+      const blockTypes = new Set(['TIMER', 'SR', 'RISING', 'FALLING', 'COMPARE', 'FB']);
+      if (blockTypes.has(node.symbolName)) {
+        const bt = node.symbolName;
+        const key = node.id ? `B#${node.id}` : `B:${bt}()`;
+        let blockId = blockMap.get(key);
+        if (!blockId) {
+          const meta = node.id ? metaMap.get(node.id) : undefined;
+          blockId = uid(bt.toLowerCase());
+          nodes.set(blockId, {
+            id: blockId, kind: 'gate', gateType: bt, blockType: bt,
+            params: {}, name: meta?.name, description: meta?.description,
+            depth: 0, inputIds: [], inputPorts: [], inputLabels: [],
+            usedPorts: new Set<string>(),
+          });
+          blockMap.set(key, blockId);
+        }
+        const port = (node.portName ?? defaultPort(bt)).toUpperCase();
+        nodes.get(blockId)!.usedPorts!.add(port);
+        return blockId;
+      }
+      // A non-block symbol reference (e.g. a custom symbol) stays a bare gate.
       const id = uid('sym');
       nodes.set(id, {
         id, kind: 'gate', gateType: node.symbolName,

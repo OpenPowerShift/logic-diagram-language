@@ -69,11 +69,11 @@ A.Name = "Trip Permit"
 A.Description = "Seal-in"
 B.OUT = TRUE`,
 
-  'Generic Block (FB)': `// Generic user block: named inputs/outputs, name and description
+  'Generic Block (FB)': `// Generic user block: instantiate once, bind multiple outputs via bare port assignment
 OPTION OUTPUT_ORDER = AUTO
 TRIP  = FB#PROT(PHASE=IA, EARTH=IN, EN=ENABLE).TRIP
-ALARM = FB#PROT(PHASE=IA, EARTH=IN, EN=ENABLE).ALARM
-CLOSE = FB#PROT(PHASE=IA, EARTH=IN, EN=ENABLE).CLOSE
+ALARM = FB#PROT.ALARM
+CLOSE = FB#PROT.CLOSE
 PROT.Name = "Feeder Protection"
 PROT.Description = "SEL-751A"`,
 
