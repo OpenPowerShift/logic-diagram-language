@@ -237,25 +237,52 @@ Captured 2026-06 from user review. Roughly priority-ordered; tiers group by kind
    row insertion** so an input can drop into a gap between two existing rows ("a little space")
    instead of pushing everything. Guard with the bend/crossing metric so no example regresses.
 
-   **Status: analysed (2026-06), needs deeper integration — deferred.** A post-placement pass that
-   re-sorts/re-places inputs by the median of their consumers' input-port Ys (with non-uniform Y
-   spacing) was prototyped in `layout.ts`.  Measurement: the pass moves inputs to their consumer
-   medians, but the multi-input gate alignment passes (the height-expansion / port-realignment
-   passes that align gate input ports to source Ys) had already run on the OLD input Ys, so each
-   moved input's wire acquired a 5–10px dogleg into the now-stale gate port. The dogleg-killer
-   couldn't catch them all (gate ports are at fixed positions); invariants regressed on 6 examples
-   (Breaker Failure, SEL Function Blocks, Labelled Gates, Complex Protection SEL, Shared
-   Intermediates, Generic Block, Simple AND/OR) and the bend metric worsened broadly.  Reverting.
+   **Status: three attempts (2026-06); concept demonstrated, structural fix required — deferred.**
 
-   Conclusion: a correct fix needs the input re-ordering to run **inside** the
-   `assignCoordinates` iteration — after each up/down sweep, re-sort the input column by the
-   current consumer-port medians and re-place at non-uniform Ys, so the gate alignment passes that
-   follow use the updated input Ys. That is a structural refactor of the coordinate-assignment
-   loop (combining the rowMap-only barycentre pass and `assignCoordinates` into one iterating
-   whole-graph median placement), not a post-pass. The instrumentation (geometry snapshot +
-   bend/crossing metric) is in place to guard it. Baseline hotspots remain: Complex Protection
-   (SEL) 8 crossings (was 7 before Tier 1.1's even-grid height change), Labelled Gates 1 crossing,
-   Boolean Algebra 12 bends / 2 crossings (was 10/1).
+   **Attempt 1 — post-placement input re-sort by consumer-port medians (reverted).** Re-placing
+   inputs at the median of their consumers' input-port Ys AFTER the gate alignment passes had run
+   left stale gate-port positions; each moved input's wire acquired a 5–10px dogleg into the
+   now-fixed gate port. Invariants regressed on 6 examples (Breaker Failure, SEL Function Blocks,
+   Labelled Gates, Complex Protection SEL, Shared Intermediates, Generic Block, Simple AND/OR).
+   **Attempt 2 — all-layer iterative median Sugiyama ordering (reverted).** Replaced the
+   3-iteration input-only barycentre with full alternating up/down median sweeps over ALL layers
+   (24 iters, convergence-detected). Bend/crossing metrics IMPROVED on Complex Protection SEL
+   (34→26 bends, 8→? crossings) and Boolean Algebra (12→10 bends) but broke 3 invariants (doglegs,
+   cross-net overlapping segments, "wires exit/enter horizontally") on Complex Protection SEL,
+   Combined Logic CBFPS (crossings 0→3), Boolean Algebra. Reordering gates relative to their
+   column neighbours produces topologies the downstream alignment/collision/dogleg passes cannot
+   fully resolve: they were tuned for the old gate ordering.
+   **Attempt 3 — non-uniform input placement between `assignCoordinates` and node-creation
+   (reverted).** Re-placed inputs at the median of their consumers' assignCoordinates-Ys with
+   non-uniform spacing (minGap), NOT reordering gates — letting the existing gate-alignment passes
+   absorb the change. Three sub-variants tried:
+   - blend=1.0, minGap=50: massive quality gains — Labelled Gates bends 22→14, Complex Protection
+     SEL 34→26 bends / 8→6 crossings, Mixed Logic 20→8, Trip Logic 12→4, Complex Protection 12→4,
+     Generic Block 6→0, Simple AND/OR 4→0 — but invariants broke on Complex Protection SEL,
+     Interlocking Q01 Close, Motor Control Circuit (doglegs + cross-net parallel overlaps).
+   - blend=1.0, minGap=rowSpacing: invariant breaks persisted on 6 examples; minGap alone isn't
+     the issue.
+   - blend=0.6, minGap=rowSpacing: invariants passed but the gentler correction produced net
+     metric regressions (Interlocking +2 bends, Labelled Gates +2 bends, Differential +2 bends,
+     Overcurrent +2 bends) — too gentle to align inputs to consumers but enough to lengthen
+     wires through non-optimal channels.
+
+   **Root cause of all three failures:** `assignCoordinates` (the priority-method coordinate
+   assignment) uses UNIFORM per-column spacing — sequential `sep()` based only on the rowMap
+   ORDER. Non-uniform input positions (whether placed before, after, or instead of node creation)
+   leave gates at Ys computed from the OLD uniform input positions, so gate-input-port-Ys and
+   source-output-Ys don't fully converge under the existing downstream nudges.
+
+   **Conclusion:** the concept is demonstrably valuable — the blend=1.0 variant proves
+   Labelled Gates could go from 22→14 bends, Complex Protection SEL from 34→26 bends / 8→6
+   crossings, Mixed Logic from 20→8 bends — but a correct fix requires `assignCoordinates`
+   itself to support **non-uniform input-layer spacing** (the input column's initial centres
+   driven by consumer medians, not sequential `sep()`). That is a contained modification to
+   `assignCoordinates`, not a separate post-pass or full all-layer reorder. The instrumentation
+   (geometry snapshot + bend/crossing metric) is in place to guard it. Baseline hotspots remain:
+   Labelled Gates 22 bends / 1 crossing, Complex Protection SEL 34 bends / 8 crossings, Boolean
+   Algebra 12 bends / 2 crossings, Mixed Logic 20 bends / 0 crossings, Trip Logic 12 bends / 0
+   crossings, Interlocking Q01 Close 24 bends / 0 crossings.
 
 ### Tier 3 — Authoring & feature ergonomics
 
