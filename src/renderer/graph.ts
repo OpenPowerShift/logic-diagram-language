@@ -181,11 +181,13 @@ export function buildGraph(
     if (node.kind === 'gate') {
       const inputIds = node.inputs.map(i => resolve(i));
       const inputPorts = node.inputs.map(portOf);
-      // Canonical key for deduplication: sort inputs for commutative operators
+      // Canonical key for deduplication: sort inputs for commutative operators.
+      // A gate with an explicit instance id (AND#MYID) is NEVER deduplicated — each id is
+      // a distinct instance. The id is also the key for .Name / .Description meta lookup.
       const keyInputIds = (node.gateType === 'AND' || node.gateType === 'OR')
         ? [...inputIds].sort()
         : inputIds;
-      const key = `${node.gateType}(${keyInputIds.join(',')})`;
+      const key = node.id ? `G#${node.id}` : `${node.gateType}(${keyInputIds.join(',')})`;
       const existing = exprMap.get(key);
       if (existing) return existing;
 
@@ -196,8 +198,10 @@ export function buildGraph(
         const n = nodes.get(iid);
         return n && n.kind === 'output' ? 0 : n?.depth ?? 0;
       }), 0) + 1;
+      const meta = node.id ? metaMap.get(node.id) : undefined;
       nodes.set(id, {
         id, kind: 'gate', gateType: node.gateType,
+        label: node.id, name: meta?.name, description: meta?.description,
         depth, inputIds, inputPorts,
       });
       exprMap.set(key, id);

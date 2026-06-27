@@ -93,4 +93,54 @@ O1.Description = "(BO 3.2)"`;
       expect(result.diagram.outputs).toHaveLength(0);
     });
   });
+
+  describe('named gates (AND#ID / OR#ID / NOT#ID)', () => {
+    it('parses AND#ID(A, B) as a gate with id', () => {
+      const result = parse('OUT = AND#MYID(A, B)');
+      expect(result.errors).toHaveLength(0);
+      expect(result.diagram.outputs).toHaveLength(1);
+      const expr = result.diagram.outputs[0].expression;
+      expect(expr.kind).toBe('gate');
+      if (expr.kind === 'gate') {
+        expect(expr.gateType).toBe('AND');
+        expect(expr.id).toBe('MYID');
+        expect(expr.inputs).toHaveLength(2);
+      }
+    });
+
+    it('parses OR#ID(A, B, C) as a gate with id', () => {
+      const result = parse('OUT = OR#G1(A, B, C)');
+      expect(result.errors).toHaveLength(0);
+      const expr = result.diagram.outputs[0].expression;
+      expect(expr.kind).toBe('gate');
+      if (expr.kind === 'gate') {
+        expect(expr.gateType).toBe('OR');
+        expect(expr.id).toBe('G1');
+        expect(expr.inputs).toHaveLength(3);
+      }
+    });
+
+    it('parses NOT#ID(A) as a gate with id', () => {
+      const result = parse('OUT = NOT#INV(A)');
+      expect(result.errors).toHaveLength(0);
+      const expr = result.diagram.outputs[0].expression;
+      expect(expr.kind).toBe('gate');
+      if (expr.kind === 'gate') {
+        expect(expr.gateType).toBe('NOT');
+        expect(expr.id).toBe('INV');
+        expect(expr.inputs).toHaveLength(1);
+      }
+    });
+
+    it('composes with infix operators', () => {
+      const result = parse('OUT = AND#G1(A, B) OR C');
+      expect(result.errors).toHaveLength(0);
+      const expr = result.diagram.outputs[0].expression;
+      expect(expr.kind).toBe('gate');
+      if (expr.kind === 'gate' && expr.gateType === 'OR') {
+        expect(expr.inputs[0].kind).toBe('gate');
+        if (expr.inputs[0].kind === 'gate') expect(expr.inputs[0].id).toBe('G1');
+      }
+    });
+  });
 });

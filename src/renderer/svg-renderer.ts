@@ -348,6 +348,16 @@ function renderNodeLabels(node: LayoutNode, showLabels: boolean, labels: string[
     if (node.description) {
       labels.push(`<text class="ldl-label ldl-description" x="${cx}" y="${node.absY + node.height + 15}" text-anchor="middle" fill="${theme.descFill}" font-size="9" font-family="sans-serif">${esc(node.description)}</text>`);
     }
+  } else if (!node.blockType && node.gateType !== 'INPUT' && node.gateType !== 'OUTPUT' && (node.name || node.description)) {
+    // A named gate (AND#ID(...)) shows its instance name above and description below the body,
+    // mirroring the SEL block label placement.
+    const cx = node.absX + node.width / 2;
+    if (node.name && node.blockType !== 'FB') {
+      labels.push(`<text class="ldl-label ldl-name" x="${cx}" y="${node.absY - 7}" text-anchor="middle" fill="${theme.nameFill}" font-size="12" font-family="sans-serif" font-weight="600">${esc(node.name)}</text>`);
+    }
+    if (node.description) {
+      labels.push(`<text class="ldl-label ldl-description" x="${cx}" y="${node.absY + node.height + 15}" text-anchor="middle" fill="${theme.descFill}" font-size="9" font-family="sans-serif">${esc(node.description)}</text>`);
+    }
   }
 }
 

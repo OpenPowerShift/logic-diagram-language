@@ -139,7 +139,8 @@ function baseNodeHeight(n: FlatNode): number {
   if (n.blockType) return blockSize(n.blockType).h + (n.name ? 18 : 0) + (n.description ? 18 : 0);
   if (n.gateType === 'NOT') return NOT_GATE_H;
   const numInputs = n.inputIds.length || 2;
-  return evenGridHeight(Math.max(AND_GATE_H_BASE, (numInputs + 1) * PORT_SPACING));
+  const labelSpace = (n.name ? 18 : 0) + (n.description ? 18 : 0);
+  return evenGridHeight(Math.max(AND_GATE_H_BASE, (numInputs + 1) * PORT_SPACING) + labelSpace);
 }
 
 // Body dimensions for a generic FB block: square-ish, sized to its port counts and labels.

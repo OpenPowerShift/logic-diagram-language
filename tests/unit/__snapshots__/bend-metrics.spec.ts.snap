@@ -165,6 +165,17 @@ exports[`Bend/crossing metrics > NOT Gate 1`] = `
 }
 `;
 
+exports[`Bend/crossing metrics > Named Gates 1`] = `
+{
+  "H": 570,
+  "bends": 12,
+  "bent": 6,
+  "crossings": 0,
+  "straight": 4,
+  "wires": 10,
+}
+`;
+
 exports[`Bend/crossing metrics > Nested NOT 1`] = `
 {
   "H": 90,

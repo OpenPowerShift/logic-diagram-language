@@ -77,6 +77,18 @@ CLOSE = FB#PROT(PHASE=IA, EARTH=IN, EN=ENABLE).CLOSE
 PROT.Name = "Feeder Protection"
 PROT.Description = "SEL-751A"`,
 
+  'Named Gates': `// Direct gate naming with AND#ID(...) / OR#ID(...) — no pass-through intermediate needed
+OPTION OUTPUT_ORDER = AUTO
+OC = OR#OC1(I51, I50, I46)
+OC1.Name = "Overcurrent"
+OC1.Description = "51/50N"
+TRIP = AND#TRIP1(OC, NOT BLOCK)
+TRIP1.Name = "Trip AND"
+TRIP1.Description = "permissive"
+O1 = AND#GEN(A, B)
+GEN.Name = "Combo Gate"
+GEN.Description = "stage 1"`,
+
   'Simple AND Gate': `// Simple AND gate
 OUT = A AND B`,
 

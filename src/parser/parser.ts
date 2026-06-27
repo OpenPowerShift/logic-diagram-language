@@ -364,6 +364,11 @@ class Parser {
   }
 
   private parseNotExpr(): LogicNode {
+    if (this.isKeyword('NOT') && this.peekAt(1).value === '#') {
+      // NOT#ID(A) — function-call form with an instance id. Falls through to parsePrimary's
+      // AND/OR/NOT#ID handling, but intercept here so parseNotExpr doesn't consume the NOT.
+      return this.parsePrimary();
+    }
     if (this.isKeyword('NOT')) {
       this.advance();
       const inner = this.parseNotExpr();
@@ -380,6 +385,22 @@ class Parser {
     }
 
     const token = this.peek();
+
+    // AND#ID(...) / OR#ID(...) / NOT#ID(...) — function-call form with an instance id so the
+    // gate can carry .Name / .Description without the pass-through-intermediate trick.
+    if (token.type === 'KEYWORD' && (token.value === 'AND' || token.value === 'OR' || token.value === 'NOT')
+        && this.peekAt(1).value === '#') {
+      const gateType = this.advance()!.value as GateType;
+      this.advance(); // '#'
+      const id = this.advance()?.value ?? undefined;
+      this.expect('OP', '(');
+      const inputs: LogicNode[] = [];
+      if (this.peek().value !== ')') {
+        do { inputs.push(this.parseOrExpr()); } while (this.match('OP', ','));
+      }
+      this.expect('OP', ')');
+      return { kind: 'gate', gateType, id, inputs } as GateNode;
+    }
 
     if (token.type === 'SYMBOL_NAME') {
       const symbolName = this.advance()!.value;
