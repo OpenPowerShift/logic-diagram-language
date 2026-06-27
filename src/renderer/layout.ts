@@ -389,6 +389,79 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     }
   }
 
+  // 2-hop downstream median re-sort (INPUT_ORDER = AUTO only). After the barycentre pass each
+  // input's row is approximately at its IMMEDIATE consumer's row (1-hop), but a path through an
+  // intermediate gate like a NOT still crosses other horizontal corridors (e.g. HBLK -> not_7
+  // -> and_8 puts HBLK at not_7's row; if and_8 sits elsewhere the not_7->and_8 vertical
+  // crosses unrelated wires). Re-sorting the input column by the 2-hop median of consumer ranks
+  // (consumer's consumer) instead places HBLK at and_8's row, straightening the full path.
+  //
+  // IMPORTANT: this re-sorts the input column and re-assigns INTEGER ranks 0..n in the new
+  // order — `assignCoordinates` then space-packs them at uniform `sep()` spacing. So the input
+  // column's Y RANGE stays bounded to the original (height never balloons), unlike a direct
+  // placement at the raw 2-hop Y, which put START/EXT_ALARM at extreme Ys (4400+) because their
+  // 2-hop consumers were bottom outputs (the AUTO reordering placed them at the bottom). Only
+  // the SORT ORDER changes; uniform spacing holds; invariants stay satisfied.
+  if (opts.inputOrder === 'AUTO' && inputGroup.length > 4) {
+    // Successor map (node -> nodes it feeds into), excluding feedback edges (output sinks).
+    const isFeedback = (id: string) => nodes.get(id)?.kind === 'output';
+    const succ = new Map<string, string[]>();
+    for (const n of nodes.values()) {
+      for (const id of n.inputIds) {
+        if (isFeedback(id)) continue;
+        const a = succ.get(id) ?? []; a.push(n.id); succ.set(id, a);
+      }
+    }
+    const med = (vals: number[]) => { const s = vals.slice().sort((a, b) => a - b); const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+// Two-hop downstream median: use the rank of the consumer's consumer (NOT the consumer
+      // itself) as the sort key. For an input feeding through an intermediate single-input
+      // gate like a NOT, the 1-hop barycentre places the input at the NOT's row, but the
+      // NOT then feeds a gate elsewhere — the input's straightest target is the consumer's
+      // CONSUMER's row (e.g. HBLK -> not_7 -> and_8 places HBLK at and_8's row). For inputs
+      // feeding multi-input gates directly, 1-hop and 2-hop converge.
+      //
+      // Bounded: clamp each input's movement to within ±ceil(n/3) ranks of its barycentre
+      // position. Unbounded 2-hop occasionally throws an input clean across the column when
+      // its 2-hop consumer (an output or a far-flung gate) sits at an extreme — the new row
+      // then crosses un-related wires (RESET jumping from bottom to top in Shared Intermediates
+      // overlapped a COMPARE fan-out trunk). Clamping preserves the barycentre's overall
+      // structure while letting 2-hop nudge inputs toward straighter positions locally.
+      const twoHop = (id: string): number => {
+        const cons = succ.get(id) ?? [];
+        if (cons.length === 0) return rowMap.get(id) ?? 0;
+        const ranks: number[] = [];
+        for (const c of cons) {
+          const cc = succ.get(c);
+          if (cc && cc.length > 0) ranks.push(...cc.map(x => rowMap.get(x) ?? 0));
+          else ranks.push(rowMap.get(c) ?? 0);
+        }
+        return med(ranks);
+      };
+      const bary = new Map<string, number>();
+      for (const n of inputGroup) bary.set(n.id, rowMap.get(n.id) ?? 0);
+      const n = inputGroup.length;
+      const maxMove = Math.max(1, Math.ceil(n / 3));
+      const clampedTwoHop = (id: string): number => {
+        const b = bary.get(id) ?? 0;
+        const t = twoHop(id);
+        return Math.max(b - maxMove, Math.min(b + maxMove, t));
+      };
+      // Stable tie-broken sort by the clamped 2-hop median; preserve the existing order on ties.
+      inputGroup.sort((a, b) => (clampedTwoHop(a.id) - clampedTwoHop(b.id)) || ((bary.get(a.id) ?? 0) - (bary.get(b.id) ?? 0)));
+      for (let i = 0; i < inputGroup.length; i++) rowMap.set(inputGroup[i].id, i);
+
+    // Re-propagate gate/output rows from the updated input ranks so the order is consistent.
+    for (let depth = 1; depth <= maxDepth; depth++) {
+      const group = depthGroups.get(depth) ?? [];
+      for (const node of group) {
+        if (node.inputIds.length === 0) { rowMap.set(node.id, 0); continue; }
+        const inputRows = node.inputIds.map(id => rowMap.get(id)).filter((r): r is number => r !== undefined);
+        if (inputRows.length === 0) { rowMap.set(node.id, 0); continue; }
+        rowMap.set(node.id, (Math.min(...inputRows) + Math.max(...inputRows)) / 2);
+      }
+    }
+  }
+
   const layoutNodes: LayoutNode[] = [];
   const nodeMap = new Map<string, LayoutNode>();
 

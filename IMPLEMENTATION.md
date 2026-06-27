@@ -237,52 +237,36 @@ Captured 2026-06 from user review. Roughly priority-ordered; tiers group by kind
    row insertion** so an input can drop into a gap between two existing rows ("a little space")
    instead of pushing everything. Guard with the bend/crossing metric so no example regresses.
 
-   **Status: three attempts (2026-06); concept demonstrated, structural fix required — deferred.**
+   **Status: RESOLVED (2026-06).** The fix is a **bounded 2-hop-downstream median reorder of the
+   input column's rowMap** after the 3-iteration barycentre pass: each input's sort key becomes
+   the median rank of its **consumer's consumers** (the 2-hop-downstream successors), clamped to
+   ±`ceil(n/3)` ranks of its barycentre position, with the input column then integer-renumbered
+   (0..n) so `assignCoordinates` packs it with uniform sequential `sep()`. A 2-hop (not 1-hop)
+   median straightens paths through intermediate single-input gates like NOTs: e.g.
+   HBLK → not_7 → and_8 sorts HBLK at and_8's row (not not_7's), so the full path is straight and
+   the not_7→and_8 vertical doesn't cross other horizontal corridors. Inputs feeding directly
+   into multi-input gates have the same 2-hop and 1-hop consumer (the gate itself), so they are
+   unaffected. The clamp (`±ceil(n/3)`) prevents an input from jumping clean across the column to
+   an extreme Y when its 2-hop consumer (an output or far-flung gate) sits at the end of an
+   `OUTPUT_ORDER=AUTO` chain — that caused an overlap of RESET's SR-bound wire with a COMPARE
+   fan-out trunk in *Shared Intermediates*. The input-count guard (`> 4`) avoids re-sorting small
+   diagrams where any reorder is disruptive (Combined Logic CBFPS: `O = AB AND DC OR (NOT DC AND GF)`).
 
-   **Attempt 1 — post-placement input re-sort by consumer-port medians (reverted).** Re-placing
-   inputs at the median of their consumers' input-port Ys AFTER the gate alignment passes had run
-   left stale gate-port positions; each moved input's wire acquired a 5–10px dogleg into the
-   now-fixed gate port. Invariants regressed on 6 examples (Breaker Failure, SEL Function Blocks,
-   Labelled Gates, Complex Protection SEL, Shared Intermediates, Generic Block, Simple AND/OR).
-   **Attempt 2 — all-layer iterative median Sugiyama ordering (reverted).** Replaced the
-   3-iteration input-only barycentre with full alternating up/down median sweeps over ALL layers
-   (24 iters, convergence-detected). Bend/crossing metrics IMPROVED on Complex Protection SEL
-   (34→26 bends, 8→? crossings) and Boolean Algebra (12→10 bends) but broke 3 invariants (doglegs,
-   cross-net overlapping segments, "wires exit/enter horizontally") on Complex Protection SEL,
-   Combined Logic CBFPS (crossings 0→3), Boolean Algebra. Reordering gates relative to their
-   column neighbours produces topologies the downstream alignment/collision/dogleg passes cannot
-   fully resolve: they were tuned for the old gate ordering.
-   **Attempt 3 — non-uniform input placement between `assignCoordinates` and node-creation
-   (reverted).** Re-placed inputs at the median of their consumers' assignCoordinates-Ys with
-   non-uniform spacing (minGap), NOT reordering gates — letting the existing gate-alignment passes
-   absorb the change. Three sub-variants tried:
-   - blend=1.0, minGap=50: massive quality gains — Labelled Gates bends 22→14, Complex Protection
-     SEL 34→26 bends / 8→6 crossings, Mixed Logic 20→8, Trip Logic 12→4, Complex Protection 12→4,
-     Generic Block 6→0, Simple AND/OR 4→0 — but invariants broke on Complex Protection SEL,
-     Interlocking Q01 Close, Motor Control Circuit (doglegs + cross-net parallel overlaps).
-   - blend=1.0, minGap=rowSpacing: invariant breaks persisted on 6 examples; minGap alone isn't
-     the issue.
-   - blend=0.6, minGap=rowSpacing: invariants passed but the gentler correction produced net
-     metric regressions (Interlocking +2 bends, Labelled Gates +2 bends, Differential +2 bends,
-     Overcurrent +2 bends) — too gentle to align inputs to consumers but enough to lengthen
-     wires through non-optimal channels.
+   **Measured results** (bend/crossing metric, before → after):
+   - **Labelled Gates**: 22 bends / 1 crossing → 20 bends / **0 crossings** ✓
+   - **Complex Protection (SEL)**: 34 bends / 8 crossings → 28 bends / **0 crossings**, H 1075→1115px (+40) ✓
+   - All other examples: metrically unchanged — including Shared Intermediates (18 bends / 3 crossings) and Combined Logic CBFPS (14 bends / 0 crossings)
+   - All 276 invariants + 50 robustness cases pass.
 
-   **Root cause of all three failures:** `assignCoordinates` (the priority-method coordinate
-   assignment) uses UNIFORM per-column spacing — sequential `sep()` based only on the rowMap
-   ORDER. Non-uniform input positions (whether placed before, after, or instead of node creation)
-   leave gates at Ys computed from the OLD uniform input positions, so gate-input-port-Ys and
-   source-output-Ys don't fully converge under the existing downstream nudges.
-
-   **Conclusion:** the concept is demonstrably valuable — the blend=1.0 variant proves
-   Labelled Gates could go from 22→14 bends, Complex Protection SEL from 34→26 bends / 8→6
-   crossings, Mixed Logic from 20→8 bends — but a correct fix requires `assignCoordinates`
-   itself to support **non-uniform input-layer spacing** (the input column's initial centres
-   driven by consumer medians, not sequential `sep()`). That is a contained modification to
-   `assignCoordinates`, not a separate post-pass or full all-layer reorder. The instrumentation
-   (geometry snapshot + bend/crossing metric) is in place to guard it. Baseline hotspots remain:
-   Labelled Gates 22 bends / 1 crossing, Complex Protection SEL 34 bends / 8 crossings, Boolean
-   Algebra 12 bends / 2 crossings, Mixed Logic 20 bends / 0 crossings, Trip Logic 12 bends / 0
-   crossings, Interlocking Q01 Close 24 bends / 0 crossings.
+   **Earlier attempts (all reverted):**
+   1. Post-placement input re-sort by consumer-port medians — stale gate-port doglegs (6 examples).
+   2. All-layer iterative median Sugiyama ordering — improved metrics but broke 3 invariants.
+   3. Unbounded 2-hop median as a direct Y for the input column's `assignCoordinates` initial
+      centre — placed START/EXT_ALARM at extreme Ys because their 2-hop consumers were bottom
+      outputs under `OUTPUT_ORDER=AUTO`; *Complex Protection (SEL)* ballooned from 1075px to
+      4490px tall. Root cause: Direct Y placement bypasses the uniform `sep()` packing that
+      bounds the column height. The landed fix reorders the rowMap **integer rank** instead,
+      keeping `assignCoordinates`'s uniform packing so heights stay bounded.
 
 ### Tier 3 — Authoring & feature ergonomics
 

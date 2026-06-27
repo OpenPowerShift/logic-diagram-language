@@ -42,9 +42,9 @@ exports[`Bend/crossing metrics > Combined Options 1`] = `
 
 exports[`Bend/crossing metrics > Complex Protection (SEL) 1`] = `
 {
-  "bends": 34,
+  "bends": 28,
   "bent": 14,
-  "crossings": 8,
+  "crossings": 0,
   "straight": 10,
   "wires": 24,
 }
@@ -112,10 +112,10 @@ exports[`Bend/crossing metrics > Inversion Bubbles 1`] = `
 
 exports[`Bend/crossing metrics > Labelled Gates 1`] = `
 {
-  "bends": 22,
-  "bent": 11,
-  "crossings": 1,
-  "straight": 3,
+  "bends": 20,
+  "bent": 10,
+  "crossings": 0,
+  "straight": 4,
   "wires": 14,
 }
 `;
