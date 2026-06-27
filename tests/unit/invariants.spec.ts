@@ -204,6 +204,20 @@ describe('Layout invariants', () => {
           expect(onVertex, `junction (${j.x},${j.y}) not on any wire vertex`).toBe(true);
         }
       });
+
+      // Height-bound guard. An unbounded placement pass once sent Complex Protection (SEL) from
+      // ~1075px to 4490px (a 2-hop input placement fed inputs at the raw Y of bottom outputs
+      // under OUTPUT_ORDER=AUTO). The bend-metrics snapshot records H, but a snapshot can be
+      // silently `vitest -u`'d; this hard assertion fails loudly on ballooning instead. The bound
+      // is generous (inputs × 250px + 1500px padding) — tight enough to catch a 4x explosion,
+      // loose enough never to flake on a legitimate dense example.
+      it('diagram height stays bounded (no placement ballooning)', () => {
+        const r = parse(src);
+        const l = layoutDiagram(r.diagram, r.diagram.portMeta, resolveOptions(r.diagram.options));
+        const inputCount = l.nodes.filter(n => n.gateType === 'INPUT').length;
+        const bound = 1500 + inputCount * 250;
+        expect(l.height, `${name}: height ${l.height} exceeds bound ${bound} (inputs=${inputCount})`).toBeLessThan(bound);
+      });
     });
   }
 });

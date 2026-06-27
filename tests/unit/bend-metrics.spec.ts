@@ -7,9 +7,12 @@ import { EXAMPLES } from '../../src/examples.js';
 
 // Placement-quality instrument for the bend-aware coordinate-assignment work (direction #2).
 // A higher-level, human-readable dashboard than the geometry snapshot: it counts how many wires
-// are straight vs bent and how many cross, per example. Snapshotting it makes the *quality* effect
-// of a placement change obvious (e.g. "Boolean Algebra: bent 3 -> 1") and guards against silent
-// regressions. Run `vitest -u` to accept an intended change.
+// are straight vs bent and how many cross, per example, and tracks the diagram's pixel height.
+// Snapshotting it makes the *quality* effect of a placement change obvious (e.g. "Boolean
+// Algebra: bent 3 -> 1") and guards against silent regressions — including height ballooning
+// (an unbounded 2-hop input placement once sent Complex Protection (SEL) from 1075px to 4490px;
+// the height field turns that into a reviewable failing diff). Run `vitest -u` to accept an
+// intended change.
 function metrics(l: LayoutResult) {
   let straight = 0, bent = 0, bends = 0;
   for (const w of l.wires) {
@@ -23,7 +26,7 @@ function metrics(l: LayoutResult) {
     bends += dirChanges;
     if (dirChanges === 0) straight++; else bent++;
   }
-  return { wires: straight + bent, straight, bent, bends, crossings: findWireCrossings(l.wires, l.junctions).length };
+  return { wires: straight + bent, straight, bent, bends, crossings: findWireCrossings(l.wires, l.junctions).length, H: l.height };
 }
 
 describe('Bend/crossing metrics', () => {
