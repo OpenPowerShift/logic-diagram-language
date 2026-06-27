@@ -159,7 +159,7 @@ export function resolveOptions(optionDecls: OptionDecl[]): RenderOptions {
       opts.outputOrder = value;
     } else if (name === 'INPUT_ORDER' && (value === 'DECLARATION' || value === 'AUTO')) {
       opts.inputOrder = value;
-    } else if (name === 'COMPACTNESS') {
+    } else if (name === 'SIZE' || name === 'COMPACTNESS') {
       if (value === 'COMPACT' || value === 'COMPACT_H' || value === 'COMPACT_V' ||
           value === 'NORMAL' || value === 'SPACIOUS') {
         opts.compactness = value;
