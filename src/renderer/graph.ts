@@ -308,6 +308,34 @@ export function buildGraph(
       notChainInfo.set(notNode.id, { sourceId, inversionDepth: depth });
     }
 
+    // A NOT-only through-connection (single NOT feeding straight to an output, with NO gate
+    // consumer) is kept as an explicit NOT gate even under BUBBLES — a bare `O = NOT A` reads
+    // better as an explicit NOT symbol than a lone port bubble (spec: Tier 3.6). Identify those
+    // NOTs and exclude them from absorption so their consumer's input stays the NOT itself.
+    const notConsumers = new Map<string, string[]>();
+    for (const n of nodes.values()) {
+      for (const inputId of n.inputIds) {
+        const a = notConsumers.get(inputId) ?? [];
+        a.push(n.id); notConsumers.set(inputId, a);
+      }
+    }
+    const protectedNotIds = new Set<string>();
+    for (const notNode of notNodes) {
+      const info = notChainInfo.get(notNode.id);
+      // Protect a single-inversion NOT (depth 1) whose source is an INPUT and whose only
+      // consumers are OUTPUT nodes — a bare `O = NOT A` reads better as an explicit NOT gate
+      // than a lone port bubble (spec: Tier 3.6). NOT wrapping a gate (e.g. `NOT (A AND B)`)
+      // is NOT protected: the bubble on the gate output is the conventional BUBBLES rendering.
+      if (info && info.inversionDepth === 1) {
+        const source = nodes.get(info.sourceId);
+        const isInputSource = source?.kind === 'input';
+        const consumers = notConsumers.get(notNode.id) ?? [];
+        if (isInputSource && consumers.length > 0 && consumers.every(cid => nodes.get(cid)?.kind === 'output')) {
+          protectedNotIds.add(notNode.id);
+        }
+      }
+    }
+
     // For each non-NOT node, walk each input through NOT chains to find
     // the ultimate source. Track inversion depth per input for bubble marking.
     const inputInversionDepth = new Map<string, Map<number, number>>();
@@ -319,7 +347,7 @@ export function buildGraph(
         let ref = otherNode.inputIds[i];
         let totalInversion = 0;
 
-        while (notChainInfo.has(ref)) {
+        while (notChainInfo.has(ref) && !protectedNotIds.has(ref)) {
           totalInversion += notChainInfo.get(ref)!.inversionDepth;
           otherNode.inputIds[i] = notChainInfo.get(ref)!.sourceId;
           ref = notChainInfo.get(ref)!.sourceId;
@@ -358,9 +386,9 @@ export function buildGraph(
       }
     }
 
-    // Remove all NOT nodes
+    // Remove all NOT nodes EXCEPT protected through-connections (kept as explicit gates).
     for (const n of notNodes) {
-      nodes.delete(n.id);
+      if (!protectedNotIds.has(n.id)) nodes.delete(n.id);
     }
 
     // Recalculate depths after removing NOTs — nodes may have shallower depths now

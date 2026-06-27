@@ -131,17 +131,19 @@ describe('Bubbles Mode - Output Bubbles', () => {
     expect(notGate).toBeUndefined();
   });
 
-  it('places a bubble on output node when NOT feeds output directly', () => {
+  it('keeps NOT gate for NOT-only through-connection even under BUBBLES', () => {
+    // Per spec Tier 3.6: a bare `O = NOT A` (input straight through a single inversion to an
+    // output) reads better as an explicit NOT gate than a lone port bubble. The NOT is kept.
     const r = parse('OPTION INVERSION = BUBBLES\nO1 = NOT I1');
     const opts = resolveOptions(r.diagram.options);
     const l = layoutDiagram(r.diagram, r.diagram.portMeta, opts);
 
+    const notGate = l.nodes.find(n => n.gateType === 'NOT');
+    expect(notGate).toBeDefined();
+
     const outNode = l.nodes.find(n => n.gateType === 'OUTPUT');
     expect(outNode).toBeDefined();
-    expect(outNode!.inputs[0].bubbled).toBe(true);
-
-    const notGate = l.nodes.find(n => n.gateType === 'NOT');
-    expect(notGate).toBeUndefined();
+    expect(outNode!.inputs[0].bubbled).toBeUndefined();
   });
 
   it('shifts bubbled output port right by BUBBLE_R * 2', () => {
