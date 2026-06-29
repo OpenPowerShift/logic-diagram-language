@@ -25,6 +25,11 @@ export function renderDiagram(diagram: Diagram, portMeta?: PortMeta[], showLabel
   const theme = diagramTheme ?? LIGHT_DIAGRAM;
   const layout = layoutDiagram(diagram, portMeta, opts);
 
+  // Style payload: user STYLE blocks (parser already stored them as StyleDecl[]). Concatenated
+  // as-is into the rendered SVG's <defs><style>, so #ID selectors from `STYLE ... END STYLE` work
+  // restyling of the semantic SVG IDs in Item 10.
+  const userCss = diagram.styles.map(s => s.css).join('\n');
+
   const svgWires: string[] = [];
   const svgBodies: string[] = [];
   const svgPorts: string[] = [];
@@ -32,8 +37,9 @@ export function renderDiagram(diagram: Diagram, portMeta?: PortMeta[], showLabel
   const svgIds: string[] = [];
   const svgLabels: string[] = [];
 
-  for (const wire of layout.wires) {
-    svgWires.push(renderWire(wire.points, wire.fromId, wire.toId));
+  for (let wi = 0; wi < layout.wires.length; wi++) {
+    const wire = layout.wires[wi];
+    svgWires.push(renderWire(wire.points, wire.fromId, wire.toId, `wire_${wi}`, wire.feedback));
   }
 
   for (const node of layout.nodes) {
@@ -43,14 +49,17 @@ export function renderDiagram(diagram: Diagram, portMeta?: PortMeta[], showLabel
     renderNodeIds(node, showIds, svgIds, theme);
   }
 
-  for (const junction of layout.junctions) {
-    svgJunctions.push(renderJunctionDot(junction.x, junction.y, theme));
+  for (let ji = 0; ji < layout.junctions.length; ji++) {
+    const j = layout.junctions[ji];
+    svgJunctions.push(`<g class="ldl-junction-group" id="dot_${ji}" data-ldl-x="${j.x}" data-ldl-y="${j.y}">${renderJunctionDot(j.x, j.y, theme)}</g>`);
   }
 
-  if (showLabels) for (const lbl of layout.labels) {
+  if (showLabels) for (let li = 0; li < layout.labels.length; li++) {
+    const lbl = layout.labels[li];
     // Net label for a consumed intermediate, drawn above its fan-out junction.
     const cx = lbl.x + lbl.width / 2;
     let ty = lbl.y + 11;
+    svgLabels.push(`<g class="ldl-net-label" id="netlabel_${li}">`);
     if (lbl.name) {
       svgLabels.push(`<text class="ldl-label ldl-name" x="${cx}" y="${ty}" text-anchor="middle" fill="${theme.nameFill}" font-size="11" font-family="sans-serif" font-weight="600">${esc(lbl.name)}</text>`);
       ty += 12;
@@ -58,6 +67,7 @@ export function renderDiagram(diagram: Diagram, portMeta?: PortMeta[], showLabel
     if (lbl.description) {
       svgLabels.push(`<text class="ldl-label ldl-description" x="${cx}" y="${ty}" text-anchor="middle" fill="${theme.descFill}" font-size="9" font-family="sans-serif">${esc(lbl.description)}</text>`);
     }
+    svgLabels.push('</g>');
   }
 
   // Content bounds include port label text, which can extend past the node bounding boxes
@@ -92,13 +102,19 @@ export function renderDiagram(diagram: Diagram, portMeta?: PortMeta[], showLabel
 
   const labelsClass = showLabels ? 'ldl-show-labels' : '';
   const idsClass = showIds ? 'ldl-show-ids' : '';
-
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${svgW} ${svgH}" class="ldl-diagram ${labelsClass} ${idsClass}" style="max-width:100%;max-height:100%;">
+  const hideDotsClass = opts.hideJunctions ? 'ldl-hide-dots' : '';
+  // Layer visibility via root class — Item 10/11 enables a stylesheet (or the user's STYLE block)
+  // to toggle whole layers by writing `svg.ldl-hide-dots .ldl-junction { display: none; }`
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${svgW} ${svgH}" class="ldl-diagram ${labelsClass} ${idsClass} ${hideDotsClass}" style="max-width:100%;max-height:100%;">
   <defs>
     <style>
-      .ldl-wire { stroke: ${theme.wire}; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.2s; }
-      .ldl-wire:hover { stroke: ${theme.wireHover}; stroke-width: 3.5; }
+      .ldl-wire { stroke: ${theme.wire}; fill: none; stroke-width: ${opts.strokeWidth ?? 2.5}; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.2s; }
+      .ldl-wire:hover { stroke: ${theme.wireHover}; stroke-width: ${(opts.strokeWidth ?? 2.5) + 1}; }
+      .ldl-symbol { transition: filter 0.15s; }
       .ldl-symbol:hover { filter: brightness(1.3); }
+      /* Custom stroke-width (Item 10): user-set OPTION STROKE_WIDTH overrides the body defaults
+         via CSS, so a single knob restyles every gate/block body + bubbles + input bars uniformly. */
+      .ldl-symbol path, .ldl-symbol rect, .ldl-symbol circle, .ldl-input-bar, .ldl-bar-stub { stroke-width: ${opts.strokeWidth ?? 2.5}; }
       .ldl-input-port text { fill: ${theme.nameFill}; }
       .ldl-output-port text { fill: ${theme.nameOutFill}; }
       .ldl-port { transition: filter 0.15s; }
@@ -107,16 +123,20 @@ export function renderDiagram(diagram: Diagram, portMeta?: PortMeta[], showLabel
       .ldl-diagram:not(.ldl-show-ids) .ldl-id { display: none; }
       .ldl-diagram.ldl-show-labels .ldl-label { display: block; }
       .ldl-diagram.ldl-show-ids .ldl-id { display: block; }
+      .ldl-diagram.ldl-hide-dots .ldl-junction-group { display: none; }
+      /* User-supplied STYLE blocks (Item 10): #ID selectors restyle the semantic SVG ids
+         emitted on gates/blocks/inputs/outputs/junctions/ports/wires. */
+${userCss ? '      ' + userCss.split('\n').join('\n      ') + '\n' : ''}
     </style>
   </defs>
   <rect x="0" y="0" width="${svgW}" height="${svgH}" fill="${theme.background}" rx="4"/>
-  <g transform="translate(${tx}, ${ty})">
-    ${svgWires.join('\n    ')}
-    ${svgBodies.join('\n    ')}
-    ${svgPorts.join('\n    ')}
-    ${svgJunctions.join('\n    ')}
-    ${svgIds.join('\n    ')}
-    ${svgLabels.join('\n    ')}
+  <g class="ldl-layer-root" transform="translate(${tx}, ${ty})">
+    <g class="ldl-layer-wires">${svgWires.join('')}</g>
+    <g class="ldl-layer-bodies">${svgBodies.join('')}</g>
+    <g class="ldl-layer-ports">${svgPorts.join('')}</g>
+    <g class="ldl-layer-dots">${svgJunctions.join('')}</g>
+    <g class="ldl-layer-objects">${svgIds.join('')}</g>
+    <g class="ldl-layer-labels">${svgLabels.join('')}</g>
   </g>
 </svg>`;
 }
@@ -202,7 +222,7 @@ function fmtDuration(v?: string): string {
 function renderFbNodeBody(node: LayoutNode, bodies: string[], theme: DiagramTheme): void {
   const x = node.absX, y = node.absY, w = node.width, h = node.height;
   const stroke = theme.stroke, fill = theme.fill;
-  const parts: string[] = [`<g class="ldl-symbol ldl-block ldl-block-fb" id="${esc(node.id)}">`];
+  const parts: string[] = [`<g class="ldl-symbol ldl-block ldl-block-fb" id="${esc(svgObjectId(node))}" data-ldl-id="${esc(node.id)}">`];
   parts.push(`  <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2" fill="${fill}" stroke="${stroke}" stroke-width="2.5"/>`);
   if (node.name) {
     parts.push(`  <text x="${x + w / 2}" y="${y + h / 2 + 4}" text-anchor="middle" fill="${stroke}" font-size="11" font-weight="700" font-family="sans-serif">${esc(node.name)}</text>`);
@@ -224,7 +244,7 @@ function renderBlockNodeBody(node: LayoutNode, bodies: string[], theme: DiagramT
   const stroke = theme.stroke, fill = theme.fill;
   const txt = (tx: number, ty: number, s: string, size = 11, anchor = 'middle') =>
     `  <text x="${tx}" y="${ty}" text-anchor="${anchor}" fill="${stroke}" font-size="${size}" font-weight="700" font-family="sans-serif">${esc(s)}</text>`;
-  const parts: string[] = [`<g class="ldl-symbol ldl-block ldl-block-${(node.blockType ?? '').toLowerCase()}" id="${esc(node.id)}">`];
+  const parts: string[] = [`<g class="ldl-symbol ldl-block ldl-block-${(node.blockType ?? '').toLowerCase()}" id="${esc(svgObjectId(node))}" data-ldl-id="${esc(node.id)}">`];
 
   // Port labels track the actual port Y (ports can be shifted/expanded to straighten wires).
   if (node.blockType === 'COMPARE') {
@@ -384,20 +404,28 @@ function renderNodeIds(node: LayoutNode, showIds: boolean, ids: string[], theme:
   }
 }
 
+function svgObjectId(node: LayoutNode): string {
+  // Inputs/outputs are addressed by their name (e.g. I1, O2 — unique per diagram); gates/blocks
+  // by their instance label when set (an explicit `#ID`), else by internal id (e.g. and_4).
+  // CSS `#ID` selectors in the user's STYLE block thus target the user-facing identifier.
+  if (node.gateType === 'INPUT' || node.gateType === 'OUTPUT') return node.label ?? node.id;
+  return node.label ?? node.id;
+}
+
 function renderInputNodeBody(node: LayoutNode, bodies: string[], theme: DiagramTheme): void {
   const port = node.outputs[0];
   if (!port) return;
-
+  const sid = svgObjectId(node);
   const labelRight = node.absX + node.width - 10;
-  bodies.push(`<line class="ldl-wire" x1="${labelRight}" y1="${port.absY}" x2="${port.absX}" y2="${port.absY}"/>`);
+  bodies.push(`<g class="ldl-symbol ldl-io ldl-input" id="${esc(sid)}" data-ldl-id="${esc(node.id)}"><line class="ldl-id-stub ldl-wire" x1="${labelRight}" y1="${port.absY}" x2="${port.absX}" y2="${port.absY}"/></g>`);
 }
 
 function renderOutputNodeBody(node: LayoutNode, bodies: string[], theme: DiagramTheme): void {
   const port = node.inputs[0];
   if (!port) return;
-
+  const sid = svgObjectId(node);
   const labelLeft = port.absX + 10;
-  bodies.push(`<line class="ldl-wire" x1="${port.absX}" y1="${port.absY}" x2="${labelLeft}" y2="${port.absY}"/>`);
+  bodies.push(`<g class="ldl-symbol ldl-io ldl-output" id="${esc(sid)}" data-ldl-id="${esc(node.id)}"><line class="ldl-id-stub ldl-wire" x1="${port.absX}" y1="${port.absY}" x2="${labelLeft}" y2="${port.absY}"/></g>`);
 }
 
 function renderGateNodeBody(node: LayoutNode, shape: 'and' | 'or', symbol: string, bodies: string[], theme: DiagramTheme): void {
@@ -417,7 +445,7 @@ function renderGateNodeBody(node: LayoutNode, shape: 'and' | 'or', symbol: strin
   const fontSize = Math.min(20, Math.max(12, h * 0.22));
 
   const parts: string[] = [];
-  parts.push(`<g class="ldl-symbol ${cls}" id="${esc(node.id)}">`);
+  parts.push(`<g class="ldl-symbol ${cls}" id="${esc(svgObjectId(node))}" data-ldl-id="${esc(node.id)}">`);
   parts.push(`  <path d="${bodyPath}" transform="translate(${x}, ${y})" fill="${theme.fill}" stroke="${theme.stroke}" stroke-width="2.5"/>`);
 
   parts.push(`  <text x="${x + w / 2}" y="${y + h / 2 + fontSize * 0.35}" text-anchor="middle" fill="${theme.stroke}" font-size="${fontSize}" font-weight="700" font-family="sans-serif">${esc(symbol)}</text>`);
@@ -445,7 +473,7 @@ function renderNotNodeBody(node: LayoutNode, bodies: string[], theme: DiagramThe
   const bodyPath = notGateBody(NOT_TRIANGLE_W, h);
 
   const parts: string[] = [];
-  parts.push(`<g class="ldl-symbol ldl-gate-not" id="${esc(node.id)}">`);
+  parts.push(`<g class="ldl-symbol ldl-gate-not" id="${esc(svgObjectId(node))}" data-ldl-id="${esc(node.id)}">`);
   parts.push(`  <path d="${bodyPath}" transform="translate(${x}, ${y})" fill="${theme.fill}" stroke="${theme.stroke}" stroke-width="2.5"/>`);
   parts.push(`  <circle cx="${x + NOT_TRIANGLE_W + BUBBLE_R}" cy="${y + h / 2}" r="${BUBBLE_R}" fill="${theme.fill}" stroke="${theme.stroke}" stroke-width="2.5"/>`);
   parts.push(`  <text x="${x + NOT_TRIANGLE_W * 0.38}" y="${y + h / 2 + 4}" text-anchor="middle" fill="${theme.stroke}" font-size="11" font-weight="700" font-family="sans-serif">NOT</text>`);

@@ -19,6 +19,11 @@ export interface RenderOptions {
   // Optional explicit spacing factors [vertical, horizontal] (e.g. COMPACTNESS = 70,70 → both
   // axes at 70%). When set, these override the named `compactness` value.
   compactnessFactors?: [number, number];
+  // Tier 4.10/11 — new options.
+  // Stroke width for wires + gate bodies (px, default 2.5). Set via OPTION STROKE_WIDTH.
+  strokeWidth?: number;
+  // Hide all junction dots (Item 11). Set via OPTION HIDE_JUNCTIONS = TRUE | FALSE.
+  hideJunctions: boolean;
 }
 
 export const DEFAULT_OPTIONS: RenderOptions = {
@@ -28,6 +33,7 @@ export const DEFAULT_OPTIONS: RenderOptions = {
   outputOrder: 'DECLARATION',
   inputOrder: 'AUTO',
   compactness: 'NORMAL',
+  hideJunctions: false,
 };
 
 export interface Position {
@@ -159,6 +165,12 @@ export function resolveOptions(optionDecls: OptionDecl[]): RenderOptions {
       opts.outputOrder = value;
     } else if (name === 'INPUT_ORDER' && (value === 'DECLARATION' || value === 'AUTO')) {
       opts.inputOrder = value;
+    } else if (name === 'STROKE_WIDTH') {
+      const w = parseFloat(decl.value);
+      if (!isNaN(w) && w > 0) opts.strokeWidth = w;
+    } else if (name === 'HIDE_JUNCTIONS') {
+      if (/^(true|1|yes|on)$/i.test(value)) opts.hideJunctions = true;
+      else if (/^(false|0|no|off)$/i.test(value)) opts.hideJunctions = false;
     } else if (name === 'SIZE' || name === 'COMPACTNESS') {
       if (value === 'COMPACT' || value === 'COMPACT_H' || value === 'COMPACT_V' ||
           value === 'NORMAL' || value === 'SPACIOUS') {
