@@ -13,8 +13,8 @@ import { LIGHT_DIAGRAM } from '../theme/themes.js';
 import { renderWire } from './wires.js';
 import { hasMathContent, splitIntoSegments, renderMath, estimateTextWidth } from './math-renderer.js';
 
-const INPUT_BAR_OFFSET = 10;
-const INPUT_BAR_STUB = 5;
+const INPUT_BAR_OFFSET = 12;
+const INPUT_BAR_STUB = 6;
 
 function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');

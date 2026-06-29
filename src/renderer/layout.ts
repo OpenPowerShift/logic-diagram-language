@@ -68,6 +68,7 @@ export interface LayoutResult {
   options: RenderOptions;
 }
 const GATE_W = 60;
+const INPUT_BAR_OFFSET = 12;
 const GATE_W_MULTI = 75;
 const AND_GATE_H_BASE = 45;
 const PORT_SPACING = 15;
@@ -648,18 +649,23 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
 
       const inputs: LayoutPort[] = [];
       if (useBars) {
+        // First two inputs: normal ports on the gate body at 1/3 and 2/3 height.
         const portSpacing = Math.round(h / 3 / GRID) * GRID;
         for (let i = 0; i < Math.min(2, numInputs); i++) {
           const portY = absY + (i + 1) * portSpacing;
           inputs.push({ name: `in_${i}`, absX: absX, absY: portY });
         }
-        for (let i = 2; i < numInputs; i++) {
-          const spacing = (h - 2 * AND_GATE_H_BASE / 3) / (numInputs - 1);
-          const portY = absY + AND_GATE_H_BASE / 3 + (i - 2) * Math.min(spacing, MIN_PORT_GAP);
-          const snappedY = Math.round(portY / GRID) * GRID;
-          inputs.push({ name: `in_${i}`, absX: absX - 10, absY: snappedY });
+        // Bar-tapped inputs (3rd+): evenly distribute across the full gate body height.
+        // Each tap's port sits at the bar X (absX - 12 per spec), so wires connect there
+        // and the stub from bar to gate body is rendered as part of the gate symbol.
+        const barX = absX - INPUT_BAR_OFFSET;
+        const barCount = numInputs - 2;
+        const barSpan = h - GRID * 2; // 1 grid inset top and bottom
+        for (let i = 0; i < barCount; i++) {
+          const portY = Math.round((absY + GRID + (barSpan * (i + 0.5)) / barCount) / GRID) * GRID;
+          inputs.push({ name: `in_${i + 2}`, absX: barX, absY: portY });
         }
-} else {
+      } else {
       for (let i = 0; i < numInputs; i++) {
         const portY = absY + (i + 1) * PORT_SPACING;
         inputs.push({ name: `in_${i}`, absX: absX, absY: portY });
@@ -1519,6 +1525,9 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     // A reshaped channel is rejected if it would hit a gate body or overlap a wire from a
     // different source that is NOT part of this gate's nested fan-in (those are crossing-free
     // by construction). Rejected groups keep their original geometry.
+    // Above and below groups are placed with an interleave offset (below shifts half a step
+    // leftward) so their channels interleave and don't share the same X — without the offset,
+    // above[0] and below[0] both map to gate.absX - GATE_CLEARANCE and overlap.
     const fanSet = new Set(fanWires);
     const channelOk = (w: LayoutWire, channelX: number, srcX: number, srcY: number, portX: number, portY: number) => {
       if (!vGateClear(channelX, srcY, portY)) return false;
@@ -1530,9 +1539,6 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
         for (let k = 0; k < o.points.length - 1; k++) {
           const a = o.points[k], b = o.points[k + 1];
           if (Math.abs(a.x - b.x) < 0.5) { // other vertical: too close to our channel?
-            // Keep a real gap (not just non-overlap) from another net's parallel vertical —
-            // e.g. a neighbouring gate's fan-in channel in the same column — so the two read
-            // as separate tracks rather than a cramped 5px bundle.
             if (Math.abs(a.x - channelX) < 2 * GRID &&
                 Math.max(a.y, b.y) > vyMin - 0.5 && Math.min(a.y, b.y) < vyMax + 0.5) return false;
           } else if (Math.abs(a.y - b.y) < 0.5) { // other horizontal: cross our channel?
@@ -1547,12 +1553,9 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     // All-or-nothing per group: compute every nested channel, and only apply them if all are
     // valid and mutually distinct. Otherwise leave the group untouched so we never trade one
     // problem for another.
-    const place = (group: LayoutWire[]) => {
+    const place = (group: LayoutWire[], offset: number) => {
       const plan: { w: LayoutWire; cx: number; srcX: number; srcY: number; portX: number; portY: number }[] = [];
       const used = new Set<number>();
-      // Nesting step: FANIN_SPACING normally, but tightened so a large fan-in still fits its
-      // channels in the room left of the gate (otherwise the deep channels clamp onto the same X
-      // and the all-or-nothing fails, leaving the wires as crossing-heavy raw routes).
       const groupMinX = Math.max(0, ...group.map(w => Math.round((w.points[0].x + MIN_DOGLEG) / GRID) * GRID));
       const room = gate.absX - GATE_CLEARANCE - groupMinX;
       const step = group.length > 1
@@ -1562,8 +1565,7 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
         const w = group[i];
         const srcX = w.points[0].x, srcY = w.points[0].y;
         const e = lastPt(w), portX = e.x, portY = e.y;
-        // i = 0 (most extreme source) turns closest to the gate; deeper indices nest left.
-        let cx = gate.absX - GATE_CLEARANCE - i * step;
+        let cx = gate.absX - GATE_CLEARANCE - i * step - offset;
         const minX = Math.round((srcX + MIN_DOGLEG) / GRID) * GRID;
         if (cx < minX) cx = minX;
         cx = Math.round(cx / GRID) * GRID;
@@ -1575,8 +1577,16 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
         w.points = [{ x: srcX, y: srcY }, { x: cx, y: srcY }, { x: cx, y: portY }, { x: portX, y: portY }];
       }
     };
-    place(above);
-    place(below);
+    // Interleave above and below groups so their channels don't share the same X. Without
+    // the half-step offset, above[0] and below[0] both map to gate.absX - GATE_CLEARANCE and
+    // end up at the same channel — overlapping. Below shifts by step/2 leftward to interleave.
+    const aboveStep = (() => {
+      const aboveMinX = Math.max(0, ...above.map(w => Math.round((w.points[0].x + MIN_DOGLEG) / GRID) * GRID));
+      const aboveRoom = gate.absX - GATE_CLEARANCE - aboveMinX;
+      return above.length > 1 ? Math.max(GRID, Math.min(FANIN_SPACING, Math.floor(aboveRoom / (above.length - 1) / GRID) * GRID)) : FANIN_SPACING;
+    })();
+    place(above, 0);
+    place(below, Math.round(aboveStep / 2 / GRID) * GRID);
   }
 
   // Straighten gratuitous sub-MIN_DOGLEG jogs: a small vertical step between two horizontal runs

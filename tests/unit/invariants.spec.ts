@@ -50,7 +50,7 @@ const BARS = /OPTION\s+GATE_INPUT_STYLE\s*=\s*BARS/i;
 
 describe('Layout invariants', () => {
   for (const [name, src] of Object.entries(EXAMPLES)) {
-    if (BARS.test(src)) continue;
+    // BARS now passes all invariants after the fix.
     describe(name, () => {
       it('node boxes and port Y are on the grid', () => {
         const l = build(src);

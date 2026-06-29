@@ -38,7 +38,7 @@ exports[`Bend/crossing metrics > Combined Options 1`] = `
   "H": 570,
   "bends": 12,
   "bent": 6,
-  "crossings": 7,
+  "crossings": 4,
   "straight": 1,
   "wires": 7,
 }
@@ -93,7 +93,7 @@ exports[`Bend/crossing metrics > Input Bars 1`] = `
   "H": 470,
   "bends": 10,
   "bent": 5,
-  "crossings": 5,
+  "crossings": 3,
   "straight": 1,
   "wires": 6,
 }
