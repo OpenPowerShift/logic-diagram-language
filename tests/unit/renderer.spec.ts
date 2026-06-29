@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { renderDiagram } from '../../src/renderer/svg-renderer.js';
 import { parse } from '../../src/parser/index.js';
+import { resolveOptions } from '../../src/parser/ast.js';
+import { EXAMPLES } from '../../src/examples.js';
 
 describe('SVG Renderer', () => {
   it('renders a simple AND gate expression', () => {
@@ -74,4 +76,21 @@ O1 = I1 AND I2`;
     expect(svg).toContain('ldl-port');
     expect(svg).toContain('r="3"');
   });
+});
+
+// Guard: every wire's data-from/data-to must reference a valid SVG node id (Item 9 introduced
+// user-facing ids on SVG nodes, distinct from internal ids — if the wires still reference
+// internal ids the DOM linkage is broken and diagrams appear with "ungated" wires).
+describe('SVG wire-node linkage', () => {
+  for (const [name, src] of Object.entries(EXAMPLES)) {
+    it(`${name}: wires reference valid SVG node ids`, () => {
+      const r = parse(src);
+      const svg = renderDiagram(r.diagram, r.diagram.portMeta, true, false, resolveOptions(r.diagram.options));
+      const nodeIds = new Set([...svg.matchAll(/<g class="ldl-symbol[^"]*" id="([^"]+)" /g)].map(m => m[1]));
+      const froms = [...svg.matchAll(/data-from="([^"]+)"/g)].map(m => m[1]);
+      const tos = [...svg.matchAll(/data-to="([^"]+)"/g)].map(m => m[1]);
+      for (const f of froms) expect(nodeIds.has(f), `${name}: wire data-from="${f}" has no matching SVG node id`).toBe(true);
+      for (const t of tos) expect(nodeIds.has(t), `${name}: wire data-to="${t}" has no matching SVG node id`).toBe(true);
+    });
+  }
 });

@@ -37,9 +37,17 @@ export function renderDiagram(diagram: Diagram, portMeta?: PortMeta[], showLabel
   const svgIds: string[] = [];
   const svgLabels: string[] = [];
 
+  // Map internal node ids to their SVG-facing ids for wire data-from/data-to attributes.
+  // The SVG id of a node (e.g. "I1", "AB") differs from its internal id (e.g. "in_2", "and_4"),
+  // so wire cross-references must use the SVG-facing id to match the DOM.
+  const svgIdOf = new Map<string, string>();
+  for (const n of layout.nodes) svgIdOf.set(n.id, svgObjectId(n));
+
   for (let wi = 0; wi < layout.wires.length; wi++) {
     const wire = layout.wires[wi];
-    svgWires.push(renderWire(wire.points, wire.fromId, wire.toId, `wire_${wi}`, wire.feedback));
+    const fromSvgId = svgIdOf.get(wire.fromId) ?? wire.fromId;
+    const toSvgId = svgIdOf.get(wire.toId) ?? wire.toId;
+    svgWires.push(renderWire(wire.points, fromSvgId, toSvgId, `wire_${wi}`, wire.feedback));
   }
 
   for (const node of layout.nodes) {
