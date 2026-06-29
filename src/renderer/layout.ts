@@ -205,7 +205,32 @@ function assignCoordinates(
   const H = new Map<string, number>();
   for (const n of nodes.values()) H.set(n.id, baseNodeHeight(n));
   const VGAP = Math.max(MIN_PORT_GAP, Math.round(rowSpacing / GRID) * GRID);
-  const sep = (a: FlatNode, b: FlatNode) => (H.get(a.id)! + H.get(b.id)!) / 2 + VGAP;
+  // Minimum centre-to-centre gap between two adjacent inputs in the input column, based on what
+  // their actual rendered labels need plus a margin — keeps the input column tight (matching the
+  // gate's own height) rather than packing at rowSpacing, which left large white gaps for high
+  // fan-in (e.g. 20-input AND had a 1920px stack for a 320px gate). The MIN_PORT_GAP floor
+  // preserves the dot diameter; the description line bumps the gap just enough not to overlap
+  // an adjacent input's description. Gates keep the rowSpacing-based sep() so routing channels
+  // between gate columns stay generous.
+  const minInputGap = (a: FlatNode, b: FlatNode): number => {
+    // The gate's port-expansion pass enforces MIN_PORT_GAP (25px) between successive ports.
+    // For an input to leave the gate-port Ys at their natural (PORT_SPACING=15) positions, the
+    // inputs must be at LEAST MIN_PORT_GAP apart — otherwise the expansion pass widens the gate
+    // body to match the input column, ballooning it. Add label-line space on top of MIN_PORT_GAP
+    // when name/description is present so e.g. a stack of labelled inputs has room for them.
+    // A 2×MIN_PORT_GAP floor leaves headroom for multi-consumer inputs (an input feeding two
+    // different multi-input gates spans more port-Ys than a single-consumer), keeping the gate
+    // expansion pass within budget and avoiding the dogleg-killer's all-or-nothing failure.
+    const lineA = (a.name ? 14 : 0) + (a.description ? 10 : 0);
+    const lineB = (b.name ? 14 : 0) + (b.description ? 10 : 0);
+    return Math.round((MIN_PORT_GAP + 10 + Math.max(lineA, lineB)) / GRID) * GRID;
+  };
+  const sep = (a: FlatNode, b: FlatNode) => {
+    if (a.kind === 'input' && b.kind === 'input') {
+      return Math.min((H.get(a.id)! + H.get(b.id)!) / 2 + VGAP, minInputGap(a, b));
+    }
+    return (H.get(a.id)! + H.get(b.id)!) / 2 + VGAP;
+  };
 
   const centre = new Map<string, number>();
   for (let d = 0; d <= maxDepth; d++) {
