@@ -28,10 +28,10 @@ Last updated: 2026-06-17
 | Link declarations (`.LINK`)                       | Missing | Parser does not handle `.LINK = STRING`                                                                      |
 | `OPTION INVERSION`                                | Done    | GATES (default) and BUBBLES                                                                                  |
 | `OPTION PORT_STYLE`                               | Done    | CIRCLE (default) and SQUARE                                                                                  |
-| `OPTION GATE_INPUT_STYLE`                         | Done    | EXPAND (default) and BARS (BARS routing known-broken, out of scope)                                          |
+| `OPTION GATE_INPUT_STYLE`                         | Done    | EXPAND (default) and BARS (fixed 2026-06: bar-tap port Ys evenly distributed across gate body; fan-in channel interleave above/below) |
 | `OPTION OUTPUT_ORDER`                             | Done    | DECLARATION (default) keeps declared output order; AUTO reorders outputs by source gate Y (opt-in: can add output-column congestion in some diagrams) |
 | `OPTION INPUT_ORDER`                              | Done    | AUTO (default) reorders inputs via Sugiyama barycentre; DECLARATION keeps declared order                     |
-| `OPTION COMPACTNESS`                              | Done    | NORMAL (default) / COMPACT_V (tighten rows) / COMPACT_H (tighten columns) / COMPACT (both) / SPACIOUS; min gaps still enforced |
+| `OPTION COMPACTNESS` / `OPTION SIZE`               | Done    | NORMAL (default) / COMPACT_V (tighten rows) / COMPACT_H (tighten columns) / COMPACT (both) / SPACIOUS; min gaps still enforced. `SIZE` is the canonical name; `COMPACTNESS` kept as deprecated alias |
 | `OPTION LABEL_STYLE`                              | Missing | Only SIDE behavior exists; ABOVE_BELOW not implemented                                                       |
 | `CONNECT` explicit wires                          | Missing | Parser stores `ConnectDecl[]` but renderer never reads them                                                  |
 | `STYLE ... END STYLE`                             | Partial | Parser stores blocks in `StyleDecl[]` but renderer never embeds CSS                                          |
@@ -268,27 +268,47 @@ Captured 2026-06 from user review. Roughly priority-ordered; tiers group by kind
       bounds the column height. The landed fix reorders the rowMap **integer rank** instead,
       keeping `assignCoordinates`'s uniform packing so heights stay bounded.
 
-### Tier 3 — Authoring & feature ergonomics
+### Tier 3 — Authoring & feature ergonomics — **RESOLVED (2026-06).**
 
-4. **Name a gate directly: `AND#MYID` (and `OR#`, `NOT#`)** so a gate can carry `.Name`/`.Description`
-   without the pass-through-intermediate trick. Parser currently only accepts block/object `#id`
-   forms; extend to bare gate operators so `AND#THISISMYID(...)`-style labelling works.
+4. **Name a gate directly: `AND#MYID` (and `OR#`, `NOT#`)**. **Done.** Added a function-call form
+   `AND#ID(...)` / `OR#ID(...)` / `NOT#ID(...)` parsed in `parsePrimary` (with `parseNotExpr`
+   intercepting `NOT#` so the NOT keyword isn't consumed before `parsePrimary` sees the `#`).
+   `buildGraph`'s `resolve()` attaches `.Name` / `.Description` meta by id, gives a tagged gate its
+   own deduplication key (`G#id`) so two gates with the same inputs but different ids stay distinct,
+   and `baseNodeHeight` reserves column space for the label. The renderer shows the instance name
+   above the body and description below, mirroring SEL block label placement. Test coverage: 4
+   parser tests + a Named Gates example exercising `OR#ID` and `AND#ID` with `.Name`/`.Description`.
 
-5. **Add an output by a bare port assignment: `A = FB#PROT.ALARM`.** A statement that just binds a
-   block output port to a new name should create that output (today outputs come from full
-   expressions). Define the semantics for re-referencing an already-instantiated block (`FB#PROT`)
-   and selecting another of its ports.
+5. **Add an output by a bare port assignment: `A = FB#PROT.ALARM`.** **Done.** Routing in
+   `graph.ts`'s `resolve()`: a block-type `SymbolRefNode` (`{kind:'symbolRef', symbolName:'FB',
+   id:'PROT', portName:'ALARM'}`) now traverses the existing block-instantiation path, reusing the
+   block instance via `blockMap.get('B#PROT')` and adding `ALARM` to its `usedPorts`. A previously
+   uninstantiated block is created lazily with no inputs. This allows binding multiple outputs to
+   one block without repeating its arguments — the Generic Block (FB) example was rewritten to
+   demonstrate it: `TRIP = FB#PROT(PHASE=IA,...).TRIP` followed by `ALARM = FB#PROT.ALARM` and
+   `CLOSE = FB#PROT.CLOSE` reuse the same block instance. Test coverage: 2 parser tests.
 
-6. **NOT-only through-connection should always show a NOT gate by convention**, even under
-   `OPTION INVERSION = BUBBLES`. A bare `O = NOT A` (input straight through a single inversion to an
-   output) reads better as an explicit NOT symbol than a lone port bubble.
+6. **NOT-only through-connection always shows a NOT gate by convention**, even under
+   `OPTION INVERSION = BUBBLES`. **Done.** In `buildGraph`'s BUBBLES absorption pass, NOT gates whose
+   source is an INPUT and whose only consumers are OUTPUT nodes are protected from absorption
+   (added to `protectedNotIds`), so `O = NOT A` keeps the NOT symbol rather than collapsing to a
+   lone output port bubble. Protection is scoped to single-inversion NOTs (depth 1) with an input
+   source — `NOT (A AND B)` still uses the conventional gate-output bubble. Test coverage: layout
+   suite updated to expect a NOT gate, with a comment referencing spec Tier 3.6.
 
-7. **Rename `OPTION COMPACTNESS` → `SIZE`** (user-facing term for what it controls). Keep
-   `COMPACTNESS` as a deprecated alias for back-compat. Update spec + examples.
+7. **Rename `OPTION COMPACTNESS` → `SIZE`** (user-facing term for what it controls). **Done.**
+   `resolveOptions` now accepts both `SIZE` and `COMPACTNESS` — `SIZE` is the canonical name,
+   `COMPACTNESS` kept for back-compat. Identical semantics (named values + explicit `[v,h]`
+   factors).
 
-8. **Fix `OPTION GATE_INPUT_STYLE = BARS`** (currently known-broken, out of scope). Target: draw
-   stacked input **bars** feeding the gate as in `or_bars.png` (nested bracket/bus-bar inputs) — the
-   clean way to show large fan-in. Pairs naturally with the large-fan-in work.
+8. **Fix `OPTION GATE_INPUT_STYLE = BARS`** (was known-broken). **Done.** Two fixes: (a) the bar-tap
+   port assignment now evenly distributes the 3rd+ inputs across the full gate body height (with a
+   1-grid-cell inset top and bottom) instead of cramming them into 10px; (b) the nested fan-in
+   channel allocator's `above` and `below` groups were both starting at
+   `gate.absX - GATE_CLEARANCE` and overlapping — `below` now shifts by half a step leftward to
+   interleave with `above`. Bar/stub constants match the spec (12px / 6px). BARS examples are now
+   included in the universal layout invariants (the prior exclusion is removed); both Input Bars and
+   Combined Options pass all 13 invariants.
 
 ### Tier 4 — Output structure, theming, export
 
