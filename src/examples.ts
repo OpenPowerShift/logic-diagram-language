@@ -320,6 +320,40 @@ OPTION INVERSION = BUBBLES
 
 O1 = I1 AND NOT I2 AND NOT I3 AND NOT I4
 O2 = I3 OR I4 OR NOT I5`,
+
+  'Styled by ID': `// Reveal IDs in the toolbar, then click any element. Its SVG id (gate, input,
+// output, wire, dot) is revealed so it can be styled or scripted.
+//
+// The STYLE block targets specific #ID groups emitted in the SVG output.
+// AND#G1 -> SVG id "G1"; FB#P -> SVG id "P"; TRIP/O1 -> SVG ids "TRIP"/"O1".
+//
+// Toggle the Dots toolbar button to hide junction tie-points (item 11).
+// Use the PNG dropdown for selectable-DPI raster export (item 13).
+OPTION OUTPUT_ORDER = AUTO
+OPTION HIDE_JUNCTIONS = FALSE
+
+TRIP = AND#G1(START, INHIBIT, FB#P(BAND=IA, EARTH=IN, EN=BLK).TRIP)
+ALARM = FB#P.ALARM
+
+G1.Name = "Trip AND"
+P.Name = "Feeder Protection"
+P.Description = "SEL-751A"
+
+STYLE
+  #G1 .ldl-fill { fill: #fff3cd; }
+  #P  { stroke: #1b5e20; }
+  #TRIP { stroke: #c62828; stroke-width: 4; }
+  #ALARM { stroke: #ef6c00; }
+END STYLE`,
+
+  'Hidden Dots': `// OPTION HIDE_JUNCTIONS hides every junction dot on the diagram (the toolbar
+// Dots button flips the same flag on top of the source option). Useful when
+// printing or when the wiring/junction pattern is visually noisy.
+OPTION HIDE_JUNCTIONS = TRUE
+OPTION INVERSION = BUBBLES
+A = A1 OR A2 OR A3
+B = B1 AND B2 AND B3
+O = A AND B AND C`,
 };
 
 export const EXAMPLE_NAMES = Object.keys(EXAMPLES);

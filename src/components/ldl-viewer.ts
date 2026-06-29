@@ -1,5 +1,5 @@
 import { LitElement, html, css } from "lit";
-import { customElement, property } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
 import { unsafeSVG } from "lit/directives/unsafe-svg.js";
 import type { UITheme } from "../theme/themes.js";
 import { LIGHT_UI } from "../theme/themes.js";
@@ -113,12 +113,84 @@ export class LdlViewer extends LitElement {
       text-align: center;
       margin-top: 40px;
     }
+    /* PNG DPI selector styling — it is a <select> but visually matches the toolbar buttons. */
+    .viewer-controls .png-scale {
+      background: var(--ldl-toolbar-dark);
+      color: var(--ldl-toolbar-text);
+      border: 1px solid var(--ldl-toolbar-border-alpha20);
+      border-radius: 3px;
+      padding: 2px 4px;
+      font-size: 11px;
+      cursor: pointer;
+      font-family: inherit;
+      outline: none;
+    }
+    .viewer-controls .png-scale:hover {
+      background: var(--ldl-toolbar-bg);
+      border-color: var(--ldl-toolbar-border-alpha40);
+    }
+    .viewer-controls .png-scale:focus {
+      border-color: var(--ldl-accent);
+    }
+    /* Tier 4.12 click-to-reveal popup. Surfaces the SVG id of the closest group on click. */
+    .reveal-popup {
+      position: absolute;
+      background: var(--ldl-toolbar-bg);
+      color: var(--ldl-toolbar-text);
+      border: 1px solid var(--ldl-toolbar-border-alpha40);
+      border-radius: 3px;
+      padding: 4px 6px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', 'Consolas', monospace;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transform: translate(-50%, calc(-100% - 6px));
+      pointer-events: auto;
+      z-index: 20;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+    .reveal-popup .reveal-id {
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .reveal-popup button {
+      background: var(--ldl-toolbar-dark);
+      color: var(--ldl-toolbar-text);
+      border: 1px solid var(--ldl-toolbar-border-alpha20);
+      border-radius: 2px;
+      padding: 1px 5px;
+      font-size: 10px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .reveal-popup button:hover {
+      background: var(--ldl-accent);
+      color: white;
+    }
+    .reveal-popup .reveal-close {
+      border: none;
+      background: transparent;
+      padding: 0 4px;
+      font-size: 14px;
+      line-height: 1;
+    }
   `;
 
   @property({ type: String }) svg = "";
   @property({ type: Boolean }) showLabels = true;
   @property({ type: Boolean }) showIds = false;
+  @property({ type: Boolean }) hideJunctions = false;
   @property({ attribute: false }) theme: UITheme = LIGHT_UI;
+
+  // Tier 4.12 — click-to-reveal popup state. Clicking any element inside the SVG that has an `id`
+  // (gate, input, output, wire, junction dot, port group, or net label) surfaces its id in a small
+  // popup at the click location. The user can dismiss or copy the id (clipboard write). The popup
+  // focuses on the SVG element closest to the click that carries `.id_*`, `.ldl-symbol`,
+  // `.ldl-wire`, `.ldl-junction-group`, or `.ldl-net-label`.
+  @state() private revealId: { x: number; y: number; id: string } | null = null;
 
   private scale = 1;
   private panX = 0;
@@ -259,10 +331,51 @@ export class LdlViewer extends LitElement {
     }
   }
 
-  private emitEvent(name: string) {
+  private emitEvent(name: string, detail?: any) {
     this.dispatchEvent(
-      new CustomEvent(name, { bubbles: true, composed: true }),
+      new CustomEvent(name, { bubbles: true, composed: true, detail }),
     );
+  }
+
+  // Tier 4.12 — click-to-reveal. Walk up the DOM from the click target to find the first element
+  // with an `id` in the SVG. Marks the popup; a second click anywhere else dismisses it.
+  private handleSvgClick(e: MouseEvent) {
+    if (this.isDragging) return;
+    const wrapper = this.shadowRoot?.querySelector('.viewer-wrapper') as HTMLElement;
+    if (!wrapper) return;
+    const rect = wrapper.getBoundingClientRect();
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
+    const target = e.target as Element;
+    let el: Element | null = target;
+    while (el && el !== wrapper) {
+      const id = el.getAttribute?.('id');
+      // Skip generated wire/pin ids by default — but reveal gate/object ids. A gate, FB, SR,
+      // input, output, junction group, or net label all carry a meaningful id (svgObjectId/
+      // dot_<n>/netlabel_<n>). Wires reveal too if clicked directly.
+      if (id) {
+        this.revealId = { x: cx, y: cy, id };
+        return;
+      }
+      el = el.parentElement;
+    }
+    this.revealId = null;
+  }
+
+  private dismissReveal() {
+    this.revealId = null;
+  }
+
+  private async copyRevealId() {
+    if (!this.revealId) return;
+    try { await navigator.clipboard.writeText(this.revealId.id); } catch { /* ignore */ }
+    this.revealId = null;
+  }
+
+  private handlePngExport(e: Event) {
+    const target = e.target as HTMLSelectElement;
+    const scale = parseInt(target.value || '2', 10);
+    this.emitEvent('export-png', { scale });
   }
 
   render() {
@@ -279,28 +392,50 @@ export class LdlViewer extends LitElement {
             <button
               class="toolbar-btn ${this.showLabels ? "active" : ""}"
               @click=${() => this.emitEvent("toggle-labels")}
+              title="Show / hide port labels (.Name/.Description)"
             >
               Labels
             </button>
             <button
               class="toolbar-btn ${this.showIds ? "active" : ""}"
               @click=${() => this.emitEvent("toggle-ids")}
+              title="Show / hide bare identifier labels"
             >
               IDs
+            </button>
+            <button
+              class="toolbar-btn ${this.hideJunctions ? "active" : ""}"
+              @click=${() => this.emitEvent("toggle-dots")}
+              title="Show / hide junction dots (net tie points)"
+            >
+              Dots
             </button>
             <div class="separator"></div>
             <button
               class="toolbar-btn"
               @click=${() => this.emitEvent("download-svg")}
+              title="Export SVG (vector)"
             >
               SVG
             </button>
             <button
               class="toolbar-btn"
               @click=${() => this.emitEvent("export-pdf")}
+              title="Export PDF"
             >
               PDF
             </button>
+            <select
+              class="toolbar-btn png-scale"
+              title="Export PNG at selected scale"
+              @change=${this.handlePngExport}
+            >
+              <option value="" disabled selected hidden>PNG</option>
+              <option value="1">PNG 1x</option>
+              <option value="2">PNG 2x</option>
+              <option value="3">PNG 3x</option>
+              <option value="4">PNG 4x</option>
+            </select>
           </div>
         </div>
         <div
@@ -310,8 +445,16 @@ export class LdlViewer extends LitElement {
           @mousemove=${this.handleMouseMove}
           @mouseup=${this.handleMouseUp}
           @mouseleave=${this.handleMouseUp}
+          @click=${this.handleSvgClick}
         >
           <div class="viewer-content">${unsafeSVG(this.svg)}</div>
+          ${this.revealId ? html`
+            <div class="reveal-popup" style="left:${this.revealId.x}px; top:${this.revealId.y}px" @click=${(ev: Event) => ev.stopPropagation()}>
+              <span class="reveal-id">${this.revealId.id}</span>
+              <button class="reveal-copy" @click=${this.copyRevealId} title="Copy to clipboard">Copy</button>
+              <button class="reveal-close" @click=${this.dismissReveal} title="Dismiss">×</button>
+            </div>
+          ` : ''}
         </div>
       `;
     }
@@ -332,8 +475,17 @@ export class LdlViewer extends LitElement {
           >
             IDs
           </button>
+          <button
+            class="toolbar-btn"
+            @click=${() => this.emitEvent("toggle-dots")}
+          >
+            Dots
+          </button>
           <button class="toolbar-btn" disabled>SVG</button>
           <button class="toolbar-btn" disabled>PDF</button>
+          <select class="toolbar-btn png-scale" disabled>
+            <option value="" disabled selected hidden>PNG</option>
+          </select>
         </div>
       </div>
       <div class="viewer-wrapper">

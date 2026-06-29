@@ -2,7 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { parse } from '../parser/index.js';
 import { resolveOptions, DEFAULT_OPTIONS } from '../parser/ast.js';
-import type { RenderOptions } from '../parser/ast.js';
+import type { Diagram, RenderOptions } from '../parser/ast.js';
 import { renderDiagram } from '../renderer/svg-renderer.js';
 import { layoutDiagram } from '../renderer/layout.js';
 import { validateLayout, type CheckResult } from '../renderer/checks.js';
@@ -139,6 +139,7 @@ export class LdlApp extends LitElement {
   @state() private modified = false;
   @state() private showLabels = true;
   @state() private showIds = false;
+  @state() private hideJunctions = false;
   @state() private currentTheme: AppTheme = getCurrentTheme();
 
   private unsubscribeTheme: (() => void) | null = null;
@@ -245,6 +246,11 @@ export class LdlApp extends LitElement {
     this.updateDiagram(this.sourceText);
   }
 
+  private handleToggleDots() {
+    this.hideJunctions = !this.hideJunctions;
+    this.updateDiagram(this.sourceText);
+  }
+
   private handleDownloadSvg() {
     if (!this.svg) return;
     const printSvg = this.getPrintSvg();
@@ -292,12 +298,60 @@ export class LdlApp extends LitElement {
     img.src = imgSrc;
   }
 
+  // Tier 4.13: PNG export at a user-selected DPI (1x, 2x, 3x, 4x). Reuses the same SVG-to-canvas
+  // pipeline as the PDF export but skips the jsPDF step and writes the PNG directly.
+  private handleExportPng(e: Event) {
+    const scale = parseInt((e as CustomEvent).detail?.scale ?? '2', 10);
+    const printSvg = this.getPrintSvg();
+    if (!printSvg) return;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(printSvg, 'image/svg+xml');
+    const svgEl = doc.documentElement;
+    const vb = svgEl.getAttribute('viewBox')?.split(' ').map(Number) ?? [0, 0, 800, 400];
+    const svgW = vb[2];
+    const svgH = vb[3];
+
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(svgW * scale));
+    canvas.height = Math.max(1, Math.round(svgH * scale));
+    const ctx = canvas.getContext('2d')!;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const svgData = new XMLSerializer().serializeToString(svgEl);
+    const imgSrc = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+    const img = new Image();
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `diagram@${scale}x.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 'image/png');
+    };
+    img.src = imgSrc;
+  }
+
+  // Toolbar toggles override the diagram-source options for the live preview. The "live" options
+  // carry the toolbar's hideJunctions setting so the SVG class flips; the "print" options don't
+  // (the export reflects only the diagram's own OPTION HIDE_JUNCTIONS).
+  private liveOptions(diagram: Diagram): RenderOptions {
+    const opts = resolveOptions(diagram.options);
+    opts.hideJunctions = this.hideJunctions || opts.hideJunctions;
+    return opts;
+  }
+
   private getPrintSvg(): string {
     try {
       const result = parse(this.sourceText);
       if (result.diagram.outputs.length > 0) {
-        const options = resolveOptions(result.diagram.options);
-        return renderDiagram(result.diagram, result.diagram.portMeta, this.showLabels, this.showIds, options, LIGHT_DIAGRAM);
+        return renderDiagram(result.diagram, result.diagram.portMeta, this.showLabels, this.showIds, this.liveOptions(result.diagram), LIGHT_DIAGRAM);
       }
     } catch { /* fall through to cached svg */ }
     return this.svg;
@@ -308,7 +362,7 @@ export class LdlApp extends LitElement {
       const result = parse(source);
       this.parseErrors = result.errors;
       if (result.diagram.outputs.length > 0) {
-        const options = resolveOptions(result.diagram.options);
+        const options = this.liveOptions(result.diagram);
         const layout = layoutDiagram(result.diagram, result.diagram.portMeta, options);
         this.checks = validateLayout(layout);
         this.svg = renderDiagram(result.diagram, result.diagram.portMeta, this.showLabels, this.showIds, options, this.currentTheme.diagram);
@@ -356,11 +410,14 @@ export class LdlApp extends LitElement {
             .svg=${this.svg}
             .showLabels=${this.showLabels}
             .showIds=${this.showIds}
+            .hideJunctions=${this.hideJunctions}
             .theme=${this.currentTheme.ui}
             @toggle-labels=${this.handleToggleLabels}
             @toggle-ids=${this.handleToggleIds}
+            @toggle-dots=${this.handleToggleDots}
             @download-svg=${this.handleDownloadSvg}
             @export-pdf=${this.handleExportPdf}
+            @export-png=${this.handleExportPng}
           ></ldl-viewer>
         </div>
       </div>

@@ -170,4 +170,38 @@ CLOSE = FB#PROT.CLOSE`;
       expect(result.diagram.outputs[2].name).toBe('CLOSE');
     });
   });
+
+  describe('STYLE blocks', () => {
+    it('parses STYLE ... END STYLE with CSS selectors', () => {
+      const src = `O = A AND B
+STYLE
+  #G1 { fill: red; stroke: blue; }
+  .ldl-wire { stroke: green; }
+END STYLE`;
+      const result = parse(src);
+      expect(result.errors).toHaveLength(0);
+      expect(result.diagram.styles).toHaveLength(1);
+      expect(result.diagram.styles[0].css).toContain('#G1');
+      expect(result.diagram.styles[0].css).toContain('.ldl-wire');
+    });
+
+    it('parses STYLE ... END (bare END, no STYLE)', () => {
+      const src = `O = A AND B
+STYLE
+  #G1 { fill: red; }
+END`;
+      const result = parse(src);
+      expect(result.errors).toHaveLength(0);
+      expect(result.diagram.styles).toHaveLength(1);
+    });
+
+    it('handles empty STYLE block', () => {
+      const src = `O = A AND B
+STYLE
+END STYLE`;
+      const result = parse(src);
+      expect(result.errors).toHaveLength(0);
+      expect(result.diagram.styles).toHaveLength(1);
+    });
+  });
 });

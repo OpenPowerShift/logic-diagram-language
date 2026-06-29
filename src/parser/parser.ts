@@ -29,8 +29,73 @@ function tokenize(source: string): { tokens: Token[]; errors: ParseError[] } {
   let line = 1;
   let col = 1;
 
+  // Detect STYLE blocks at line start and skip the raw CSS (which contains characters the
+  // tokenizer can't handle: #, {, }, :, ;, .). A STYLE block starts with `STYLE` on its own
+  // line and ends with `END` on its own line. We emit a single STYLE token, then a raw CSS
+  // STRING token containing the CSS body, then skip to END and emit END.
+  const checkStyleBlock = (): boolean => {
+    // Must be at the start of a line (col === 1 or only whitespace before pos on this line).
+    let p = pos;
+    while (p > 0 && source[p - 1] === ' ') p--;
+    if (p > 0 && source[p - 1] !== '\n') return false;
+    // Check if the line starts with STYLE (case-insensitive) followed by whitespace/newline.
+    const rest = source.slice(pos);
+    const m = rest.match(/^STYLE\s*[\n\r]/i);
+    if (!m) return false;
+    // Emit STYLE token.
+    tokens.push({ type: 'KEYWORD', value: 'STYLE', line, column: col, offset: pos });
+    const styleEnd = pos + m[0].length;
+    // Advance past STYLE + newline.
+    pos = styleEnd;
+    line++;
+    col = 1;
+    // Find the next standalone END or END STYLE (on its own line).
+    const endMatch = source.slice(pos).match(/\n\s*END(\s+STYLE)?\s*(\n|$)/i);
+    let cssEnd: number;
+    if (endMatch) {
+      cssEnd = pos + endMatch.index!;
+    } else {
+      cssEnd = source.length;
+    }
+    // Emit a STRING token containing the raw CSS.
+    const cssText = source.slice(pos, cssEnd).trim();
+    if (cssText) {
+      tokens.push({ type: 'STRING', value: cssText, line, column: 1, offset: pos });
+    }
+    // Advance to END.
+    if (endMatch) {
+      const endStart = pos + endMatch.index! + 1; // skip the \n before END
+      // Count newlines in the CSS text for line tracking.
+      const cssRaw = source.slice(pos, endStart);
+      const newlines = (cssRaw.match(/\n/g) || []).length;
+      line += newlines;
+      pos = endStart;
+      col = 1;
+      // Skip whitespace before END.
+      while (pos < source.length && source[pos] === ' ') { pos++; col++; }
+      // Emit END token.
+      tokens.push({ type: 'KEYWORD', value: 'END', line, column: col, offset: pos });
+      pos += 3;
+      col += 3;
+      // If END is followed by STYLE (i.e. "END STYLE"), skip past STYLE too so the parser
+      // doesn't see a second STYLE keyword and parse an empty style block.
+      const rest2 = source.slice(pos);
+      const styleAfter = rest2.match(/^\s+STYLE\b/i);
+      if (styleAfter) {
+        pos += styleAfter[0].length;
+        col += styleAfter[0].length;
+      }
+    } else {
+      pos = source.length;
+    }
+    return true;
+  };
+
   while (pos < source.length) {
     const ch = source[pos];
+
+    // Check for STYLE block before any other tokenization (CSS content has invalid chars).
+    if (checkStyleBlock()) continue;
 
     if (ch === '\n') {
       line++;
@@ -179,11 +244,13 @@ class Parser {
   private tokens: Token[];
   private pos: number;
   public errors: ParseError[];
+  private source: string;
 
-  constructor(tokens: Token[], errors: ParseError[]) {
+  constructor(tokens: Token[], errors: ParseError[], source: string) {
     this.tokens = tokens;
     this.pos = 0;
     this.errors = [...errors];
+    this.source = source;
   }
 
   private peek(): Token {
@@ -268,8 +335,16 @@ class Parser {
         options.push({ name, value, pos: { line: nameToken.line, column: nameToken.column, offset: nameToken.offset } });
       } else if (this.isKeyword('STYLE')) {
         this.advance();
-        const css = this.parseStyleBlock();
-        styles.push({ css });
+        // The tokenizer emitted the CSS body as a single STRING token (raw text between STYLE
+        // and END). If no STRING follows (empty STYLE block), push empty CSS.
+        const cssToken = this.peek();
+        if (cssToken.type === 'STRING') {
+          styles.push({ css: this.advance()!.value });
+        } else {
+          styles.push({ css: '' });
+        }
+        // Consume the END keyword that closes the STYLE block.
+        this.match('KEYWORD', 'END');
       } else if (this.isKeyword('STYLESHEET')) {
         this.advance();
         this.expect('STRING');
@@ -539,28 +614,30 @@ class Parser {
   }
 
   private parseStyleBlock(): string {
-    let css = '';
-    let depth = 0;
-    while (this.peek().type !== 'EOF') {
-      if (this.isKeyword('END')) {
-        if (depth === 0) {
-          this.advance();
-          break;
-        }
-        depth--;
-      }
-      if (this.peek().value === '{') {
-        depth++;
-      }
-      css += this.advance()?.value + ' ';
-      if (this.peek().value === '}') {
-        css += this.advance()?.value + ' ';
-        if (depth === 0) {
-          // accept closing brace at depth 0
-        }
-      }
+    // Extract raw CSS source between STYLE and END STYLE, bypassing the tokenizer (which
+    // mangles CSS selectors like #G1, .ldl-fill, { fill: #fff3cd; } into individual tokens).
+    // The STYLE keyword has already been consumed; find the next END keyword and extract
+    // everything in the source between the end of this line and the END line.
+    const styleToken = this.tokens[Math.max(0, this.pos - 1)];
+    const startOffset = styleToken.offset + styleToken.value.length;
+    // Find the end of the STYLE line so CSS starts on the next line.
+    const lineEnd = this.source.indexOf('\n', startOffset);
+    const cssStart = lineEnd === -1 ? this.source.length : lineEnd + 1;
+    // Find the next standalone END keyword (on its own line, case-insensitive).
+    const endMatch = this.source.slice(cssStart).match(/\n\s*END\s*(\n|$)/i);
+    let cssEnd: number;
+    if (endMatch) {
+      cssEnd = cssStart + endMatch.index!;
+    } else {
+      cssEnd = this.source.length;
     }
-    return css.trim();
+    const css = this.source.slice(cssStart, cssEnd).trim();
+    // Skip tokens until past the END keyword that closes the STYLE block.
+    while (this.peek().type !== 'EOF' && !this.isKeyword('END')) {
+      this.advance();
+    }
+    this.match('KEYWORD', 'END');
+    return css;
   }
 }
 
@@ -574,7 +651,7 @@ export function parse(source: string): ParseResult {
     };
   }
 
-  const parser = new Parser(tokens, lexErrors);
+  const parser = new Parser(tokens, lexErrors, source);
   const diagram = parser.parseDiagram();
 
   return {

@@ -3990,6 +3990,492 @@ exports[`Visual regression (layout geometry) > Generic Block (FB) 1`] = `
 }
 `;
 
+exports[`Visual regression (layout geometry) > Hidden Dots 1`] = `
+{
+  "canvas": [
+    1050,
+    350,
+  ],
+  "junctions": [],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        430,
+        200,
+        75,
+        120,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          225,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          430,
+          260,
+          "in_1",
+          null,
+          0,
+        ],
+        [
+          430,
+          295,
+          "in_2",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          505,
+          260,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        155,
+        75,
+        60,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          170,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          690,
+          185,
+          "in_1",
+          null,
+          0,
+        ],
+        [
+          690,
+          200,
+          "in_2",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          765,
+          185,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        100,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "A2",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          110,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        135,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "A3",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          145,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        175,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "C",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          185,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        215,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "B1",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          225,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        250,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "B2",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          260,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        285,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "B3",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          295,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        65,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "A1",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          75,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        50,
+        75,
+        120,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          437,
+          145,
+          "in_2",
+          null,
+          0,
+        ],
+        [
+          437,
+          75,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          440,
+          110,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          505,
+          110,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        950,
+        175,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          950,
+          185,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "O",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          110,
+        ],
+        [
+          440,
+          110,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          145,
+        ],
+        [
+          437,
+          145,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          185,
+        ],
+        [
+          410,
+          185,
+        ],
+        [
+          410,
+          350,
+        ],
+        [
+          685,
+          350,
+        ],
+        [
+          685,
+          185,
+        ],
+        [
+          690,
+          185,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          225,
+        ],
+        [
+          430,
+          225,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          260,
+        ],
+        [
+          430,
+          260,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          295,
+        ],
+        [
+          430,
+          295,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          75,
+        ],
+        [
+          437,
+          75,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          505,
+          110,
+        ],
+        [
+          675,
+          110,
+        ],
+        [
+          675,
+          170,
+        ],
+        [
+          690,
+          170,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          505,
+          260,
+        ],
+        [
+          665,
+          260,
+        ],
+        [
+          665,
+          200,
+        ],
+        [
+          690,
+          200,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          765,
+          185,
+        ],
+        [
+          950,
+          185,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
 exports[`Visual regression (layout geometry) > Input Bars 1`] = `
 {
   "canvas": [
@@ -9865,6 +10351,412 @@ exports[`Visual regression (layout geometry) > Square Ports 1`] = `
         [
           690,
           100,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > Styled by ID 1`] = `
+{
+  "canvas": [
+    1050,
+    450,
+  ],
+  "junctions": [
+    [
+      675,
+      135,
+    ],
+  ],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        690,
+        330,
+        75,
+        60,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          345,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          690,
+          360,
+          "in_1",
+          null,
+          0,
+        ],
+        [
+          690,
+          375,
+          "in_2",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          765,
+          360,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": "FB",
+      "box": [
+        430,
+        95,
+        210,
+        110,
+      ],
+      "desc": "SEL-751A",
+      "inputs": [
+        [
+          430,
+          125,
+          "in_0",
+          "EN",
+          0,
+        ],
+        [
+          430,
+          150,
+          "in_1",
+          "BAND",
+          0,
+        ],
+        [
+          430,
+          175,
+          "in_2",
+          "EARTH",
+          0,
+        ],
+      ],
+      "label": null,
+      "name": "Feeder Protection",
+      "outputs": [
+        [
+          640,
+          135,
+          "ALARM",
+          0,
+        ],
+        [
+          640,
+          135,
+          "TRIP",
+          0,
+        ],
+      ],
+      "type": "FB",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        140,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "IA",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          150,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        210,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "IN",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          220,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        350,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "INHIBIT",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          360,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        430,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "START",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          440,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        50,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "BLK",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          60,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        950,
+        125,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          950,
+          135,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "ALARM",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        950,
+        350,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          950,
+          360,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "TRIP",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          150,
+        ],
+        [
+          430,
+          150,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          220,
+        ],
+        [
+          405,
+          220,
+        ],
+        [
+          405,
+          175,
+        ],
+        [
+          430,
+          175,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          360,
+        ],
+        [
+          690,
+          360,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          440,
+        ],
+        [
+          665,
+          440,
+        ],
+        [
+          665,
+          375,
+        ],
+        [
+          690,
+          375,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          60,
+        ],
+        [
+          415,
+          60,
+        ],
+        [
+          415,
+          125,
+        ],
+        [
+          430,
+          125,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          640,
+          135,
+        ],
+        [
+          675,
+          135,
+        ],
+        [
+          675,
+          345,
+        ],
+        [
+          690,
+          345,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          640,
+          135,
+        ],
+        [
+          950,
+          135,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          765,
+          360,
+        ],
+        [
+          950,
+          360,
         ],
       ],
     },

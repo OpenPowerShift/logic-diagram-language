@@ -88,6 +88,17 @@ exports[`Bend/crossing metrics > Generic Block (FB) 1`] = `
 }
 `;
 
+exports[`Bend/crossing metrics > Hidden Dots 1`] = `
+{
+  "H": 350,
+  "bends": 8,
+  "bent": 3,
+  "crossings": 4,
+  "straight": 7,
+  "wires": 10,
+}
+`;
+
 exports[`Bend/crossing metrics > Input Bars 1`] = `
 {
   "H": 270,
@@ -250,6 +261,17 @@ exports[`Bend/crossing metrics > Square Ports 1`] = `
   "crossings": 0,
   "straight": 3,
   "wires": 3,
+}
+`;
+
+exports[`Bend/crossing metrics > Styled by ID 1`] = `
+{
+  "H": 450,
+  "bends": 8,
+  "bent": 4,
+  "crossings": 0,
+  "straight": 4,
+  "wires": 8,
 }
 `;
 

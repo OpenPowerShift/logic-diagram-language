@@ -63,7 +63,10 @@ Last updated: 2026-06-17
 | SVG download                           | Done    |                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | PDF export                             | Done    | Via canvas + jsPDF                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | CSS class injection (`ldl-*`)          | Done    |                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| External CSS via stylesheet            | Missing | Not loaded                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `STYLE ... END STYLE`                             | Done    | Raw CSS extracted by the tokenizer (bypassing the LDL lexer) and injected into the SVG `<defs><style>`. `#ID` selectors target the semantic SVG ids emitted on gates/blocks/inputs/outputs. `END` or `END STYLE` both close the block |
+| `OPTION STROKE_WIDTH`                            | Done    | Global stroke-width knob (px); applied via CSS to every symbol body, bubble, input bar, and wire |
+| `OPTION HIDE_JUNCTIONS`                          | Done    | TRUE / FALSE (default). Hides all junction dots via CSS class `ldl-hide-dots` on the SVG root |
+| `OPTION SIZE` / `OPTION COMPACTNESS`              | Done    | `SIZE` is the canonical name; `COMPACTNESS` is a deprecated alias. NORMAL (default) / COMPACT_V / COMPACT_H / COMPACT / SPACIOUS; explicit `[v,h]` factors also accepted |
 | Custom symbol rendering from SVG files | Missing | Symbol definitions not processed                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | Attribute substitution in symbols      | Missing | No symbol rendering pipeline                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 
@@ -310,26 +313,37 @@ Captured 2026-06 from user review. Roughly priority-ordered; tiers group by kind
    included in the universal layout invariants (the prior exclusion is removed); both Input Bars and
    Combined Options pass all 13 invariants.
 
-### Tier 4 — Output structure, theming, export
+### Tier 4 — Output structure, theming, export — **RESOLVED (2026-06).**
 
-9. **Semantic, usable SVG structure.** Emit nested `<g>` per logical object with stable `id`s:
-   each gate/block as `<g id="..." class="gate or|and|...">` containing its body, and each port as a
-   child group bundling its **dot + name + description**; outputs likewise; junction dots grouped
-   with their owning source/net. Use `<defs>` + `<symbol>`/`<use>` for repeated identical glyphs
-   (gate bodies, dots). Consider separate **layers** (groups) for wires / bodies / dots / port-names
-   / descriptions so a consumer can toggle or restyle each. This is the enabler for items 10–12
-   (style-by-id, hide-dots, click-to-identify) and improves accessibility.
+9. **Semantic, usable SVG structure.** **Done.** The SVG output is partitioned into layered groups:
+   `<g class="ldl-layer-wires">`, `ldl-layer-bodies`, `ldl-layer-ports`, `ldl-layer-dots`,
+   `ldl-layer-objects`, `ldl-layer-labels`. Each logical object carries a stable `id`:
+   gates/blocks by their user-facing `#ID` (or internal id), inputs/outputs by their name,
+   wires by `wire_{i}`, junctions by `dot_{i}`, net labels by `netlabel_{i}`. The internal id
+   is also exposed via `data-ldl-id` for tooling. CSS `#ID` selectors in STYLE blocks target
+   the user-facing identifier.
 
-10. **Theming.** Stroke colour and thickness; ability to colour individual lines/paths and fill
-    particular boxes **by their ID**. Builds on the class/id structure from item 9 (CSS-driven).
+10. **Theming.** **Done.** `STYLE ... END STYLE` blocks are extracted as raw CSS (the tokenizer
+    detects STYLE blocks and skips the CSS body, which contains characters the LDL lexer can't
+    handle: `#`, `{`, `}`, `:`, `;`). The CSS is injected into the rendered SVG's `<defs><style>`,
+    so `#G1 { stroke: red; }` restyles the SVG group whose `id` is `G1`. `OPTION STROKE_WIDTH`
+    sets a global stroke-width knob applied via CSS to every symbol body, bubble, and input bar.
+    External `STYLESHEET` loading is accepted by the parser but not resolved (requires a file
+    system resolver; future work).
 
-11. **Options to hide junction dots** — on gates/objects and on inputs/outputs, as separate options
-    plus a global toggle.
+11. **Options to hide junction dots.** **Done.** `OPTION HIDE_JUNCTIONS = TRUE|FALSE` sets
+    `opts.hideJunctions`; the SVG root carries `ldl-hide-dots` class and a CSS rule hides
+    `.ldl-junction-group`. The viewer toolbar has a "Dots" toggle that flips the same option on
+    top of the source-driven setting.
 
-12. **Click an ID also reveals gate/object IDs** (not just input/output IDs), so every element is
-    addressable for styling/linking. Depends on the grouped-by-id SVG (item 9).
+12. **Click to reveal gate/object IDs.** **Done.** The viewer has a click handler that walks up
+    the DOM from the click target to find the first element with an `id`, then surfaces it in a
+    small popup at the click location with a "Copy" button (clipboard write). Works on gates,
+    blocks, inputs, outputs, wires, junction dots, and net labels.
 
-13. **PNG export with selectable resolution** (e.g. a dropdown of scales/DPI in the app).
+13. **PNG export with selectable resolution.** **Done.** The viewer toolbar has a PNG dropdown
+    with 1x/2x/3x/4x scale options. The export reuses the SVG-to-canvas pipeline (same as PDF)
+    but writes the PNG directly via `canvas.toBlob` instead of going through jsPDF.
 
 ## Current Issues
 
