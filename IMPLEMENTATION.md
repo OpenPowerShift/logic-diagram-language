@@ -287,6 +287,21 @@ Captured 2026-06 from user review. Roughly priority-ordered; tiers group by kind
     column packing/height bound. Until then the gate-expansion stopgap stays. Guard with the
     no-doglegs + height-bound invariants and the bend metric.
 
+    **Two architectures attempted (both reverted) — the real obstacle.** (1) *Fixed height + port
+    projection* (`fitPortsToBody` as a late override pass): kept gates at base height, `oob = 0`, but
+    broke no-doglegs in ~7 examples + added cross-net overlaps. (2) *Gate-aware input snapping*
+    (size each gate for its ports at a label-safe 30px spacing, slide to align fixed sources, snap
+    free single-consumer inputs to their ports): **far worse** — 83 sub-MIN doglegs across ~20
+    examples, *including Simple AND Gate*. Root cause: an additive pass that changes a gate's
+    **port spacing / body height** is fundamentally unsafe because **~6 downstream passes assume the
+    base PORT_SPACING (15px) port layout** — the OR-curve-tap pass, single-output centring
+    (`recenterOutputs`), the multi-input fan-in channel pass, the residual dogleg-killer, the
+    gate–gate overlap resolver, and the input-column packing. Changing port Ys/spacing in one pass
+    desynchronises all of them. **Conclusion:** this is not an additive-pass change; it needs a
+    *coordinated rework* that makes per-gate port spacing a first-class property every dependent pass
+    reads, done as a dedicated multi-step refactor with the invariant suite green at each step — not
+    a single patch. The gate-expansion stopgap remains until that refactor is scheduled.
+
 ### Tier 3 — Authoring & feature ergonomics — **RESOLVED (2026-06).**
 
 4. **Name a gate directly: `AND#MYID` (and `OR#`, `NOT#`)**. **Done.** Added a function-call form
