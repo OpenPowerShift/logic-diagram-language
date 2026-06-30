@@ -1223,6 +1223,59 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     }
   }
 
+  // ── Phase: input placement. Snap each single-consumer INPUT onto the port row of the gate it
+  // feeds, so its wire is straight (the gate is already port-count-sized and positioned). Process
+  // each input column top-to-bottom, cascading to keep label-safe spacing; a multi-consumer input
+  // can't sit on one gate's port so it keeps its swept position.
+  {
+    const consumerCount = new Map<string, number>();
+    const consumerOf = new Map<string, string>();
+    for (const nd of nodes.values()) for (const id of nd.inputIds) {
+      consumerCount.set(id, (consumerCount.get(id) ?? 0) + 1);
+      if (!consumerOf.has(id)) consumerOf.set(id, nd.id);
+    }
+    // The port Y that input `id` maps to on its consumer gate: gates connect sources to ports in
+    // ascending source-Y order, so input rank r (by current source Y) -> the r-th port by Y.
+    const targetPortY = (id: string): number | undefined => {
+      const consumerId = consumerOf.get(id);
+      const cFlat = consumerId ? nodes.get(consumerId) : undefined;
+      const cNode = consumerId ? nodeMap.get(consumerId) : undefined;
+      // Only align to AND/OR gate ports (uniform gap). Blocks (COMPARE/TIMER/...) and BARS gates
+      // have their own fixed/asymmetric port layouts, and NOT has a single input.
+      if (!cFlat || !cNode || (cFlat.gateType !== 'AND' && cFlat.gateType !== 'OR') || cNode.barsMode || cNode.inputs.length < 2) return undefined;
+      const ranked = cFlat.inputIds
+        .map(sid => ({ sid, y: nodeMap.get(sid)?.outputs[0]?.absY }))
+        .filter((e): e is { sid: string; y: number } => e.y !== undefined)
+        .sort((a, b) => a.y - b.y);
+      const rank = ranked.findIndex(e => e.sid === id);
+      if (rank < 0) return undefined;
+      const portsByY = [...cNode.inputs].sort((a, b) => a.absY - b.absY);
+      return portsByY[rank]?.absY;
+    };
+    const LABEL_GAP = 30;
+    const cols = new Map<number, LayoutNode[]>();
+    for (const ln of layoutNodes) {
+      if (ln.gateType !== 'INPUT') continue;
+      (cols.get(ln.absX) ?? cols.set(ln.absX, []).get(ln.absX)!).push(ln);
+    }
+    for (const col of cols.values()) {
+      col.sort((a, b) => a.absY - b.absY);
+      // Snap each single-consumer input onto its gate port — but only if the slot is clear of its
+      // neighbours (so we never collide a snapped input with another input). Non-snappable inputs
+      // keep their swept position.
+      for (const ln of col) {
+        if (consumerCount.get(ln.id) !== 1) continue;
+        const want = targetPortY(ln.id);
+        if (want === undefined) continue;
+        const y = Math.round(want / GRID) * GRID;
+        if (col.some(o => o !== ln && Math.abs(o.outputs[0]!.absY - y) < LABEL_GAP - 0.5)) continue;
+        const d = y - (ln.outputs[0]?.absY ?? ln.absY);
+        ln.absY += d;
+        for (const p of ln.outputs) p.absY += d;
+      }
+    }
+  }
+
   // ── Phase: output placement (single pass, runs after every gate move so it sees final driver
   // positions). Order each output column (AUTO by source Y, else declaration), then place each
   // output at its driver's output Y — a straight wire where the column allows, otherwise pushed
