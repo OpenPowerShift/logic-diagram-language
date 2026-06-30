@@ -986,12 +986,12 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     }
   }
 
-  // Kill residual small doglegs. Each input port has exactly one source, so a port sitting
-  // within MIN_DOGLEG of (but not on) its source Y leaves an ugly small jog. Prefer to fix
-  // this by shifting the WHOLE gate (keeping the port gaps intact) by a delta that aligns
-  // one port without leaving any other port with a small dogleg. Only if no such shift
-  // exists do we nudge a single port, and even then only when it preserves the minimum
-  // PORT_SPACING gap to its neighbours.
+  // ── Phase: dogleg cleanup. Gate placement MINIMISES sub-MIN_DOGLEG jogs, but a few can survive a
+  // placement compromise — a multi-consumer input that cannot sit on every gate's port, or a body
+  // nudged by the protected zone. This phase enforces the clean-wire rule: for any input port within
+  // MIN_DOGLEG of (but not on) its source, shift the WHOLE gate to align one port without creating a
+  // new small jog elsewhere; only if no such shift exists, nudge the single port (keeping its
+  // PORT_SPACING gap to neighbours). Feedback ports have no left-hand source and are skipped.
   const isSmall = (d: number) => Math.abs(d) >= 0.5 && Math.abs(d) < MIN_DOGLEG;
   for (const node of nodes.values()) {
     if (node.inputIds.length === 0) continue;
@@ -1039,12 +1039,8 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     }
   }
 
-  // Fine-alignment for function blocks and outputs. Blocks have fixed, asymmetric ports and are
-  // skipped by the gate-expansion passes, so the coordinate assignment can leave a small (<
-  // MIN_DOGLEG) jog on a block input; outputs can likewise sit a few px off their driver. Shift
-  // the node (and its ports) to straighten — for a 2-input block, try aligning each input or the
-  // symmetric centre, else expand the block so both ports meet their sources — keeping clear of
-  // column neighbours.
+  // Helper: the output Y of a driver's port `portName` (or its first output) — used by the
+  // input/output placement phases to align a wire's far end to its driver.
   const blkSrcY = (srcId: string, portName?: string): number | undefined => {
     const s = nodeMap.get(srcId);
     if (!s) return undefined;
