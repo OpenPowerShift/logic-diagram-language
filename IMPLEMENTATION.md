@@ -302,6 +302,53 @@ Captured 2026-06 from user review. Roughly priority-ordered; tiers group by kind
     reads, done as a dedicated multi-step refactor with the invariant suite green at each step — not
     a single patch. The gate-expansion stopgap remains until that refactor is scheduled.
 
+    **Refactor in progress** (branch `gate-port-spacing-refactor`):
+    - **Step 1 — DONE.** Extracted `gateBodyHeight(n, gap)` / `gateInputPortY(top, i, gap)` as the
+      single source of truth for gate vertical layout (behaviour-preserving, all snapshots
+      unchanged), and added `tests/unit/gate-port-contract.spec.ts` — the contract every step must
+      keep (output dead-centre; input ports ordered, in-body, ≥ PORT_SPACING apart).
+    - **Step 2 — per-gate `gap` field.** Store the chosen vertical port spacing on the gate node;
+      compute it label-aware (≈`MIN_PORT_GAP` when any source is a labelled input, else
+      `PORT_SPACING`). Route the alignment passes' `idealYs`/height maths through `gateBodyHeight`/
+      `gateInputPortY(gap)`. Behaviour-preserving while `gap` stays at `PORT_SPACING`.
+    - **Step 3 — consolidate the writers.** Fold the three growth passes + the residual dogleg-killer
+      into one authoritative `placeGateBodies` pass (sizes by port count via the helpers, slides to
+      align fixed sources, leaves clean-`MIN_DOGLEG` doglegs); make the OR-curve, fan-in, output
+      centring and protected-zone passes read-only consumers of the final port Ys. Guard with the
+      contract + no-doglegs + height-bound invariants.
+    - **Step 4 — gate-aware input snapping.** With sizing authoritative and gap label-safe, snap each
+      free single-consumer input to its gate's port Y (room-checked against column neighbours), so
+      the gate stays port-count-sized AND the wire is straight — the actual goal.
+
+    **LANDED (2026-07).** Gates are now sized by **port count only** and inputs line up with their
+    ports, via a clean phase pipeline that replaced the old growth/dogleg-killer stack. The placement
+    pipeline now reads as named single-purpose phases:
+    - **Gate placement** — *one* min-jog pass (replaced three: input-fed fit + gate-fed expansion +
+      small-dogleg shift + dogleg-enforcement grow; 191 → 39 lines). Every AND/OR gate is sized by
+      `gateBodyHeight(gap)` and slid to the position minimising sub-`MIN_DOGLEG` jogs; never grown to
+      span far sources (those wires read as clean Z-routes). Depth-ordered so each gate sees its
+      drivers placed.
+    - **Dogleg cleanup** — enforces the clean-wire rule for the residual cases the fit can't satisfy
+      (a multi-consumer input that can't sit on every gate's port; a protected-zone nudge).
+    - **Input placement** — *new* phase: snap each single-consumer input onto its AND/OR gate's port
+      row (by source-Y rank, room-checked). This is the fix for the recurring "inputs don't line up"
+      feedback — e.g. `A OR B OR C` inputs now sit exactly on the OR's ports.
+    - **Output placement** — *one* pass (replaced four), run after all gate moves: order each column
+      (AUTO by source Y / declaration) then align to driver Y or push down a clean `MIN_DOGLEG`.
+
+    Results across all examples: gates port-count-sized (CBFPS `and_4` 115 → 60, Motor 175 → 120),
+    **total sub-`MIN_DOGLEG` doglegs = 1, out-of-body 0, overlaps 0**; guarded by the contract +
+    no-doglegs + height-bound invariants. Merged to `main`.
+
+    **Remaining — a routing-stage redesign (next), not placement.** Three known defects are tracked
+    as `it.fails` in the invariant/checks suites (placement is correct for all three): the SEL
+    `RISING → ALARM` 5px jog (router dodges an obstacle in the straight path); an Inversion Bubbles
+    fan-out branch that routes through a gate column at the span midpoint; and the close parallel
+    verticals that follow. These live in the **router / fan-out / global-ordering** layer. The plan is
+    the same disciplined "one clear pass at a time," now applied to routing: a fan-out clean-Z that
+    never enters a gate column, and block port-mapping (e.g. SR S/R) that participates in crossing
+    reduction.
+
 ### Tier 3 — Authoring & feature ergonomics — **RESOLVED (2026-06).**
 
 4. **Name a gate directly: `AND#MYID` (and `OR#`, `NOT#`)**. **Done.** Added a function-call form

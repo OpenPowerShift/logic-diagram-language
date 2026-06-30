@@ -2,10 +2,10 @@
 
 exports[`Bend/crossing metrics > Boolean Algebra 1`] = `
 {
-  "H": 255,
+  "H": 305,
   "bends": 12,
   "bent": 6,
-  "crossings": 2,
+  "crossings": 1,
   "straight": 4,
   "wires": 10,
 }
@@ -13,7 +13,7 @@ exports[`Bend/crossing metrics > Boolean Algebra 1`] = `
 
 exports[`Bend/crossing metrics > Breaker Failure (SEL-751A) 1`] = `
 {
-  "H": 350,
+  "H": 360,
   "bends": 8,
   "bent": 4,
   "crossings": 0,
@@ -24,7 +24,7 @@ exports[`Bend/crossing metrics > Breaker Failure (SEL-751A) 1`] = `
 
 exports[`Bend/crossing metrics > Combined Logic (CBFPS) 1`] = `
 {
-  "H": 310,
+  "H": 240,
   "bends": 10,
   "bent": 5,
   "crossings": 0,
@@ -35,44 +35,44 @@ exports[`Bend/crossing metrics > Combined Logic (CBFPS) 1`] = `
 
 exports[`Bend/crossing metrics > Combined Options 1`] = `
 {
-  "H": 350,
-  "bends": 0,
-  "bent": 0,
+  "H": 320,
+  "bends": 10,
+  "bent": 5,
   "crossings": 0,
-  "straight": 7,
+  "straight": 2,
   "wires": 7,
 }
 `;
 
 exports[`Bend/crossing metrics > Complex Protection (SEL) 1`] = `
 {
-  "H": 1090,
-  "bends": 20,
-  "bent": 10,
+  "H": 1100,
+  "bends": 18,
+  "bent": 9,
   "crossings": 0,
-  "straight": 14,
+  "straight": 15,
   "wires": 24,
 }
 `;
 
 exports[`Bend/crossing metrics > Complex Protection 1`] = `
 {
-  "H": 315,
-  "bends": 8,
-  "bent": 4,
+  "H": 310,
+  "bends": 6,
+  "bent": 3,
   "crossings": 0,
-  "straight": 4,
+  "straight": 5,
   "wires": 8,
 }
 `;
 
 exports[`Bend/crossing metrics > Differential Protection 1`] = `
 {
-  "H": 305,
-  "bends": 4,
-  "bent": 2,
+  "H": 235,
+  "bends": 2,
+  "bent": 1,
   "crossings": 0,
-  "straight": 5,
+  "straight": 6,
   "wires": 7,
 }
 `;
@@ -90,77 +90,77 @@ exports[`Bend/crossing metrics > Generic Block (FB) 1`] = `
 
 exports[`Bend/crossing metrics > Hidden Dots 1`] = `
 {
-  "H": 350,
-  "bends": 8,
-  "bent": 3,
-  "crossings": 4,
-  "straight": 7,
+  "H": 330,
+  "bends": 4,
+  "bent": 2,
+  "crossings": 0,
+  "straight": 8,
   "wires": 10,
 }
 `;
 
 exports[`Bend/crossing metrics > Input Bars 1`] = `
 {
-  "H": 300,
-  "bends": 0,
-  "bent": 0,
+  "H": 270,
+  "bends": 8,
+  "bent": 4,
   "crossings": 0,
-  "straight": 6,
+  "straight": 2,
   "wires": 6,
 }
 `;
 
 exports[`Bend/crossing metrics > Interlocking Q01 Close 1`] = `
 {
-  "H": 755,
-  "bends": 20,
-  "bent": 10,
+  "H": 750,
+  "bends": 12,
+  "bent": 6,
   "crossings": 0,
-  "straight": 5,
+  "straight": 9,
   "wires": 15,
 }
 `;
 
 exports[`Bend/crossing metrics > Inversion Bubbles 1`] = `
 {
-  "H": 355,
-  "bends": 12,
-  "bent": 6,
-  "crossings": 4,
-  "straight": 3,
+  "H": 315,
+  "bends": 14,
+  "bent": 7,
+  "crossings": 6,
+  "straight": 2,
   "wires": 9,
 }
 `;
 
 exports[`Bend/crossing metrics > Labelled Gates 1`] = `
 {
-  "H": 520,
-  "bends": 10,
-  "bent": 5,
+  "H": 525,
+  "bends": 8,
+  "bent": 4,
   "crossings": 0,
-  "straight": 9,
+  "straight": 10,
   "wires": 14,
 }
 `;
 
 exports[`Bend/crossing metrics > Mixed Logic 1`] = `
 {
-  "H": 430,
-  "bends": 12,
-  "bent": 6,
+  "H": 420,
+  "bends": 10,
+  "bent": 5,
   "crossings": 0,
-  "straight": 6,
+  "straight": 7,
   "wires": 12,
 }
 `;
 
 exports[`Bend/crossing metrics > Motor Control Circuit 1`] = `
 {
-  "H": 365,
-  "bends": 6,
-  "bent": 3,
+  "H": 370,
+  "bends": 12,
+  "bent": 6,
   "crossings": 1,
-  "straight": 6,
+  "straight": 3,
   "wires": 9,
 }
 `;
@@ -178,7 +178,7 @@ exports[`Bend/crossing metrics > NOT Gate 1`] = `
 
 exports[`Bend/crossing metrics > Named Gates 1`] = `
 {
-  "H": 390,
+  "H": 385,
   "bends": 4,
   "bent": 2,
   "crossings": 0,
@@ -200,11 +200,11 @@ exports[`Bend/crossing metrics > Nested NOT 1`] = `
 
 exports[`Bend/crossing metrics > Overcurrent Protection 1`] = `
 {
-  "H": 310,
-  "bends": 8,
-  "bent": 4,
+  "H": 250,
+  "bends": 4,
+  "bent": 2,
   "crossings": 0,
-  "straight": 3,
+  "straight": 5,
   "wires": 7,
 }
 `;
@@ -212,10 +212,10 @@ exports[`Bend/crossing metrics > Overcurrent Protection 1`] = `
 exports[`Bend/crossing metrics > SEL Function Blocks 1`] = `
 {
   "H": 355,
-  "bends": 2,
-  "bent": 1,
+  "bends": 6,
+  "bent": 3,
   "crossings": 0,
-  "straight": 9,
+  "straight": 7,
   "wires": 10,
 }
 `;
@@ -223,17 +223,17 @@ exports[`Bend/crossing metrics > SEL Function Blocks 1`] = `
 exports[`Bend/crossing metrics > Shared Intermediates 1`] = `
 {
   "H": 460,
-  "bends": 12,
-  "bent": 5,
-  "crossings": 3,
-  "straight": 7,
+  "bends": 20,
+  "bent": 7,
+  "crossings": 4,
+  "straight": 5,
   "wires": 12,
 }
 `;
 
 exports[`Bend/crossing metrics > Simple AND Gate 1`] = `
 {
-  "H": 135,
+  "H": 110,
   "bends": 0,
   "bent": 0,
   "crossings": 0,
@@ -244,7 +244,7 @@ exports[`Bend/crossing metrics > Simple AND Gate 1`] = `
 
 exports[`Bend/crossing metrics > Simple OR Gate 1`] = `
 {
-  "H": 135,
+  "H": 110,
   "bends": 0,
   "bent": 0,
   "crossings": 0,
@@ -255,7 +255,7 @@ exports[`Bend/crossing metrics > Simple OR Gate 1`] = `
 
 exports[`Bend/crossing metrics > Square Ports 1`] = `
 {
-  "H": 150,
+  "H": 110,
   "bends": 0,
   "bent": 0,
   "crossings": 0,
@@ -266,18 +266,18 @@ exports[`Bend/crossing metrics > Square Ports 1`] = `
 
 exports[`Bend/crossing metrics > Styled by ID 1`] = `
 {
-  "H": 450,
-  "bends": 8,
-  "bent": 4,
+  "H": 390,
+  "bends": 6,
+  "bent": 3,
   "crossings": 0,
-  "straight": 4,
+  "straight": 5,
   "wires": 8,
 }
 `;
 
 exports[`Bend/crossing metrics > Three-Input AND 1`] = `
 {
-  "H": 170,
+  "H": 140,
   "bends": 0,
   "bent": 0,
   "crossings": 0,
@@ -288,18 +288,18 @@ exports[`Bend/crossing metrics > Three-Input AND 1`] = `
 
 exports[`Bend/crossing metrics > Trip Logic 1`] = `
 {
-  "H": 315,
-  "bends": 8,
-  "bent": 4,
+  "H": 310,
+  "bends": 6,
+  "bent": 3,
   "crossings": 0,
-  "straight": 4,
+  "straight": 5,
   "wires": 8,
 }
 `;
 
 exports[`Bend/crossing metrics > Triple OR 1`] = `
 {
-  "H": 170,
+  "H": 140,
   "bends": 0,
   "bent": 0,
   "crossings": 0,
