@@ -843,12 +843,40 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     if (node.inputIds.length < 2) continue;
     const gateNode = nodeMap.get(node.id);
     if (!gateNode || gateNode.inputs.length < 2) continue;
-    // Gap-aware: an input-fed gate (portGap set) is sized at its port gap with a GATE_END_PAD edge,
-    // so when its sources already fit at that spacing the "required" height equals the base and it
-    // does NOT grow; it only grows when a source is spread too far to align (e.g. an input pulled
-    // away by another consumer). Gate-output-fed gates keep the historical MIN_PORT_GAP spacing.
-    const portSep = node.portGap !== undefined ? gateGap(node) : MIN_PORT_GAP;
-    const edgePad = node.portGap !== undefined ? GATE_END_PAD : MIN_PORT_GAP;
+    // Input-fed gate: its size is a function of PORT COUNT only (never grown to span far sources).
+    // Keep the port-count height and slide the gate to the position that minimises sub-MIN_DOGLEG
+    // jogs — preferring a straight wire, then a clean >= MIN_DOGLEG dogleg (so e.g. a 2-input AND
+    // aligns one input and the other reads as a clean Z, instead of growing the body).
+    if (node.portGap !== undefined) {
+      const gap = gateGap(node);
+      const h = gateBodyHeight(node.inputIds.length, gap);
+      const srcYs = node.inputIds
+        .map(id => nodeMap.get(id)?.outputs[0]?.absY)
+        .filter((y): y is number => y !== undefined && Number.isFinite(y))
+        .sort((a, b) => a - b);
+      if (srcYs.length >= 2) {
+        const cen = (srcYs[0] + srcYs[srcYs.length - 1]) / 2;
+        let bestTop = gateNode.absY, bestSc = Infinity;
+        for (let top = srcYs[0] - h; top <= srcYs[srcYs.length - 1] + GRID; top += GRID) {
+          let sc = Math.abs(top + h / 2 - cen) * 0.001;
+          for (let k = 0; k < srcYs.length; k++) {
+            const d = Math.abs(srcYs[k] - gateInputPortY(top, k, gap));
+            if (d >= 1 && d < MIN_DOGLEG) sc += 1000;
+            sc += d * 0.1;
+          }
+          if (sc < bestSc) { bestSc = sc; bestTop = Math.round(top / GRID) * GRID; }
+        }
+        gateNode.absY = bestTop;
+        gateNode.height = h;
+        for (let k = 0; k < gateNode.inputs.length; k++) {
+          gateNode.inputs[k].absY = Math.round(gateInputPortY(bestTop, k, gap) / GRID) * GRID;
+        }
+        recenterOutputs(gateNode);
+      }
+      continue;
+    }
+    const portSep = MIN_PORT_GAP;
+    const edgePad = MIN_PORT_GAP;
 
     const sortedInputIds = [...node.inputIds];
     const inputYs = sortedInputIds.map(id => {
