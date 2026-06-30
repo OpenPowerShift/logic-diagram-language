@@ -208,6 +208,10 @@ function lineHitsObstacle(
   for (const obs of obstacles) {
     if (obs.x === sourceGateX && obs.y === sourceGateY) continue;
     if (obs.x === destGateX && obs.y === destGateY) continue;
+    // An obstacle entirely left of the wire's start (or right of its end) cannot lie on this
+    // rightward horizontal run — skip it before applying the margin, so a same-column input
+    // (whose right edge meets the wire's start X) never falsely blocks its neighbour's wire.
+    if (obs.x + obs.w <= xMin + 0.5 || obs.x >= xMax - 0.5) continue;
     if (rectsOverlap(xMin, y - 1, xMax - xMin, 2,
                      obs.x - m, obs.y - my, obs.w + m * 2, obs.h + my * 2, 0)) {
       return true;

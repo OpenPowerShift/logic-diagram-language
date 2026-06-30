@@ -375,6 +375,7 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
   const INPUT_PORT_GAP = 30;
   for (const n of nodes.values()) {
     if (n.kind !== 'gate' || !n.gateType || n.gateType === 'NOT' || n.inputIds.length < 2) continue;
+    if (opts.gateInputStyle === 'BARS' && n.inputIds.length > 2) continue; // BARS gates own their port layout
     const hasInputSource = n.inputIds.some(id => nodes.get(id)?.kind === 'input');
     if (hasInputSource) n.portGap = INPUT_PORT_GAP;
   }
@@ -840,9 +841,14 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
   for (const node of nodes.values()) {
     if (node.kind !== 'gate' || !node.gateType || node.gateType === 'NOT') continue;
     if (node.inputIds.length < 2) continue;
-    if (node.portGap !== undefined) continue; // input-fed: sized + aligned in assignCoordinates
     const gateNode = nodeMap.get(node.id);
     if (!gateNode || gateNode.inputs.length < 2) continue;
+    // Gap-aware: an input-fed gate (portGap set) is sized at its port gap with a GATE_END_PAD edge,
+    // so when its sources already fit at that spacing the "required" height equals the base and it
+    // does NOT grow; it only grows when a source is spread too far to align (e.g. an input pulled
+    // away by another consumer). Gate-output-fed gates keep the historical MIN_PORT_GAP spacing.
+    const portSep = node.portGap !== undefined ? gateGap(node) : MIN_PORT_GAP;
+    const edgePad = node.portGap !== undefined ? GATE_END_PAD : MIN_PORT_GAP;
 
     const sortedInputIds = [...node.inputIds];
     const inputYs = sortedInputIds.map(id => {
@@ -857,16 +863,16 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
 
     const idealYs: number[] = [sourceYs[0]];
     for (let i = 1; i < sourceYs.length; i++) {
-      idealYs.push(Math.max(sourceYs[i], idealYs[i - 1] + MIN_PORT_GAP));
+      idealYs.push(Math.max(sourceYs[i], idealYs[i - 1] + portSep));
     }
 
-    const topPad = MIN_PORT_GAP;
-    const bottomPad = MIN_PORT_GAP;
+    const topPad = edgePad;
+    const bottomPad = edgePad;
     const requiredTop = idealYs[0] - topPad;
     const requiredBottom = idealYs[idealYs.length - 1] + bottomPad;
     const requiredHeight = requiredBottom - requiredTop;
 
-    const maxExpansion = MIN_PORT_GAP * gateNode.inputs.length;
+    const maxExpansion = portSep * gateNode.inputs.length;
     if (requiredHeight <= gateNode.height + maxExpansion) {
       gateNode.absY = Math.round(requiredTop / GRID) * GRID;
       gateNode.height = Math.ceil(requiredHeight / GRID) * GRID;
@@ -1279,6 +1285,24 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
         if (cur - prev >= MIN_PORT_GAP - 0.5) break;
         const push = Math.round((MIN_PORT_GAP - (cur - prev)) / GRID) * GRID;
         outs[j].absY += push; if (outs[j].inputs[0]) outs[j].inputs[0].absY += push;
+      }
+    }
+  }
+
+  // Separate any two outputs in a column that still overlap (e.g. two now-compact gates whose
+  // outputs land at the same Y): push the lower one down to MIN_DOGLEG below the one above, so the
+  // outputs don't overlap and the displaced output's wire reads as a clean Z rather than a jog.
+  for (const col of new Set(layoutNodes.filter(n => n.gateType === 'OUTPUT').map(n => n.absX))) {
+    const outs = layoutNodes.filter(n => n.gateType === 'OUTPUT' && n.absX === col).sort((a, b) => a.absY - b.absY);
+    for (let i = 1; i < outs.length; i++) {
+      const prevY = outs[i - 1].inputs[0]?.absY ?? outs[i - 1].absY;
+      const cur = outs[i];
+      const curY = cur.inputs[0]?.absY ?? cur.absY;
+      const need = prevY + MIN_DOGLEG;
+      if (curY < need - 0.5) {
+        const d = Math.round((need - curY) / GRID) * GRID;
+        cur.absY += d;
+        for (const p of [...cur.inputs, ...cur.outputs]) p.absY += d;
       }
     }
   }
