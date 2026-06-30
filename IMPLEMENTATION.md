@@ -302,6 +302,24 @@ Captured 2026-06 from user review. Roughly priority-ordered; tiers group by kind
     reads, done as a dedicated multi-step refactor with the invariant suite green at each step — not
     a single patch. The gate-expansion stopgap remains until that refactor is scheduled.
 
+    **Refactor in progress** (branch `gate-port-spacing-refactor`):
+    - **Step 1 — DONE.** Extracted `gateBodyHeight(n, gap)` / `gateInputPortY(top, i, gap)` as the
+      single source of truth for gate vertical layout (behaviour-preserving, all snapshots
+      unchanged), and added `tests/unit/gate-port-contract.spec.ts` — the contract every step must
+      keep (output dead-centre; input ports ordered, in-body, ≥ PORT_SPACING apart).
+    - **Step 2 — per-gate `gap` field.** Store the chosen vertical port spacing on the gate node;
+      compute it label-aware (≈`MIN_PORT_GAP` when any source is a labelled input, else
+      `PORT_SPACING`). Route the alignment passes' `idealYs`/height maths through `gateBodyHeight`/
+      `gateInputPortY(gap)`. Behaviour-preserving while `gap` stays at `PORT_SPACING`.
+    - **Step 3 — consolidate the writers.** Fold the three growth passes + the residual dogleg-killer
+      into one authoritative `placeGateBodies` pass (sizes by port count via the helpers, slides to
+      align fixed sources, leaves clean-`MIN_DOGLEG` doglegs); make the OR-curve, fan-in, output
+      centring and protected-zone passes read-only consumers of the final port Ys. Guard with the
+      contract + no-doglegs + height-bound invariants.
+    - **Step 4 — gate-aware input snapping.** With sizing authoritative and gap label-safe, snap each
+      free single-consumer input to its gate's port Y (room-checked against column neighbours), so
+      the gate stays port-count-sized AND the wire is straight — the actual goal.
+
 ### Tier 3 — Authoring & feature ergonomics — **RESOLVED (2026-06).**
 
 4. **Name a gate directly: `AND#MYID` (and `OR#`, `NOT#`)**. **Done.** Added a function-call form
