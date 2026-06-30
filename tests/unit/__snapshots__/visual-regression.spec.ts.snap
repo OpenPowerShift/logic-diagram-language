@@ -1017,12 +1017,12 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
 {
   "canvas": [
     1310,
-    315,
+    310,
   ],
   "junctions": [
     [
       350,
-      145,
+      140,
     ],
   ],
   "labels": [],
@@ -1031,22 +1031,22 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "block": null,
       "box": [
         430,
-        85,
-        60,
         50,
+        60,
+        115,
       ],
       "desc": null,
       "inputs": [
         [
           430,
-          115,
+          140,
           "in_1",
           null,
           0,
         ],
         [
           430,
-          50,
+          75,
           "in_0",
           null,
           0,
@@ -1068,7 +1068,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "block": null,
       "box": [
         690,
-        240,
+        235,
         60,
         50,
       ],
@@ -1076,14 +1076,14 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "inputs": [
         [
           690,
-          255,
+          250,
           "in_0",
           null,
           0,
         ],
         [
           690,
-          270,
+          265,
           "in_1",
           null,
           0,
@@ -1094,7 +1094,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "outputs": [
         [
           750,
-          265,
+          260,
           "out",
           0,
         ],
@@ -1105,7 +1105,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "block": null,
       "box": [
         170,
-        135,
+        130,
         100,
         20,
       ],
@@ -1116,7 +1116,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "outputs": [
         [
           270,
-          145,
+          140,
           "out",
           0,
         ],
@@ -1127,7 +1127,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "block": null,
       "box": [
         170,
-        295,
+        290,
         100,
         20,
       ],
@@ -1138,7 +1138,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "outputs": [
         [
           270,
-          305,
+          300,
           "out",
           0,
         ],
@@ -1149,7 +1149,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "block": null,
       "box": [
         170,
-        70,
+        65,
         100,
         20,
       ],
@@ -1160,7 +1160,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "outputs": [
         [
           270,
-          80,
+          75,
           "out",
           0,
         ],
@@ -1171,7 +1171,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "block": null,
       "box": [
         430,
-        160,
+        190,
         65,
         40,
       ],
@@ -1179,7 +1179,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "inputs": [
         [
           430,
-          180,
+          210,
           "in_0",
           null,
           0,
@@ -1190,7 +1190,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "outputs": [
         [
           495,
-          180,
+          210,
           "out",
           0,
         ],
@@ -1201,7 +1201,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "block": null,
       "box": [
         950,
-        180,
+        175,
         60,
         50,
       ],
@@ -1209,14 +1209,14 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "inputs": [
         [
           958,
-          195,
+          190,
           "in_0",
           null,
           0,
         ],
         [
           960,
-          210,
+          205,
           "in_1",
           null,
           0,
@@ -1227,7 +1227,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "outputs": [
         [
           1010,
-          205,
+          200,
           "out",
           0,
         ],
@@ -1238,7 +1238,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "block": null,
       "box": [
         1210,
-        195,
+        190,
         100,
         20,
       ],
@@ -1246,7 +1246,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "inputs": [
         [
           1210,
-          205,
+          200,
           "in",
           null,
           0,
@@ -1264,11 +1264,11 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "points": [
         [
           1010,
-          205,
+          200,
         ],
         [
           1210,
-          205,
+          200,
         ],
       ],
     },
@@ -1277,19 +1277,19 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "points": [
         [
           270,
-          145,
+          140,
         ],
         [
           350,
-          145,
+          140,
         ],
         [
           350,
-          180,
+          210,
         ],
         [
           430,
-          180,
+          210,
         ],
       ],
     },
@@ -1298,19 +1298,11 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "points": [
         [
           270,
-          145,
-        ],
-        [
-          405,
-          145,
-        ],
-        [
-          405,
-          115,
+          140,
         ],
         [
           430,
-          115,
+          140,
         ],
       ],
     },
@@ -1319,19 +1311,19 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "points": [
         [
           270,
-          305,
+          300,
         ],
         [
           665,
-          305,
+          300,
         ],
         [
           665,
-          270,
+          265,
         ],
         [
           690,
-          270,
+          265,
         ],
       ],
     },
@@ -1340,19 +1332,11 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "points": [
         [
           270,
-          80,
-        ],
-        [
-          390,
-          80,
-        ],
-        [
-          390,
-          50,
+          75,
         ],
         [
           430,
-          50,
+          75,
         ],
       ],
     },
@@ -1369,11 +1353,11 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
         ],
         [
           935,
-          195,
+          190,
         ],
         [
           958,
-          195,
+          190,
         ],
       ],
     },
@@ -1382,19 +1366,19 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "points": [
         [
           495,
-          180,
+          210,
         ],
         [
           675,
-          180,
+          210,
         ],
         [
           675,
-          255,
+          250,
         ],
         [
           690,
-          255,
+          250,
         ],
       ],
     },
@@ -1403,19 +1387,19 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "points": [
         [
           750,
-          265,
+          260,
         ],
         [
           925,
-          265,
+          260,
         ],
         [
           925,
-          210,
+          205,
         ],
         [
           960,
-          210,
+          205,
         ],
       ],
     },
@@ -1427,7 +1411,7 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
 {
   "canvas": [
     790,
-    320,
+    350,
   ],
   "junctions": [],
   "labels": [],
@@ -1436,50 +1420,50 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
       "block": null,
       "box": [
         430,
-        135,
+        50,
         75,
-        45,
+        300,
       ],
       "desc": null,
       "inputs": [
         [
           420,
-          155,
-          "in_3",
-          null,
-          0,
-        ],
-        [
-          420,
-          160,
-          "in_4",
-          null,
-          0,
-        ],
-        [
-          420,
-          165,
+          125,
           "in_1",
           null,
           1,
         ],
         [
           420,
-          170,
-          "in_5",
-          null,
-          0,
-        ],
-        [
-          420,
-          185,
+          175,
           "in_2",
           null,
           0,
         ],
         [
+          420,
+          225,
+          "in_3",
+          null,
+          0,
+        ],
+        [
+          420,
+          275,
+          "in_4",
+          null,
+          0,
+        ],
+        [
+          420,
+          325,
+          "in_5",
+          null,
+          0,
+        ],
+        [
           430,
-          150,
+          75,
           "in_0",
           null,
           0,
@@ -1490,7 +1474,7 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
       "outputs": [
         [
           505,
-          160,
+          200,
           "out",
           0,
         ],
@@ -1501,7 +1485,7 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
       "block": null,
       "box": [
         170,
-        100,
+        115,
         100,
         20,
       ],
@@ -1512,7 +1496,7 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
       "outputs": [
         [
           270,
-          110,
+          125,
           "out",
           0,
         ],
@@ -1523,7 +1507,7 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
       "block": null,
       "box": [
         170,
-        150,
+        165,
         100,
         20,
       ],
@@ -1534,7 +1518,7 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
       "outputs": [
         [
           270,
-          160,
+          175,
           "out",
           0,
         ],
@@ -1545,7 +1529,7 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
       "block": null,
       "box": [
         170,
-        200,
+        215,
         100,
         20,
       ],
@@ -1556,7 +1540,7 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
       "outputs": [
         [
           270,
-          210,
+          225,
           "out",
           0,
         ],
@@ -1567,7 +1551,7 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
       "block": null,
       "box": [
         170,
-        250,
+        265,
         100,
         20,
       ],
@@ -1578,7 +1562,7 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
       "outputs": [
         [
           270,
-          260,
+          275,
           "out",
           0,
         ],
@@ -1589,7 +1573,7 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
       "block": null,
       "box": [
         170,
-        300,
+        315,
         100,
         20,
       ],
@@ -1600,7 +1584,7 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
       "outputs": [
         [
           270,
-          310,
+          325,
           "out",
           0,
         ],
@@ -1611,7 +1595,7 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
       "block": null,
       "box": [
         170,
-        50,
+        65,
         100,
         20,
       ],
@@ -1622,7 +1606,7 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
       "outputs": [
         [
           270,
-          60,
+          75,
           "out",
           0,
         ],
@@ -1633,7 +1617,7 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
       "block": null,
       "box": [
         690,
-        145,
+        185,
         100,
         30,
       ],
@@ -1641,7 +1625,7 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
       "inputs": [
         [
           690,
-          160,
+          200,
           "in",
           null,
           0,
@@ -1659,19 +1643,11 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
       "points": [
         [
           270,
-          110,
-        ],
-        [
-          400,
-          110,
-        ],
-        [
-          400,
-          165,
+          125,
         ],
         [
           420,
-          165,
+          125,
         ],
       ],
     },
@@ -1680,19 +1656,11 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
       "points": [
         [
           270,
-          160,
-        ],
-        [
-          385,
-          160,
-        ],
-        [
-          385,
-          185,
+          175,
         ],
         [
           420,
-          185,
+          175,
         ],
       ],
     },
@@ -1701,19 +1669,11 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
       "points": [
         [
           270,
-          210,
-        ],
-        [
-          375,
-          210,
-        ],
-        [
-          375,
-          155,
+          225,
         ],
         [
           420,
-          155,
+          225,
         ],
       ],
     },
@@ -1722,19 +1682,11 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
       "points": [
         [
           270,
-          260,
-        ],
-        [
-          390,
-          260,
-        ],
-        [
-          390,
-          160,
+          275,
         ],
         [
           420,
-          160,
+          275,
         ],
       ],
     },
@@ -1743,19 +1695,11 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
       "points": [
         [
           270,
-          310,
-        ],
-        [
-          405,
-          310,
-        ],
-        [
-          405,
-          170,
+          325,
         ],
         [
           420,
-          170,
+          325,
         ],
       ],
     },
@@ -1764,19 +1708,11 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
       "points": [
         [
           270,
-          60,
-        ],
-        [
-          415,
-          60,
-        ],
-        [
-          415,
-          150,
+          75,
         ],
         [
           430,
-          150,
+          75,
         ],
       ],
     },
@@ -1785,11 +1721,11 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
       "points": [
         [
           505,
-          160,
+          200,
         ],
         [
           690,
-          160,
+          200,
         ],
       ],
     },
@@ -4480,7 +4416,7 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
 {
   "canvas": [
     790,
-    270,
+    300,
   ],
   "junctions": [],
   "labels": [],
@@ -4489,44 +4425,44 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
       "block": null,
       "box": [
         430,
-        95,
+        50,
         75,
-        45,
+        250,
       ],
       "desc": null,
       "inputs": [
         [
           420,
-          105,
+          175,
           "in_2",
           null,
           0,
         ],
         [
           420,
-          120,
+          225,
           "in_3",
           null,
           0,
         ],
         [
           420,
-          130,
+          275,
           "in_4",
           null,
           0,
         ],
         [
           430,
-          110,
-          "in_0",
+          125,
+          "in_1",
           null,
           0,
         ],
         [
           430,
-          80,
-          "in_1",
+          75,
+          "in_0",
           null,
           0,
         ],
@@ -4536,7 +4472,7 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
       "outputs": [
         [
           505,
-          120,
+          175,
           "out",
           0,
         ],
@@ -4547,7 +4483,7 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
       "block": null,
       "box": [
         170,
-        100,
+        115,
         100,
         20,
       ],
@@ -4558,7 +4494,7 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
       "outputs": [
         [
           270,
-          110,
+          125,
           "out",
           0,
         ],
@@ -4569,7 +4505,7 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
       "block": null,
       "box": [
         170,
-        150,
+        165,
         100,
         20,
       ],
@@ -4580,7 +4516,7 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
       "outputs": [
         [
           270,
-          160,
+          175,
           "out",
           0,
         ],
@@ -4591,7 +4527,7 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
       "block": null,
       "box": [
         170,
-        200,
+        215,
         100,
         20,
       ],
@@ -4602,7 +4538,7 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
       "outputs": [
         [
           270,
-          210,
+          225,
           "out",
           0,
         ],
@@ -4613,7 +4549,7 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
       "block": null,
       "box": [
         170,
-        250,
+        265,
         100,
         20,
       ],
@@ -4624,7 +4560,7 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
       "outputs": [
         [
           270,
-          260,
+          275,
           "out",
           0,
         ],
@@ -4635,7 +4571,7 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
       "block": null,
       "box": [
         170,
-        50,
+        65,
         100,
         20,
       ],
@@ -4646,7 +4582,7 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
       "outputs": [
         [
           270,
-          60,
+          75,
           "out",
           0,
         ],
@@ -4657,7 +4593,7 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
       "block": null,
       "box": [
         690,
-        110,
+        165,
         100,
         20,
       ],
@@ -4665,7 +4601,7 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
       "inputs": [
         [
           690,
-          120,
+          175,
           "in",
           null,
           0,
@@ -4683,19 +4619,11 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
       "points": [
         [
           270,
-          110,
-        ],
-        [
-          360,
-          110,
-        ],
-        [
-          360,
-          80,
+          125,
         ],
         [
           430,
-          80,
+          125,
         ],
       ],
     },
@@ -4704,19 +4632,11 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
       "points": [
         [
           270,
-          160,
-        ],
-        [
-          375,
-          160,
-        ],
-        [
-          375,
-          105,
+          175,
         ],
         [
           420,
-          105,
+          175,
         ],
       ],
     },
@@ -4725,19 +4645,11 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
       "points": [
         [
           270,
-          210,
-        ],
-        [
-          390,
-          210,
-        ],
-        [
-          390,
-          120,
+          225,
         ],
         [
           420,
-          120,
+          225,
         ],
       ],
     },
@@ -4746,19 +4658,11 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
       "points": [
         [
           270,
-          260,
-        ],
-        [
-          405,
-          260,
-        ],
-        [
-          405,
-          130,
+          275,
         ],
         [
           420,
-          130,
+          275,
         ],
       ],
     },
@@ -4767,19 +4671,11 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
       "points": [
         [
           270,
-          60,
-        ],
-        [
-          415,
-          60,
-        ],
-        [
-          415,
-          110,
+          75,
         ],
         [
           430,
-          110,
+          75,
         ],
       ],
     },
@@ -4788,11 +4684,11 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
       "points": [
         [
           505,
-          120,
+          175,
         ],
         [
           690,
-          120,
+          175,
         ],
       ],
     },
@@ -7277,16 +7173,16 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
 {
   "canvas": [
     790,
-    325,
+    365,
   ],
   "junctions": [
     [
       340,
-      245,
+      255,
     ],
     [
       355,
-      185,
+      195,
     ],
   ],
   "labels": [],
@@ -7295,36 +7191,36 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "block": null,
       "box": [
         430,
-        115,
+        50,
         75,
-        80,
+        230,
       ],
       "desc": null,
       "inputs": [
         [
           420,
-          185,
-          "in_3",
+          135,
+          "in_1",
           null,
           1,
         ],
         [
           420,
-          215,
+          195,
           "in_2",
           null,
           1,
         ],
         [
           420,
-          95,
-          "in_1",
+          255,
+          "in_3",
           null,
           1,
         ],
         [
           430,
-          125,
+          75,
           "in_0",
           null,
           0,
@@ -7335,7 +7231,7 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "outputs": [
         [
           505,
-          155,
+          165,
           "out",
           0,
         ],
@@ -7346,7 +7242,7 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "block": null,
       "box": [
         170,
-        110,
+        120,
         100,
         30,
       ],
@@ -7357,7 +7253,7 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "outputs": [
         [
           270,
-          125,
+          135,
           "out",
           0,
         ],
@@ -7368,7 +7264,7 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "block": null,
       "box": [
         170,
-        170,
+        180,
         100,
         30,
       ],
@@ -7379,7 +7275,7 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "outputs": [
         [
           270,
-          185,
+          195,
           "out",
           0,
         ],
@@ -7390,7 +7286,7 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "block": null,
       "box": [
         170,
-        230,
+        240,
         100,
         30,
       ],
@@ -7401,7 +7297,7 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "outputs": [
         [
           270,
-          245,
+          255,
           "out",
           0,
         ],
@@ -7412,7 +7308,7 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "block": null,
       "box": [
         170,
-        295,
+        305,
         100,
         30,
       ],
@@ -7423,7 +7319,7 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "outputs": [
         [
           270,
-          310,
+          320,
           "out",
           0,
         ],
@@ -7434,7 +7330,7 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "block": null,
       "box": [
         170,
-        50,
+        60,
         100,
         30,
       ],
@@ -7445,7 +7341,7 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "outputs": [
         [
           270,
-          65,
+          75,
           "out",
           0,
         ],
@@ -7456,7 +7352,7 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "block": null,
       "box": [
         430,
-        265,
+        305,
         75,
         60,
       ],
@@ -7464,21 +7360,21 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "inputs": [
         [
           428,
-          310,
+          350,
           "in_2",
           null,
           1,
         ],
         [
           438,
-          280,
+          320,
           "in_0",
           null,
           0,
         ],
         [
           440,
-          295,
+          335,
           "in_1",
           null,
           0,
@@ -7489,7 +7385,7 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "outputs": [
         [
           505,
-          295,
+          335,
           "out",
           0,
         ],
@@ -7500,7 +7396,7 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "block": null,
       "box": [
         690,
-        140,
+        150,
         100,
         30,
       ],
@@ -7508,7 +7404,7 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "inputs": [
         [
           690,
-          155,
+          165,
           "in",
           null,
           0,
@@ -7523,7 +7419,7 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "block": null,
       "box": [
         690,
-        280,
+        320,
         100,
         30,
       ],
@@ -7531,7 +7427,7 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "inputs": [
         [
           690,
-          295,
+          335,
           "in",
           null,
           0,
@@ -7549,19 +7445,11 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "points": [
         [
           270,
-          125,
-        ],
-        [
-          390,
-          125,
-        ],
-        [
-          390,
-          95,
+          135,
         ],
         [
           420,
-          95,
+          135,
         ],
       ],
     },
@@ -7570,19 +7458,19 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "points": [
         [
           270,
-          185,
+          195,
         ],
         [
           355,
-          185,
+          195,
         ],
         [
           355,
-          280,
+          320,
         ],
         [
           438,
-          280,
+          320,
         ],
       ],
     },
@@ -7591,19 +7479,11 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "points": [
         [
           270,
-          185,
-        ],
-        [
-          400,
-          185,
-        ],
-        [
-          400,
-          215,
+          195,
         ],
         [
           420,
-          215,
+          195,
         ],
       ],
     },
@@ -7612,19 +7492,19 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "points": [
         [
           270,
-          245,
+          255,
         ],
         [
           340,
-          245,
+          255,
         ],
         [
           340,
-          295,
+          335,
         ],
         [
           440,
-          295,
+          335,
         ],
       ],
     },
@@ -7633,19 +7513,11 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "points": [
         [
           270,
-          245,
-        ],
-        [
-          405,
-          245,
-        ],
-        [
-          405,
-          185,
+          255,
         ],
         [
           420,
-          185,
+          255,
         ],
       ],
     },
@@ -7654,11 +7526,19 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "points": [
         [
           270,
-          310,
+          320,
+        ],
+        [
+          325,
+          320,
+        ],
+        [
+          325,
+          350,
         ],
         [
           428,
-          310,
+          350,
         ],
       ],
     },
@@ -7667,19 +7547,11 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "points": [
         [
           270,
-          65,
-        ],
-        [
-          415,
-          65,
-        ],
-        [
-          415,
-          125,
+          75,
         ],
         [
           430,
-          125,
+          75,
         ],
       ],
     },
@@ -7688,11 +7560,11 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "points": [
         [
           505,
-          155,
+          165,
         ],
         [
           690,
-          155,
+          165,
         ],
       ],
     },
@@ -7701,11 +7573,11 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "points": [
         [
           505,
-          295,
+          335,
         ],
         [
           690,
-          295,
+          335,
         ],
       ],
     },

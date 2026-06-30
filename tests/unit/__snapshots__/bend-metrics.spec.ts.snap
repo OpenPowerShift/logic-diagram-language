@@ -24,22 +24,22 @@ exports[`Bend/crossing metrics > Breaker Failure (SEL-751A) 1`] = `
 
 exports[`Bend/crossing metrics > Combined Logic (CBFPS) 1`] = `
 {
-  "H": 315,
-  "bends": 14,
-  "bent": 7,
+  "H": 310,
+  "bends": 10,
+  "bent": 5,
   "crossings": 0,
-  "straight": 1,
+  "straight": 3,
   "wires": 8,
 }
 `;
 
 exports[`Bend/crossing metrics > Combined Options 1`] = `
 {
-  "H": 320,
-  "bends": 12,
-  "bent": 6,
-  "crossings": 5,
-  "straight": 1,
+  "H": 350,
+  "bends": 0,
+  "bent": 0,
+  "crossings": 0,
+  "straight": 7,
   "wires": 7,
 }
 `;
@@ -101,11 +101,11 @@ exports[`Bend/crossing metrics > Hidden Dots 1`] = `
 
 exports[`Bend/crossing metrics > Input Bars 1`] = `
 {
-  "H": 270,
-  "bends": 10,
-  "bent": 5,
-  "crossings": 2,
-  "straight": 1,
+  "H": 300,
+  "bends": 0,
+  "bent": 0,
+  "crossings": 0,
+  "straight": 6,
   "wires": 6,
 }
 `;
@@ -156,11 +156,11 @@ exports[`Bend/crossing metrics > Mixed Logic 1`] = `
 
 exports[`Bend/crossing metrics > Motor Control Circuit 1`] = `
 {
-  "H": 325,
-  "bends": 12,
-  "bent": 6,
-  "crossings": 3,
-  "straight": 3,
+  "H": 365,
+  "bends": 6,
+  "bent": 3,
+  "crossings": 1,
+  "straight": 6,
   "wires": 9,
 }
 `;

@@ -941,34 +941,17 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     const requiredBottom = idealYs[idealYs.length - 1] + bottomPad;
     const requiredHeight = requiredBottom - requiredTop;
 
-    const maxExpansion = MIN_DOGLEG * gateNode.inputs.length;
-    if (requiredHeight <= gateNode.height + maxExpansion) {
-      gateNode.absY = Math.round(requiredTop / GRID) * GRID;
-      gateNode.height = Math.ceil(requiredHeight / GRID) * GRID;
-      for (let i = 0; i < indexed.length && i < gateNode.inputs.length; i++) {
-        gateNode.inputs[i].absY = Math.round(idealYs[i] / GRID) * GRID;
-      }
-      recenterOutputs(gateNode);
-    } else {
-      const currentYs = gateNode.inputs.map(p => p.absY);
-      for (let i = 0; i < sourceYs.length && i < gateNode.inputs.length; i++) {
-        const diff = Math.abs(sourceYs[i] - currentYs[i]);
-        if (diff >= 1 && diff < MIN_DOGLEG) {
-          const candidateY = Math.round(sourceYs[i] / GRID) * GRID;
-          const prevY = i > 0 ? gateNode.inputs[i - 1].absY : gateNode.absY;
-          const nextY = i < gateNode.inputs.length - 1 ? gateNode.inputs[i + 1].absY : gateNode.absY + gateNode.height;
-          if (candidateY - prevY >= MIN_PORT_GAP && nextY - candidateY >= MIN_PORT_GAP) {
-            gateNode.inputs[i].absY = candidateY;
-          } else {
-            if (candidateY > currentYs[i]) {
-              gateNode.inputs[i].absY = Math.round((sourceYs[i] + MIN_DOGLEG) / GRID) * GRID;
-            } else {
-              gateNode.inputs[i].absY = Math.round((sourceYs[i] - MIN_DOGLEG) / GRID) * GRID;
-            }
-          }
-        }
-      }
+    // Apply the ideal port layout, growing the body to encompass it. The old code capped the
+    // growth and, when over budget, shoved individual ports to sourceY ± MIN_DOGLEG — which could
+    // land a port OUTSIDE the body, leaving a wire that visibly dead-ends above/below the gate
+    // (e.g. AB into the top AND of Combined Logic). Always containing the ports keeps every wire
+    // connected; the bend metric / height bound guard against over-growth.
+    gateNode.absY = Math.round(requiredTop / GRID) * GRID;
+    gateNode.height = Math.ceil(requiredHeight / GRID) * GRID;
+    for (let i = 0; i < indexed.length && i < gateNode.inputs.length; i++) {
+      gateNode.inputs[i].absY = Math.round(idealYs[i] / GRID) * GRID;
     }
+    recenterOutputs(gateNode);
   }
 
   // Re-align output nodes after all gate position adjustments
