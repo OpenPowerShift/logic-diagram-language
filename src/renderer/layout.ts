@@ -144,6 +144,20 @@ function baseNodeHeight(n: FlatNode): number {
   return evenGridHeight(Math.max(AND_GATE_H_BASE, (numInputs + 1) * PORT_SPACING) + labelSpace);
 }
 
+// ── Gate vertical layout: single source of truth ──────────────────────────────────────────────
+// A gate's body is sized and its ports laid out PURELY from its port count and a per-gate vertical
+// port spacing `gap`. Body height = (n+1)*gap (rounded up to an even grid so the centre is on-grid);
+// input port i sits at top + (i+1)*gap (so there is one `gap` of padding above the first port and
+// below the last); the single output is dead-centre. Every pass that sizes or re-places a gate body
+// SHOULD derive its geometry from these helpers so the spacing stays consistent across the OR-curve,
+// fan-in, output-centring and dogleg passes. `gap` defaults to PORT_SPACING (15px).
+function gateBodyHeight(numInputs: number, gap: number = PORT_SPACING): number {
+  return evenGridHeight(Math.max(AND_GATE_H_BASE, (numInputs + 1) * gap));
+}
+function gateInputPortY(top: number, i: number, gap: number = PORT_SPACING): number {
+  return top + (i + 1) * gap;
+}
+
 // Body dimensions for a generic FB block: square-ish, sized to its port counts and labels.
 function fbDims(n: FlatNode): { w: number; h: number } {
   const ni = n.inputIds.length;
@@ -668,7 +682,7 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
         h = AND_GATE_H_BASE;
         w = isMultiInput ? GATE_W_MULTI : GATE_W;
       } else {
-        h = evenGridHeight(Math.max(AND_GATE_H_BASE, (numInputs + 1) * PORT_SPACING));
+        h = gateBodyHeight(numInputs, PORT_SPACING);
         w = isMultiInput ? GATE_W_MULTI : GATE_W;
       }
 
@@ -692,7 +706,7 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
         }
       } else {
       for (let i = 0; i < numInputs; i++) {
-        const portY = absY + (i + 1) * PORT_SPACING;
+        const portY = gateInputPortY(absY, i, PORT_SPACING);
         inputs.push({ name: `in_${i}`, absX: absX, absY: portY });
       }
     }
