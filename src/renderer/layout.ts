@@ -245,6 +245,14 @@ function assignCoordinates(
   };
   const sep = (a: FlatNode, b: FlatNode) => {
     if (a.kind === 'input' && b.kind === 'input') {
+      // If both inputs feed a common multi-input gate, space them at that gate's port gap so they
+      // land directly on adjacent ports — a straight fan-in with no gate growth. (Clamp to at least
+      // half their combined height so labels never overlap.)
+      const sa = new Set(successors.get(a.id) ?? []);
+      const sharedGap = (successors.get(b.id) ?? [])
+        .map(id => (sa.has(id) ? nodes.get(id)?.portGap : undefined))
+        .filter((g): g is number => g !== undefined);
+      if (sharedGap.length) return Math.max(Math.max(...sharedGap), (H.get(a.id)! + H.get(b.id)!) / 2);
       return Math.min((H.get(a.id)! + H.get(b.id)!) / 2 + VGAP, minInputGap(a, b));
     }
     return (H.get(a.id)! + H.get(b.id)!) / 2 + VGAP;
@@ -359,6 +367,17 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
 
   // Phase 1 — build the flattened logic graph (semantic model) from the parsed AST.
   const { nodes, intermediateLabels } = buildGraph(diagram, portMeta, opts, uid);
+
+  // Per-gate first-class port spacing. A multi-input AND/OR fed by a labelled INPUT spaces its
+  // ports at a label-safe gap so those inputs can be placed directly on its ports (in
+  // assignCoordinates) without their labels colliding — the gate is then sized by port count, not
+  // grown to span far-apart sources. Gates fed only by other gates keep the tight PORT_SPACING.
+  const INPUT_PORT_GAP = 30;
+  for (const n of nodes.values()) {
+    if (n.kind !== 'gate' || !n.gateType || n.gateType === 'NOT' || n.inputIds.length < 2) continue;
+    const hasInputSource = n.inputIds.some(id => nodes.get(id)?.kind === 'input');
+    if (hasInputSource) n.portGap = INPUT_PORT_GAP;
+  }
 
   const rowMap = new Map<string, number>();
 
@@ -821,6 +840,7 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
   for (const node of nodes.values()) {
     if (node.kind !== 'gate' || !node.gateType || node.gateType === 'NOT') continue;
     if (node.inputIds.length < 2) continue;
+    if (node.portGap !== undefined) continue; // input-fed: sized + aligned in assignCoordinates
     const gateNode = nodeMap.get(node.id);
     if (!gateNode || gateNode.inputs.length < 2) continue;
 
@@ -860,6 +880,7 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
   for (const node of nodes.values()) {
     if (node.kind !== 'gate' || !node.gateType || node.gateType === 'NOT') continue;
     if (node.inputIds.length < 2) continue;
+    if (node.portGap !== undefined) continue; // input-fed: sized + aligned in assignCoordinates
     const gateNode = nodeMap.get(node.id);
     if (!gateNode || gateNode.inputs.length < 2) continue;
 
@@ -920,6 +941,7 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
   for (const node of nodes.values()) {
     if (node.kind !== 'gate' || !node.gateType || node.gateType === 'NOT') continue;
     if (node.inputIds.length < 2) continue;
+    if (node.portGap !== undefined) continue; // input-fed: sized + aligned in assignCoordinates
     const gateNode = nodeMap.get(node.id);
     if (!gateNode || gateNode.inputs.length < 2) continue;
 
