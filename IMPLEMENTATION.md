@@ -320,6 +320,26 @@ Captured 2026-06 from user review. Roughly priority-ordered; tiers group by kind
       free single-consumer input to its gate's port Y (room-checked against column neighbours), so
       the gate stays port-count-sized AND the wire is straight — the actual goal.
 
+    **Steps 3–4 prototyped (reverted) — viability proven, deeper coupling found.** An authoritative
+    post-pass (placed after every other gate-position pass so nothing undoes it) that sizes each gate
+    by port count at a label-safe 30px gap, slides to align fixed sources, and snaps free
+    single-consumer inputs **does shrink gates** — Combined Logic CBFPS `and_4` went 115px → 60–80px,
+    the actual goal. But it cannot be landed as a post-pass:
+    1. *Per-gate greedy positioning overlaps column neighbours* (two gates with the same sources land
+       at the same Y). A follow-up overlap resolver fixes the overlaps but re-introduces doglegs by
+       pushing gates apart — placement must be **joint/column-level** (in `assignCoordinates`), not
+       per-gate greedy.
+    2. *The coupling extends into the ROUTER.* Even where placement is correct (Simple AND: input and
+       its port both at y65, perfectly aligned), the router's fan-in / clean-Z machinery still
+       detours the straight wire into a 5px jog — so adopting a new gate gap/height also requires
+       adapting the fan-in channel logic and the gate-buffer/clean-Z router.
+
+    **Revised conclusion.** The full fix is a *joint column-level placement in `assignCoordinates`*
+    (gate sizing + input snapping decided together with inter-gate spacing) **plus** matching changes
+    to the fan-in/router — a dedicated re-engineering of the coupled placement+routing core, not an
+    additive pass. Step 1 (the helpers + contract invariant) is the durable foundation landed on the
+    `gate-port-spacing-refactor` branch; the stopgap (gate growth) stays on `main`.
+
 ### Tier 3 — Authoring & feature ergonomics — **RESOLVED (2026-06).**
 
 4. **Name a gate directly: `AND#MYID` (and `OR#`, `NOT#`)**. **Done.** Added a function-call form
