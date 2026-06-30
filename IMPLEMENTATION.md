@@ -271,6 +271,22 @@ Captured 2026-06 from user review. Roughly priority-ordered; tiers group by kind
       bounds the column height. The landed fix reorders the rowMap **integer rank** instead,
       keeping `assignCoordinates`'s uniform packing so heights stay bounded.
 
+3b. **Gate height should depend on port count ONLY, not on source spread** (spec:
+    <<gate-sizing-principle>>). After the input-column packing (565d2e9) a gate's two sources can
+    end up farther apart than a compact (port-count-sized) body can span. The current code expands
+    the gate to keep both input wires straight — a deviation from the principle (gates grow "for
+    other reasons"). **Why a naïve fix fails:** capping the height at the port-count base and
+    placing ports within the fixed body was prototyped (`fitPortsToBody`) and **reverted** — it
+    keeps gates compact and `oob = 0`, but breaks the **no-doglegs invariant in ~7 examples** and
+    introduces cross-net wire overlaps, because two sources separated by *(inner span, inner span +
+    `MIN_DOGLEG`)* cannot both reach a straight or clean-`MIN_DOGLEG` wire in a fixed body; one is
+    forced into the sub-`MIN_DOGLEG` band. **Correct fix:** *gate-aware input placement* — when a
+    single-consumer input feeds a compact gate, snap the input's row to the gate's compact port Y so
+    the wire is straight without growing the gate. This must run in/after `assignCoordinates` (so it
+    survives the later input moves that made the prototype's gate placement stale) and respect the
+    column packing/height bound. Until then the gate-expansion stopgap stays. Guard with the
+    no-doglegs + height-bound invariants and the bend metric.
+
 ### Tier 3 — Authoring & feature ergonomics — **RESOLVED (2026-06).**
 
 4. **Name a gate directly: `AND#MYID` (and `OR#`, `NOT#`)**. **Done.** Added a function-call form

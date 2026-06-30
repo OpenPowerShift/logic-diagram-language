@@ -176,10 +176,32 @@ The renderer enforces this by:
 
 A dogleg of 0px (source Y matches target Y exactly) is a straight-through wire and is always acceptable.
 
-[#gate-height-adjustment]
-==== Gate Height Adjustment
+[#gate-sizing-principle]
+==== Gate Sizing Principle
 
-When a multi-input gate (AND, OR) has input ports that are close to their upstream source Y positions, the gate height is expanded so that the input ports align with their sources. This eliminates small doglegs on incoming wires.
+A gate's body height is a function of its *port count only* — it grows to give each input port room
+(`MIN_PORT_GAP` between ports plus edge padding), and for **no other reason**. A gate MUST NOT be
+enlarged merely to make far-apart input sources line up with its ports.
+
+When a gate's input sources are spread farther apart than its (port-count-sized) body can span, the
+incoming wires dogleg to reach the ports. Such a dogleg MUST still respect <<_minimum_dogleg_height_min_dogleg,`MIN_DOGLEG`>>
+(a clean Z, never a short jog), and the gate is positioned so the wires are straight where the body
+can reach the source and a clean dogleg otherwise.
+
+NOTE: *Tension with the no-dogleg goal.* For a fixed-height gate, two sources whose separation falls
+between the body's usable inner span and that span plus `MIN_DOGLEG` cannot *both* be reached by a
+straight or clean-`MIN_DOGLEG` wire — one wire is forced into the sub-`MIN_DOGLEG` band. The only
+ways to make both wires clean are (a) grow the gate (violates this principle), or (b) reposition the
+upstream *inputs* so their outputs align with the compact gate's ports (*gate-aware input placement*).
+The latter is the correct resolution: gate size stays port-count-driven and the inputs, which have
+free vertical slots in the input column, move to align. Until gate-aware input placement lands, the
+renderer expands the gate as a stopgap (see <<gate-height-adjustment>>) — a known deviation from this
+principle, tracked in `IMPLEMENTATION.md`.
+
+[#gate-height-adjustment]
+==== Gate Height Adjustment (current stopgap)
+
+When a multi-input gate (AND, OR) has input ports that are close to their upstream source Y positions, the gate height is expanded so that the input ports align with their sources. This eliminates small doglegs on incoming wires. (This expansion is the stopgap noted in <<gate-sizing-principle>>; the target behaviour keeps the gate at its port-count height and instead aligns the inputs.)
 
 The algorithm:
 
