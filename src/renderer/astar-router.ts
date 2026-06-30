@@ -363,13 +363,30 @@ function cleanColinear(pts: Vec2[]): Vec2[] {
 // Orthogonal fallback between two points when no routed path is available: a straight line if
 // they share a Y, otherwise a clean Z (exit and enter horizontally). NEVER a diagonal — an
 // orthogonal route that may clip an obstacle is always preferable to a non-orthogonal segment.
-function orthFallback(sourceX: number, sourceY: number, destX: number, destY: number): Vec2[] {
+// When obstacles are supplied, the Z's bend X is chosen (searching from the midpoint outward) so
+// the three segments clear all gate bodies where possible — only clipping as an absolute last resort.
+function orthFallback(
+  sourceX: number, sourceY: number, destX: number, destY: number,
+  obstacles?: GateObstacle[], sgx = 0, sgy = 0, dgx = 0, dgy = 0,
+): Vec2[] {
   if (Math.abs(sourceY - destY) < 1) return [{ x: sourceX, y: sourceY }, { x: destX, y: destY }];
-  const mx = Math.round((sourceX + destX) / 2 / CELL_SIZE) * CELL_SIZE;
-  return [
-    { x: sourceX, y: sourceY }, { x: mx, y: sourceY },
-    { x: mx, y: destY }, { x: destX, y: destY },
+  const z = (mx: number): Vec2[] => [
+    { x: sourceX, y: sourceY }, { x: mx, y: sourceY }, { x: mx, y: destY }, { x: destX, y: destY },
   ];
+  const mid = Math.round((sourceX + destX) / 2 / CELL_SIZE) * CELL_SIZE;
+  if (obstacles) {
+    const lo = Math.min(sourceX, destX), hi = Math.max(sourceX, destX);
+    const cands = [mid];
+    for (let off = CELL_SIZE; off <= Math.abs(destX - sourceX); off += CELL_SIZE) { cands.push(mid + off); cands.push(mid - off); }
+    for (const mx of cands) {
+      if (mx <= lo + CELL_SIZE || mx >= hi) continue;
+      if (segHitsObstacle(sourceX, sourceY, mx, sourceY, obstacles, sgx, sgy, dgx, dgy)) continue;
+      if (segHitsObstacle(mx, sourceY, mx, destY, obstacles, sgx, sgy, dgx, dgy)) continue;
+      if (segHitsObstacle(mx, destY, destX, destY, obstacles, sgx, sgy, dgx, dgy)) continue;
+      return z(mx);
+    }
+  }
+  return z(mid);
 }
 
 function orthogonalize(
@@ -549,5 +566,5 @@ export function routeWireAStar(
 
   return solve(oGX, oGY, bGW, bGH)
     ?? solve(0, 0, fullGW, fullGH)
-    ?? orthFallback(sourceX, sourceY, destX, destY); // orthogonal, never a diagonal
+    ?? orthFallback(sourceX, sourceY, destX, destY, obstacles, sourceGateX, sourceGateY, destGateX, destGateY); // orthogonal, gate-clear, never a diagonal
 }
