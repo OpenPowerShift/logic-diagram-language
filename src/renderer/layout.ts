@@ -1030,18 +1030,7 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     recenterOutputs(gateNode);
   }
 
-  // Re-align output nodes after all gate position adjustments
-  for (const node of nodes.values()) {
-    if (node.kind !== 'output') continue;
-    const outputNode = nodeMap.get(node.id);
-    if (!outputNode || node.inputIds.length === 0) continue;
-    const sourceId = node.inputIds[0];
-    const sourceNode = nodeMap.get(sourceId);
-    if (!sourceNode || sourceNode.outputs.length === 0) continue;
-    const sourceOutputY = Math.round(sourceNode.outputs[0].absY / GRID) * GRID;
-    outputNode.inputs[0].absY = sourceOutputY;
-    outputNode.absY = Math.round((sourceOutputY - outputNode.height / 2) / GRID) * GRID;
-  }
+  // (Output nodes are placed in the single "Phase: output placement" pass after all gate moves.)
 
   // Resolve gate-gate overlaps at the same depth column by pushing the lower
   // gate down so their bounding boxes no longer intersect.
@@ -1104,62 +1093,8 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
   // straight path of another gate's output wire).
   alignSingleInputGates();
 
-  // Position output nodes in a single ordering pass per column.
-  //   OUTPUT_ORDER = DECLARATION (default): outputs keep declared order (O1, O2, ... top
-  //     to bottom), each aligned to its source Y where possible.
-  //   OUTPUT_ORDER = AUTO: outputs are reordered by their source gate's output Y, which
-  //     lets output wires fan out without crossing.
-  // Within each column, outputs are placed greedily in the chosen order, each at its
-  // source Y (straight wire) or pushed down just enough to clear the previous one. Any
-  // push is kept >= MIN_DOGLEG so wires never form a small dogleg.
-  {
-    const declIndex = new Map<string, number>();
-    let di = 0;
-    for (const node of nodes.values()) if (node.kind === 'output') declIndex.set(node.id, di++);
-
-    const outById = (id: string) => nodeMap.get(id)!;
-    const sourceY = (o: LayoutNode) => {
-      const srcId = nodes.get(o.id)?.inputIds[0];
-      const src = srcId ? nodeMap.get(srcId) : undefined;
-      return src?.outputs[0] ? Math.round(src.outputs[0].absY / GRID) * GRID : o.absY + o.height / 2;
-    };
-    const sourceDepth = (o: LayoutNode) => {
-      const srcId = nodes.get(o.id)?.inputIds[0];
-      return srcId ? nodes.get(srcId)?.depth ?? 0 : 0;
-    };
-
-    const cols = new Map<number, LayoutNode[]>();
-    for (const n of layoutNodes) {
-      if (n.gateType !== 'OUTPUT') continue;
-      const arr = cols.get(n.absX) ?? [];
-      arr.push(n);
-      cols.set(n.absX, arr);
-    }
-
-    for (const outs of cols.values()) {
-      // AUTO orders outputs by source Y; on a tie, the output with the DEEPER source (its wire
-      // is short and can run straight) takes the slot, so a shallower-source output — whose
-      // wire must detour around the deeper gate — is offset to a clear side rather than
-      // crossing it (e.g. A·B vs its NAND A·B̄ both driven off the same AND column).
-      outs.sort((a, b) =>
-        opts.outputOrder === 'AUTO'
-          ? sourceY(a) - sourceY(b) || sourceDepth(b) - sourceDepth(a) || declIndex.get(a.id)! - declIndex.get(b.id)!
-          : declIndex.get(a.id)! - declIndex.get(b.id)!,
-      );
-      const minGap = 40; // centre-to-centre clearance between stacked output labels
-      let prevCenter = -Infinity;
-      for (const o of outs) {
-        const want = sourceY(o);
-        let center = Math.max(want, prevCenter + minGap);
-        // Keep any deviation from the source Y at 0 or >= MIN_DOGLEG (never a small jog).
-        if (center - want > 0 && center - want < MIN_DOGLEG) center = want + MIN_DOGLEG;
-        center = Math.round(center / GRID) * GRID;
-        o.absY = Math.round((center - o.height / 2) / GRID) * GRID;
-        o.inputs[0].absY = center;
-        prevCenter = center;
-      }
-    }
-  }
+  // (Output placement is done in a single pass after all gate moves — see "Phase: output
+  // placement" below.)
 
   // Place feedback input ports. A feedback input has no left-hand source (it loops back from
   // an output), so the source-alignment passes above leave its port unset (non-finite). The
@@ -1288,49 +1223,47 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     }
   }
 
-  // Snap each output to its driver's output Y when only a small (<MIN_DOGLEG) jog separates
-  // them — run last (after the protected zone nudges gates) so it sees final source positions.
-  // Cascade siblings below to preserve MIN_PORT_GAP so the move never crowds the next output.
-  for (const col of new Set(layoutNodes.filter(n => n.gateType === 'OUTPUT').map(n => n.absX))) {
-    const outs = layoutNodes.filter(n => n.gateType === 'OUTPUT' && n.absX === col).sort((a, b) => a.absY - b.absY);
-    for (let i = 0; i < outs.length; i++) {
-      const ln = outs[i];
-      const fn = nodes.get(ln.id);
-      if (!fn || !ln.inputs[0]) continue;
-      const sy = blkSrcY(fn.inputIds[0], fn.inputPorts?.[0]);
-      if (sy === undefined) continue;
-      const diff = sy - ln.inputs[0].absY;
-      if (Math.abs(diff) < 1 || Math.abs(diff) >= MIN_DOGLEG) continue;
-      const newY = Math.round(sy / GRID) * GRID;
-      // May move up only if clear of the output above; may move down, pushing those below.
-      const above = outs[i - 1];
-      if (above && newY - (above.inputs[0]?.absY ?? above.absY) < MIN_PORT_GAP - 0.5) continue;
-      const d = newY - ln.inputs[0].absY;
-      ln.absY += d; if (ln.inputs[0]) ln.inputs[0].absY += d;
-      for (let j = i + 1; j < outs.length; j++) {
-        const prev = outs[j - 1].inputs[0]?.absY ?? outs[j - 1].absY;
-        const cur = outs[j].inputs[0]?.absY ?? outs[j].absY;
-        if (cur - prev >= MIN_PORT_GAP - 0.5) break;
-        const push = Math.round((MIN_PORT_GAP - (cur - prev)) / GRID) * GRID;
-        outs[j].absY += push; if (outs[j].inputs[0]) outs[j].inputs[0].absY += push;
-      }
+  // ── Phase: output placement (single pass, runs after every gate move so it sees final driver
+  // positions). Order each output column (AUTO by source Y, else declaration), then place each
+  // output at its driver's output Y — a straight wire where the column allows, otherwise pushed
+  // down to a clean >= MIN_DOGLEG below the output above. Subsumes the earlier align / snap /
+  // de-overlap output passes.
+  {
+    const declIndex = new Map<string, number>();
+    let di = 0;
+    for (const node of nodes.values()) if (node.kind === 'output') declIndex.set(node.id, di++);
+    const sourceY = (o: LayoutNode) => {
+      const fn = nodes.get(o.id);
+      const sy = fn ? blkSrcY(fn.inputIds[0], fn.inputPorts?.[0]) : undefined;
+      return sy !== undefined ? Math.round(sy / GRID) * GRID : o.absY + o.height / 2;
+    };
+    const sourceDepth = (o: LayoutNode) => {
+      const srcId = nodes.get(o.id)?.inputIds[0];
+      return srcId ? nodes.get(srcId)?.depth ?? 0 : 0;
+    };
+    const cols = new Map<number, LayoutNode[]>();
+    for (const n of layoutNodes) {
+      if (n.gateType !== 'OUTPUT') continue;
+      (cols.get(n.absX) ?? cols.set(n.absX, []).get(n.absX)!).push(n);
     }
-  }
-
-  // Separate any two outputs in a column that still overlap (e.g. two now-compact gates whose
-  // outputs land at the same Y): push the lower one down to MIN_DOGLEG below the one above, so the
-  // outputs don't overlap and the displaced output's wire reads as a clean Z rather than a jog.
-  for (const col of new Set(layoutNodes.filter(n => n.gateType === 'OUTPUT').map(n => n.absX))) {
-    const outs = layoutNodes.filter(n => n.gateType === 'OUTPUT' && n.absX === col).sort((a, b) => a.absY - b.absY);
-    for (let i = 1; i < outs.length; i++) {
-      const prevY = outs[i - 1].inputs[0]?.absY ?? outs[i - 1].absY;
-      const cur = outs[i];
-      const curY = cur.inputs[0]?.absY ?? cur.absY;
-      const need = prevY + MIN_DOGLEG;
-      if (curY < need - 0.5) {
-        const d = Math.round((need - curY) / GRID) * GRID;
-        cur.absY += d;
-        for (const p of [...cur.inputs, ...cur.outputs]) p.absY += d;
+    const minGap = 40; // centre-to-centre clearance between stacked output labels
+    for (const outs of cols.values()) {
+      // AUTO orders by source Y (deeper source wins a tie so its short wire stays straight); else
+      // declaration order.
+      outs.sort((a, b) =>
+        opts.outputOrder === 'AUTO'
+          ? sourceY(a) - sourceY(b) || sourceDepth(b) - sourceDepth(a) || declIndex.get(a.id)! - declIndex.get(b.id)!
+          : declIndex.get(a.id)! - declIndex.get(b.id)!);
+      let prevCenter = -Infinity;
+      for (const o of outs) {
+        if (!o.inputs[0]) continue;
+        const want = sourceY(o);
+        let center = Math.max(want, prevCenter + minGap);
+        if (center - want > 0 && center - want < MIN_DOGLEG) center = want + MIN_DOGLEG;
+        center = Math.round(center / GRID) * GRID;
+        o.absY = Math.round((center - o.height / 2) / GRID) * GRID;
+        o.inputs[0].absY = center;
+        prevCenter = center;
       }
     }
   }
