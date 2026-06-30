@@ -141,22 +141,26 @@ function baseNodeHeight(n: FlatNode): number {
   if (n.gateType === 'NOT') return NOT_GATE_H;
   const numInputs = n.inputIds.length || 2;
   const labelSpace = (n.name ? 18 : 0) + (n.description ? 18 : 0);
-  return evenGridHeight(Math.max(AND_GATE_H_BASE, (numInputs + 1) * PORT_SPACING) + labelSpace);
+  return gateBodyHeight(numInputs, gateGap(n), labelSpace);
 }
 
 // ── Gate vertical layout: single source of truth ──────────────────────────────────────────────
 // A gate's body is sized and its ports laid out PURELY from its port count and a per-gate vertical
-// port spacing `gap`. Body height = (n+1)*gap (rounded up to an even grid so the centre is on-grid);
-// input port i sits at top + (i+1)*gap (so there is one `gap` of padding above the first port and
-// below the last); the single output is dead-centre. Every pass that sizes or re-places a gate body
-// SHOULD derive its geometry from these helpers so the spacing stays consistent across the OR-curve,
-// fan-in, output-centring and dogleg passes. `gap` defaults to PORT_SPACING (15px).
-function gateBodyHeight(numInputs: number, gap: number = PORT_SPACING): number {
-  return evenGridHeight(Math.max(AND_GATE_H_BASE, (numInputs + 1) * gap));
+// port spacing `gap`: input port i sits at top + GATE_END_PAD + i*gap, so adjacent ports are `gap`
+// apart with a fixed GATE_END_PAD above the first and below the last; the body height is the span
+// plus both pads (rounded up to an even grid so the dead-centre output stays on-grid). With the
+// default gap = PORT_SPACING this reproduces the historical (n+1)*PORT_SPACING layout exactly; a
+// larger gap (for a gate fed by labelled inputs) widens the port spacing without other passes
+// needing to know. Every pass that sizes or re-places a gate body derives geometry from these.
+const GATE_END_PAD = PORT_SPACING;
+function gateBodyHeight(numInputs: number, gap: number = PORT_SPACING, labelSpace = 0): number {
+  return evenGridHeight(Math.max(AND_GATE_H_BASE, (numInputs - 1) * gap + 2 * GATE_END_PAD) + labelSpace);
 }
 function gateInputPortY(top: number, i: number, gap: number = PORT_SPACING): number {
-  return top + (i + 1) * gap;
+  return top + GATE_END_PAD + i * gap;
 }
+// A gate's first-class vertical port spacing (`portGap`), defaulting to PORT_SPACING.
+function gateGap(n: FlatNode): number { return n.portGap ?? PORT_SPACING; }
 
 // Body dimensions for a generic FB block: square-ish, sized to its port counts and labels.
 function fbDims(n: FlatNode): { w: number; h: number } {
@@ -315,7 +319,8 @@ function assignCoordinates(
     if (srcs.length === 0) return null;
     if (n.kind === 'gate' && n.gateType !== 'NOT' && srcs.length >= 2) {
       const h = H.get(n.id)!;
-      return median(srcs.map((s, i) => s - ((i + 1) * PORT_SPACING - h / 2)));
+      const gap = gateGap(n);
+      return median(srcs.map((s, i) => s - ((GATE_END_PAD + i * gap) - h / 2)));
     }
     return median(srcs);
   };
@@ -678,11 +683,12 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
       const isMultiInput = numInputs > 2;
       const useBars = opts.gateInputStyle === 'BARS' && numInputs > 2;
 
+      const gGap = gateGap(node);
       if (useBars) {
         h = AND_GATE_H_BASE;
         w = isMultiInput ? GATE_W_MULTI : GATE_W;
       } else {
-        h = gateBodyHeight(numInputs, PORT_SPACING);
+        h = gateBodyHeight(numInputs, gGap);
         w = isMultiInput ? GATE_W_MULTI : GATE_W;
       }
 
@@ -706,7 +712,7 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
         }
       } else {
       for (let i = 0; i < numInputs; i++) {
-        const portY = gateInputPortY(absY, i, PORT_SPACING);
+        const portY = gateInputPortY(absY, i, gGap);
         inputs.push({ name: `in_${i}`, absX: absX, absY: portY });
       }
     }

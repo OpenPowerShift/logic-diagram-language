@@ -18,6 +18,7 @@ export interface FlatNode {
   usedPorts?: Set<string>;            // output ports referenced (e.g. SR Q / NQ)
   inputPorts?: (string | undefined)[]; // per-input source output-port name (for multi-output sources)
   inputLabels?: (string | undefined)[]; // per-input port label (FB named inputs)
+  portGap?: number;                    // first-class vertical input-port spacing (label-aware), set in layout
 }
 
 // A net label for a consumed intermediate signal — drawn later at its driver's fan-out junction.
