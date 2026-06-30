@@ -838,196 +838,44 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     outputNode.absY = Math.round((sourceOutputY - outputNode.height / 2) / GRID) * GRID;
   }
 
-  for (const node of nodes.values()) {
-    if (node.kind !== 'gate' || !node.gateType || node.gateType === 'NOT') continue;
-    if (node.inputIds.length < 2) continue;
-    const gateNode = nodeMap.get(node.id);
-    if (!gateNode || gateNode.inputs.length < 2) continue;
-    // Input-fed gate: its size is a function of PORT COUNT only (never grown to span far sources).
-    // Keep the port-count height and slide the gate to the position that minimises sub-MIN_DOGLEG
-    // jogs — preferring a straight wire, then a clean >= MIN_DOGLEG dogleg (so e.g. a 2-input AND
-    // aligns one input and the other reads as a clean Z, instead of growing the body).
-    if (node.portGap !== undefined) {
+  // ── Phase: gate placement. Every multi-input AND/OR gate is sized by PORT COUNT only (label-aware
+  // gap) and slid to the position that minimises sub-MIN_DOGLEG jogs on its input wires — one
+  // principled min-jog fit, whether the gate is fed by inputs or by other gates. Processed in depth
+  // order so each gate sees its drivers already placed. The body is never grown to span far-apart
+  // sources; such wires read as clean Z-routes. (NOT gates and blocks are aligned by their own
+  // passes; outputs/inputs by their placement phases.)
+  {
+    const placeGate = (node: FlatNode) => {
+      const gateNode = nodeMap.get(node.id);
+      if (!gateNode || gateNode.inputs.length < 2) return;
       const gap = gateGap(node);
       const h = gateBodyHeight(node.inputIds.length, gap);
       const srcYs = node.inputIds
         .map(id => nodeMap.get(id)?.outputs[0]?.absY)
         .filter((y): y is number => y !== undefined && Number.isFinite(y))
         .sort((a, b) => a - b);
-      if (srcYs.length >= 2) {
-        const cen = (srcYs[0] + srcYs[srcYs.length - 1]) / 2;
-        let bestTop = gateNode.absY, bestSc = Infinity;
-        for (let top = srcYs[0] - h; top <= srcYs[srcYs.length - 1] + GRID; top += GRID) {
-          let sc = Math.abs(top + h / 2 - cen) * 0.001;
-          for (let k = 0; k < srcYs.length; k++) {
-            const d = Math.abs(srcYs[k] - gateInputPortY(top, k, gap));
-            if (d >= 1 && d < MIN_DOGLEG) sc += 1000;
-            sc += d * 0.1;
-          }
-          if (sc < bestSc) { bestSc = sc; bestTop = Math.round(top / GRID) * GRID; }
+      if (srcYs.length < 2) return;
+      const cen = (srcYs[0] + srcYs[srcYs.length - 1]) / 2;
+      let bestTop = gateNode.absY, bestSc = Infinity;
+      for (let top = srcYs[0] - h; top <= srcYs[srcYs.length - 1] + GRID; top += GRID) {
+        let sc = Math.abs(top + h / 2 - cen) * 0.001;
+        for (let k = 0; k < srcYs.length; k++) {
+          const d = Math.abs(srcYs[k] - gateInputPortY(top, k, gap));
+          if (d >= 1 && d < MIN_DOGLEG) sc += 1000;
+          sc += d * 0.1;
         }
-        gateNode.absY = bestTop;
-        gateNode.height = h;
-        for (let k = 0; k < gateNode.inputs.length; k++) {
-          gateNode.inputs[k].absY = Math.round(gateInputPortY(bestTop, k, gap) / GRID) * GRID;
-        }
-        recenterOutputs(gateNode);
+        if (sc < bestSc) { bestSc = sc; bestTop = Math.round(top / GRID) * GRID; }
       }
-      continue;
-    }
-    const portSep = MIN_PORT_GAP;
-    const edgePad = MIN_PORT_GAP;
-
-    const sortedInputIds = [...node.inputIds];
-    const inputYs = sortedInputIds.map(id => {
-      const src = nodeMap.get(id);
-      return src?.outputs[0]?.absY ?? Infinity;
-    });
-    const indexed = sortedInputIds.map((id, i) => ({ id, absY: inputYs[i] }));
-    indexed.sort((a, b) => a.absY - b.absY);
-
-    const sourceYs = indexed.map(e => e.absY).filter(y => y !== Infinity);
-    if (sourceYs.length === 0) continue;
-
-    const idealYs: number[] = [sourceYs[0]];
-    for (let i = 1; i < sourceYs.length; i++) {
-      idealYs.push(Math.max(sourceYs[i], idealYs[i - 1] + portSep));
-    }
-
-    const topPad = edgePad;
-    const bottomPad = edgePad;
-    const requiredTop = idealYs[0] - topPad;
-    const requiredBottom = idealYs[idealYs.length - 1] + bottomPad;
-    const requiredHeight = requiredBottom - requiredTop;
-
-    const maxExpansion = portSep * gateNode.inputs.length;
-    if (requiredHeight <= gateNode.height + maxExpansion) {
-      gateNode.absY = Math.round(requiredTop / GRID) * GRID;
-      gateNode.height = Math.ceil(requiredHeight / GRID) * GRID;
-      for (let i = 0; i < indexed.length && i < gateNode.inputs.length; i++) {
-        gateNode.inputs[i].absY = Math.round(idealYs[i] / GRID) * GRID;
+      gateNode.absY = bestTop;
+      gateNode.height = h;
+      for (let k = 0; k < gateNode.inputs.length; k++) {
+        gateNode.inputs[k].absY = Math.round(gateInputPortY(bestTop, k, gap) / GRID) * GRID;
       }
       recenterOutputs(gateNode);
-    }
-  }
-
-  for (const node of nodes.values()) {
-    if (node.kind !== 'gate' || !node.gateType || node.gateType === 'NOT') continue;
-    if (node.inputIds.length < 2) continue;
-    if (node.portGap !== undefined) continue; // input-fed: sized + aligned in assignCoordinates
-    const gateNode = nodeMap.get(node.id);
-    if (!gateNode || gateNode.inputs.length < 2) continue;
-
-    const sortedInputIds = [...node.inputIds];
-    const inputYs = sortedInputIds.map(id => {
-      const src = nodeMap.get(id);
-      return src?.outputs[0]?.absY ?? Infinity;
-    });
-    const indexed = sortedInputIds.map((id, i) => ({ id, absY: inputYs[i] }));
-    indexed.sort((a, b) => a.absY - b.absY);
-    const sourceYs = indexed.map(e => e.absY).filter(y => y !== Infinity);
-
-    const currentPortYs = gateNode.inputs.map(p => p.absY);
-    const expanded = sourceYs.length === currentPortYs.length &&
-      sourceYs.every((sy, i) => Math.abs(sy - currentPortYs[i]) < 1);
-    if (expanded) continue;
-
-    const h = gateNode.height;
-    const n = gateNode.inputs.length;
-    const originalAbsY = gateNode.absY;
-
-    function smallDoglegScore(delta: number): number {
-      let score = 0;
-      for (let i = 0; i < sourceYs.length && i < n; i++) {
-        const portY = originalAbsY + delta + (i + 1) * h / (n + 1);
-        const diff = Math.abs(sourceYs[i] - portY);
-        if (diff >= 1 && diff < MIN_DOGLEG) {
-          score += (MIN_DOGLEG - diff) * (MIN_DOGLEG - diff);
-        }
-      }
-      return score;
-    }
-
-    let bestDelta = 0;
-    let bestScore = smallDoglegScore(0);
-    for (let delta = -MIN_DOGLEG; delta <= MIN_DOGLEG; delta += GRID) {
-      const score = smallDoglegScore(delta);
-      if (score < bestScore || (score === bestScore && Math.abs(delta) < Math.abs(bestDelta))) {
-        bestScore = score;
-        bestDelta = delta;
-      }
-    }
-
-    if (Math.abs(bestDelta) >= GRID) {
-      gateNode.absY += bestDelta;
-      for (const port of gateNode.inputs) {
-        port.absY += bestDelta;
-      }
-      if (gateNode.outputs.length > 0) {
-        gateNode.outputs[0].absY += bestDelta;
-      }
-    }
-  }
-
-  // Dogleg enforcement: ensure no wire has 0 < |sourceY - portY| < MIN_DOGLEG.
-  // For any input where this constraint is violated, expand the gate to accommodate
-  // the port at the source Y position (straight-through) or at source Y ± MIN_DOGLEG.
-  for (const node of nodes.values()) {
-    if (node.kind !== 'gate' || !node.gateType || node.gateType === 'NOT') continue;
-    if (node.inputIds.length < 2) continue;
-    if (node.portGap !== undefined) continue; // input-fed: sized + aligned in assignCoordinates
-    const gateNode = nodeMap.get(node.id);
-    if (!gateNode || gateNode.inputs.length < 2) continue;
-
-    const sortedInputIds = [...node.inputIds];
-    const inputYs = sortedInputIds.map(id => {
-      const src = nodeMap.get(id);
-      return src?.outputs[0]?.absY ?? Infinity;
-    });
-    const indexed = sortedInputIds.map((id, i) => ({ id, absY: inputYs[i] }));
-    indexed.sort((a, b) => a.absY - b.absY);
-    const sourceYs = indexed.map(e => e.absY).filter(y => y !== Infinity);
-
-    let needsExpansion = false;
-    for (let i = 0; i < sourceYs.length && i < gateNode.inputs.length; i++) {
-      const diff = Math.abs(sourceYs[i] - gateNode.inputs[i].absY);
-      if (diff >= 1 && diff < MIN_DOGLEG) {
-        needsExpansion = true;
-        break;
-      }
-    }
-
-    if (!needsExpansion) continue;
-
-    // Re-expand: place ports at ideal Y positions with MIN_PORT_GAP between adjacent ports,
-    // preferring source Y positions where possible. When a port can't sit on its source (the gap
-    // to the previous port pushes it down), keep it at least MIN_DOGLEG away so its wire is a
-    // clean Z rather than a small jog — never leave it in the sub-MIN_DOGLEG zone.
-    const idealYs: number[] = [sourceYs[0]];
-    for (let i = 1; i < sourceYs.length; i++) {
-      const minByGap = idealYs[i - 1] + MIN_PORT_GAP;
-      let y = Math.max(sourceYs[i], minByGap);
-      if (y > sourceYs[i] && y < sourceYs[i] + MIN_DOGLEG) y = Math.max(minByGap, sourceYs[i] + MIN_DOGLEG);
-      idealYs.push(y);
-    }
-
-    const topPad = MIN_PORT_GAP;
-    const bottomPad = MIN_PORT_GAP;
-    const requiredTop = idealYs[0] - topPad;
-    const requiredBottom = idealYs[idealYs.length - 1] + bottomPad;
-    const requiredHeight = requiredBottom - requiredTop;
-
-    // Apply the ideal port layout, growing the body to encompass it. The old code capped the
-    // growth and, when over budget, shoved individual ports to sourceY ± MIN_DOGLEG — which could
-    // land a port OUTSIDE the body, leaving a wire that visibly dead-ends above/below the gate
-    // (e.g. AB into the top AND of Combined Logic). Always containing the ports keeps every wire
-    // connected; the bend metric / height bound guard against over-growth.
-    gateNode.absY = Math.round(requiredTop / GRID) * GRID;
-    gateNode.height = Math.ceil(requiredHeight / GRID) * GRID;
-    for (let i = 0; i < indexed.length && i < gateNode.inputs.length; i++) {
-      gateNode.inputs[i].absY = Math.round(idealYs[i] / GRID) * GRID;
-    }
-    recenterOutputs(gateNode);
+    };
+    for (const node of [...nodes.values()]
+      .filter(n => n.kind === 'gate' && n.gateType && n.gateType !== 'NOT' && n.inputIds.length >= 2)
+      .sort((a, b) => a.depth - b.depth)) placeGate(node);
   }
 
   // (Output nodes are placed in the single "Phase: output placement" pass after all gate moves.)
