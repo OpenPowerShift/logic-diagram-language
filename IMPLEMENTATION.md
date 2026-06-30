@@ -320,25 +320,34 @@ Captured 2026-06 from user review. Roughly priority-ordered; tiers group by kind
       free single-consumer input to its gate's port Y (room-checked against column neighbours), so
       the gate stays port-count-sized AND the wire is straight — the actual goal.
 
-    **Steps 3–4 prototyped (reverted) — viability proven, deeper coupling found.** An authoritative
-    post-pass (placed after every other gate-position pass so nothing undoes it) that sizes each gate
-    by port count at a label-safe 30px gap, slides to align fixed sources, and snaps free
-    single-consumer inputs **does shrink gates** — Combined Logic CBFPS `and_4` went 115px → 60–80px,
-    the actual goal. But it cannot be landed as a post-pass:
-    1. *Per-gate greedy positioning overlaps column neighbours* (two gates with the same sources land
-       at the same Y). A follow-up overlap resolver fixes the overlaps but re-introduces doglegs by
-       pushing gates apart — placement must be **joint/column-level** (in `assignCoordinates`), not
-       per-gate greedy.
-    2. *The coupling extends into the ROUTER.* Even where placement is correct (Simple AND: input and
-       its port both at y65, perfectly aligned), the router's fan-in / clean-Z machinery still
-       detours the straight wire into a 5px jog — so adopting a new gate gap/height also requires
-       adapting the fan-in channel logic and the gate-buffer/clean-Z router.
+    **LANDED (2026-07).** Gates are now sized by **port count only** and inputs line up with their
+    ports, via a clean phase pipeline that replaced the old growth/dogleg-killer stack. The placement
+    pipeline now reads as named single-purpose phases:
+    - **Gate placement** — *one* min-jog pass (replaced three: input-fed fit + gate-fed expansion +
+      small-dogleg shift + dogleg-enforcement grow; 191 → 39 lines). Every AND/OR gate is sized by
+      `gateBodyHeight(gap)` and slid to the position minimising sub-`MIN_DOGLEG` jogs; never grown to
+      span far sources (those wires read as clean Z-routes). Depth-ordered so each gate sees its
+      drivers placed.
+    - **Dogleg cleanup** — enforces the clean-wire rule for the residual cases the fit can't satisfy
+      (a multi-consumer input that can't sit on every gate's port; a protected-zone nudge).
+    - **Input placement** — *new* phase: snap each single-consumer input onto its AND/OR gate's port
+      row (by source-Y rank, room-checked). This is the fix for the recurring "inputs don't line up"
+      feedback — e.g. `A OR B OR C` inputs now sit exactly on the OR's ports.
+    - **Output placement** — *one* pass (replaced four), run after all gate moves: order each column
+      (AUTO by source Y / declaration) then align to driver Y or push down a clean `MIN_DOGLEG`.
 
-    **Revised conclusion.** The full fix is a *joint column-level placement in `assignCoordinates`*
-    (gate sizing + input snapping decided together with inter-gate spacing) **plus** matching changes
-    to the fan-in/router — a dedicated re-engineering of the coupled placement+routing core, not an
-    additive pass. Step 1 (the helpers + contract invariant) is the durable foundation landed on the
-    `gate-port-spacing-refactor` branch; the stopgap (gate growth) stays on `main`.
+    Results across all examples: gates port-count-sized (CBFPS `and_4` 115 → 60, Motor 175 → 120),
+    **total sub-`MIN_DOGLEG` doglegs = 1, out-of-body 0, overlaps 0**; guarded by the contract +
+    no-doglegs + height-bound invariants. Merged to `main`.
+
+    **Remaining — a routing-stage redesign (next), not placement.** Three known defects are tracked
+    as `it.fails` in the invariant/checks suites (placement is correct for all three): the SEL
+    `RISING → ALARM` 5px jog (router dodges an obstacle in the straight path); an Inversion Bubbles
+    fan-out branch that routes through a gate column at the span midpoint; and the close parallel
+    verticals that follow. These live in the **router / fan-out / global-ordering** layer. The plan is
+    the same disciplined "one clear pass at a time," now applied to routing: a fan-out clean-Z that
+    never enters a gate column, and block port-mapping (e.g. SR S/R) that participates in crossing
+    reduction.
 
 ### Tier 3 — Authoring & feature ergonomics — **RESOLVED (2026-06).**
 
