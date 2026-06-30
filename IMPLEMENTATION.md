@@ -577,3 +577,35 @@ Captured 2026-06 from user review. Roughly priority-ordered; tiers group by kind
       (the lane-vs-gate priority tension), and (b) an input into a wide OR whose curve-tap Y differs
       from the fan-in channel Y. Both are ≤25px and cosmetic; fixing them safely needs the deeper
       placement rework (lane priority / curve-tap-aware fan-in) rather than a local patch.
+
+## Routing redesign (proposed — channel-based orthogonal routing)
+
+The placement pipeline is now clean (named single-purpose phases). The wire router is still the old
+ad-hoc stack: per-wire `routeWireAStar` (fast-path → `tryCleanZ` → A* grid → `orthFallback`), then
+balanced-Z, nested fan-in channels, jog-straightening, shared fan-out trunk, output-snap-to-approach,
+block-output straighten, junction-dot merge — ~10 interacting stages that re-derive (badly) what is a
+textbook orthogonal/channel-routing problem. The three remaining defects all live here.
+
+**Core principle:** every wire is horizontal in node *rows* and only changes Y inside a **channel** —
+a vertical X-track that lives in the gap *between* node columns, never inside a gate/block body. This
+makes "no wire crosses a gate body" structural (kills the Inversion Bubbles class) rather than a
+post-hoc check.
+
+**Phases (one job each, mirroring the placement pipeline):**
+- **R1 — Channel zones.** Compute the inter-column gap regions clear of every gate/block body (+
+  buffer). Verticals may only live here; the only horizontals touching a body are the source/dest
+  stubs.
+- **R2 — Wire topology.** For each net (source → destinations) choose the channel each segment turns
+  in: exit source row → turn in a channel → run to dest row → enter. A fan-out shares the source's
+  first channel as a trunk then branches diverge into later channels; a fan-in converges into the
+  gate's entry channel, nested by source-Y order. Block port mapping (e.g. SR S/R) participates here
+  so its wires don't cross.
+- **R3 — Track assignment.** Within each channel, give each wire a distinct vertical track (X),
+  left-to-right, ordered to minimise crossings (left-edge / channel routing), spaced ≥
+  `MIN_WIRE_SPACING`. Removes "close parallel verticals" by construction.
+- **R4 — Emit + junctions.** Build the orthogonal point lists; place a junction dot where a fan-out
+  branch peels off its trunk.
+
+A* stays only as an explicitly-scoped fallback for the rare wire a channel can't serve (e.g. feedback
+loop-backs). Guard with the existing orthogonality / no-gate-crossing / no-parallel-overlap /
+connectivity invariants (the three `it.fails` flip back to passing as each is fixed).
