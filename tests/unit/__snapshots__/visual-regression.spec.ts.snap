@@ -8,15 +8,15 @@ exports[`Visual regression (layout geometry) > Boolean Algebra 1`] = `
   ],
   "junctions": [
     [
-      335,
+      355,
+      70,
+    ],
+    [
+      395,
       160,
     ],
     [
-      355,
-      130,
-    ],
-    [
-      355,
+      410,
       70,
     ],
     [
@@ -306,11 +306,11 @@ exports[`Visual regression (layout geometry) > Boolean Algebra 1`] = `
           160,
         ],
         [
-          335,
+          395,
           160,
         ],
         [
-          335,
+          395,
           245,
         ],
         [
@@ -361,11 +361,11 @@ exports[`Visual regression (layout geometry) > Boolean Algebra 1`] = `
           70,
         ],
         [
-          355,
+          410,
           70,
         ],
         [
-          355,
+          410,
           215,
         ],
         [
@@ -5450,19 +5450,19 @@ exports[`Visual regression (layout geometry) > Inversion Bubbles 1`] = `
   ],
   "junctions": [
     [
-      305,
-      145,
-    ],
-    [
       320,
       190,
     ],
     [
-      320,
-      220,
+      335,
+      145,
     ],
     [
-      350,
+      400,
+      190,
+    ],
+    [
+      410,
       65,
     ],
   ],
@@ -5717,27 +5717,6 @@ exports[`Visual regression (layout geometry) > Inversion Bubbles 1`] = `
           145,
         ],
         [
-          305,
-          145,
-        ],
-        [
-          305,
-          95,
-        ],
-        [
-          420,
-          95,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          145,
-        ],
-        [
           335,
           145,
         ],
@@ -5760,40 +5739,19 @@ exports[`Visual regression (layout geometry) > Inversion Bubbles 1`] = `
       "points": [
         [
           270,
-          190,
+          145,
         ],
         [
-          320,
-          190,
+          385,
+          145,
         ],
         [
-          320,
-          125,
+          385,
+          95,
         ],
         [
-          430,
-          125,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          190,
-        ],
-        [
-          320,
-          190,
-        ],
-        [
-          320,
-          220,
-        ],
-        [
-          430,
-          220,
+          420,
+          95,
         ],
       ],
     },
@@ -5823,14 +5781,56 @@ exports[`Visual regression (layout geometry) > Inversion Bubbles 1`] = `
       "points": [
         [
           270,
+          190,
+        ],
+        [
+          400,
+          190,
+        ],
+        [
+          400,
+          125,
+        ],
+        [
+          430,
+          125,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          190,
+        ],
+        [
+          400,
+          190,
+        ],
+        [
+          400,
+          220,
+        ],
+        [
+          430,
+          220,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
           65,
         ],
         [
-          350,
+          410,
           65,
         ],
         [
-          350,
+          410,
           190,
         ],
         [
@@ -7161,12 +7161,12 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
   ],
   "junctions": [
     [
-      385,
-      195,
+      340,
+      225,
     ],
     [
-      400,
-      225,
+      355,
+      195,
     ],
   ],
   "labels": [],
@@ -7445,32 +7445,11 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
           195,
         ],
         [
-          385,
+          355,
           195,
         ],
         [
-          385,
-          160,
-        ],
-        [
-          420,
-          160,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          195,
-        ],
-        [
-          410,
-          195,
-        ],
-        [
-          410,
+          355,
           265,
         ],
         [
@@ -7484,19 +7463,40 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "points": [
         [
           270,
-          225,
+          195,
         ],
         [
-          400,
-          225,
+          385,
+          195,
         ],
         [
-          400,
-          190,
+          385,
+          160,
         ],
         [
           420,
-          190,
+          160,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          225,
+        ],
+        [
+          340,
+          225,
+        ],
+        [
+          340,
+          295,
+        ],
+        [
+          440,
+          295,
         ],
       ],
     },
@@ -7513,11 +7513,11 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
         ],
         [
           400,
-          295,
+          190,
         ],
         [
-          440,
-          295,
+          420,
+          190,
         ],
       ],
     },

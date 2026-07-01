@@ -1384,6 +1384,43 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     }
     return true;
   }
+
+  // ── Wire separation contract (single source of truth) ───────────────────────────────────────
+  // A segment is "clear" only if it keeps >= MIN_WIRE_SPACING from every PARALLEL same-orientation
+  // segment of a DIFFERENT net (both orientations); perpendicular crossings are fine (crossovers,
+  // not crowding). EVERY wire-reshaping pass below (channel track assignment, fan-in nesting,
+  // shared-trunk merge, output snap) validates its proposed geometry through this ONE contract
+  // before committing, so no pass can silently override another's separation. (Gate-body clearance
+  // is vGateClear/hGateClear.) Reads `wires` live, so it always reflects current geometry.
+  const segCrowds = (x0: number, y0: number, x1: number, y1: number, skip: (w: LayoutWire) => boolean): boolean => {
+    const horiz = Math.abs(y0 - y1) < 0.5;
+    if (!horiz && Math.abs(x0 - x1) >= 0.5) return false; // only axis-aligned segments participate
+    const perp = horiz ? y0 : x0;
+    const aMin = horiz ? Math.min(x0, x1) : Math.min(y0, y1);
+    const aMax = horiz ? Math.max(x0, x1) : Math.max(y0, y1);
+    for (const w of wires) {
+      if (skip(w)) continue;
+      for (let i = 0; i < w.points.length - 1; i++) {
+        const a = w.points[i], b = w.points[i + 1];
+        const oHoriz = Math.abs(a.y - b.y) < 0.5;
+        if (oHoriz !== horiz || (!oHoriz && Math.abs(a.x - b.x) >= 0.5) || (oHoriz && Math.abs(a.x - b.x) < 0.5)) continue;
+        const oPerp = horiz ? a.y : a.x, dp = Math.abs(oPerp - perp);
+        if (dp < 0.5 || dp >= MIN_WIRE_SPACING - 0.5) continue; // co-linear (overlap check elsewhere) or clear
+        const oMin = horiz ? Math.min(a.x, b.x) : Math.min(a.y, b.y);
+        const oMax = horiz ? Math.max(a.x, b.x) : Math.max(a.y, b.y);
+        if (Math.min(aMax, oMax) - Math.max(aMin, oMin) > 0.5) return true; // parallel & overlapping & too close
+      }
+    }
+    return false;
+  };
+  // A proposed wire (its point list) satisfies the contract iff none of its segments crowds another
+  // net. `skip` excludes the wire being moved and any co-moved siblings (same source shares a trunk).
+  const wireClear = (pts: { x: number; y: number }[], skip: (w: LayoutWire) => boolean): boolean => {
+    for (let i = 0; i < pts.length - 1; i++)
+      if (segCrowds(pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y, skip)) return false;
+    return true;
+  };
+
   // ── Channel track assignment ────────────────────────────────────────────────
   // Every wire that turns once (H–V–H) carries a single vertical segment living in the
   // inter-column channel between its two horizontal runs. Verticals that overlap in Y must
@@ -1401,7 +1438,6 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
   // GATE_ENTRANCE, so the vertical turn sits clear of the gate body/curve and the wire visibly
   // enters horizontally rather than turning on the gate's edge (see spec: minimum gate entrance).
   const GATE_ENTRANCE = 20;
-  const MIN_WIRE_SPACING = 2 * GRID;   // 10px: cross-net parallel verticals must keep this clear
   interface Movable {
     w: LayoutWire; vi: number;
     aX: number; bX: number;         // left/right ends of run A / run B (the vertical's X-window)
@@ -1476,12 +1512,22 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
   const curX = new Map<Movable, number>(movables.map(m => [m, m.w.points[m.vi].x]));
   const crossNet = (m: Movable) => movables.filter(o => o !== m && o.w.fromId !== m.w.fromId && yOverlap(o, m));
 
+  // The wire's two horizontal runs (run A: yA over [aX,X]; run B: yB over [X,bX]) at a candidate X,
+  // checked against other nets' horizontals via the shared contract. The vertical stays under curX
+  // coordination above; this adds the horizontal half so the track pass honours the full contract.
+  const runsCrowd = (m: Movable, X: number) => {
+    const skip = (o: LayoutWire) => o.id === m.w.id || o.fromId === m.w.fromId;
+    return segCrowds(m.aX, m.yA, X, m.yA, skip) || segCrowds(X, m.yB, m.bX, m.yB, skip);
+  };
+
   // A movable violates if it hugs a gate (fails its own gate-clearance), has too short a gate
   // entrance, or runs within MIN_WIRE_SPACING of any cross-net vertical (fixed or another movable)
-  // it overlaps in Y. Only violating movables are re-placed; clean ones stay put (minimal churn).
+  // it overlaps in Y, or its horizontal runs crowd another net. Only violating movables are
+  // re-placed; clean ones stay put (minimal churn).
   const crowded = (m: Movable, X: number) =>
     nearFixed(m).some(fv => Math.abs(fv.x - X) < MIN_WIRE_SPACING - 0.5) ||
-    crossNet(m).some(o => Math.abs(curX.get(o)! - X) < MIN_WIRE_SPACING - 0.5);
+    crossNet(m).some(o => Math.abs(curX.get(o)! - X) < MIN_WIRE_SPACING - 0.5) ||
+    runsCrowd(m, X);
   const violates = (m: Movable) => {
     const X = curX.get(m)!;
     return !placeValid(m, X) || (m.destIsGate && m.bX - X < GATE_ENTRANCE - 0.5) || crowded(m, X);
@@ -1521,6 +1567,7 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
         if (d < MIN_WIRE_SPACING - 0.5) cost += 2000; else if (d < SPREAD) cost += 50;
       }
       if (bad) continue;
+      if (runsCrowd(m, x)) cost += 2000;                          // horizontal half of the contract
       if (cost < bestCost) { bestCost = cost; bestX = x; }
     }
     if (bestX !== null) curX.set(m, bestX);                        // no valid slot → keep routed X
@@ -1555,25 +1602,15 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     // leftward) so their channels interleave and don't share the same X — without the offset,
     // above[0] and below[0] both map to gate.absX - GATE_CLEARANCE and overlap.
     const fanSet = new Set(fanWires);
+    // Gate clearance + the shared wire-separation contract (both orientations). Co-reshaped
+    // siblings and the same source are skipped; the mutually-distinct channel Xs and interleave
+    // below keep the siblings themselves apart.
     const channelOk = (w: LayoutWire, channelX: number, srcX: number, srcY: number, portX: number, portY: number) => {
       if (!vGateClear(channelX, srcY, portY)) return false;
       if (!hGateClear(srcY, srcX, channelX, w.fromId)) return false;
       if (!hGateClear(portY, channelX, portX, w.toId)) return false;
-      const vyMin = Math.min(srcY, portY), vyMax = Math.max(srcY, portY);
-      for (const o of wires) {
-        if (o === w || o.fromId === w.fromId || fanSet.has(o)) continue;
-        for (let k = 0; k < o.points.length - 1; k++) {
-          const a = o.points[k], b = o.points[k + 1];
-          if (Math.abs(a.x - b.x) < 0.5) { // other vertical: too close to our channel?
-            if (Math.abs(a.x - channelX) < 2 * GRID &&
-                Math.max(a.y, b.y) > vyMin - 0.5 && Math.min(a.y, b.y) < vyMax + 0.5) return false;
-          } else if (Math.abs(a.y - b.y) < 0.5) { // other horizontal: cross our channel?
-            if (a.y > vyMin - 0.5 && a.y < vyMax + 0.5 &&
-                channelX > Math.min(a.x, b.x) - 0.5 && channelX < Math.max(a.x, b.x) + 0.5) return false;
-          }
-        }
-      }
-      return true;
+      const reshaped = [{ x: srcX, y: srcY }, { x: channelX, y: srcY }, { x: channelX, y: portY }, { x: portX, y: portY }];
+      return wireClear(reshaped, o => o === w || o.fromId === w.fromId || fanSet.has(o));
     };
 
     // All-or-nothing per group: compute every nested channel, and only apply them if all are
@@ -1721,34 +1758,12 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
       arr.push({ w, x: w.points[1].x });
       bySource.set(w.fromId, arr);
     }
-    // A move is rejected if the relocated vertical or its peel-off horizontal would touch a
-    // wire from a different source (same-source overlap is fine — that's the shared trunk).
+    // The relocated branch (vertical at sharedX + its peel-off horizontal) must satisfy the shared
+    // separation contract. Same-source wires are skipped — the whole point is that they merge into
+    // one trunk. Crossovers with other nets are fine; only sub-MIN parallel crowding is rejected.
     const moveClear = (self: LayoutWire, sharedX: number) => {
-      const vyMin = Math.min(self.points[1].y, self.points[2].y);
-      const vyMax = Math.max(self.points[1].y, self.points[2].y);
-      const origX = self.points[1].x; // where the vertical is now
-      const hy = self.points[3].y, hx0 = Math.min(sharedX, self.points[3].x), hx1 = Math.max(sharedX, self.points[3].x);
-      for (const o of wires) {
-        if (o.fromId === self.fromId) continue;
-        for (let k = 0; k < o.points.length - 1; k++) {
-          const a = o.points[k], b = o.points[k + 1];
-          if (Math.abs(a.x - b.x) < 0.5) { // other vertical
-            if (Math.abs(a.x - sharedX) < GRID && Math.max(a.y, b.y) > vyMin - 0.5 && Math.min(a.y, b.y) < vyMax + 0.5) return false;
-          } else if (Math.abs(a.y - b.y) < 0.5) { // other horizontal vs our vertical or peel-off
-            // A horizontal crossing our vertical is a crossover (acceptable), not a collision — only
-            // reject it if the shared channel would create a NEW crossing the wire didn't already have
-            // at its current X (otherwise same-source trunks can never merge past any crossing wire).
-            if (a.y > vyMin - 0.5 && a.y < vyMax + 0.5) {
-              const oxMin = Math.min(a.x, b.x) - 0.5, oxMax = Math.max(a.x, b.x) + 0.5;
-              const crossesShared = sharedX > oxMin && sharedX < oxMax;
-              const crossesOrig = origX > oxMin && origX < oxMax;
-              if (crossesShared && !crossesOrig) return false;
-            }
-            if (Math.abs(a.y - hy) < 0.5 && Math.max(a.x, b.x) > hx0 - 0.5 && Math.min(a.x, b.x) < hx1 + 0.5) return false;
-          }
-        }
-      }
-      return true;
+      const moved = [self.points[0], { x: sharedX, y: self.points[1].y }, { x: sharedX, y: self.points[2].y }, self.points[3]];
+      return wireClear(moved, o => o.fromId === self.fromId);
     };
     for (const group of bySource.values()) {
       if (group.length < 2) continue;

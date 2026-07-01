@@ -177,6 +177,33 @@ describe('Layout invariants', () => {
         }
       });
 
+      // The wire-separation CONTRACT: two cross-net parallel segments that overlap in their shared
+      // axis must keep >= MIN_WIRE_SPACING apart (both orientations). This is the single guarantee
+      // every wire-reshaping pass validates through; asserting it here fails loudly if any pass ever
+      // lets a sub-min gap through (perpendicular crossings are fine — not tested here).
+      it('cross-net parallel wires keep MIN_WIRE_SPACING', () => {
+        const l = build(src);
+        const ss = segs(l.wires);
+        for (let i = 0; i < ss.length; i++) {
+          for (let j = i + 1; j < ss.length; j++) {
+            const a = ss[i], b = ss[j];
+            if (a.from === b.from) continue; // same source may share a trunk
+            if (a.vert && b.vert) {
+              const dx = Math.abs(a.x1 - b.x1);
+              const overlap = Math.min(Math.max(a.y1, a.y2), Math.max(b.y1, b.y2)) - Math.max(Math.min(a.y1, a.y2), Math.min(b.y1, b.y2));
+              if (overlap > 0.5) expect(dx < 0.5 || dx >= MIN_WIRE_SPACING - 0.5,
+                `verticals ${dx}px apart at x≈${a.x1} (${a.from} & ${b.from})`).toBe(true);
+            }
+            if (a.horiz && b.horiz) {
+              const dy = Math.abs(a.y1 - b.y1);
+              const overlap = Math.min(Math.max(a.x1, a.x2), Math.max(b.x1, b.x2)) - Math.max(Math.min(a.x1, a.x2), Math.min(b.x1, b.x2));
+              if (overlap > 0.5) expect(dy < 0.5 || dy >= MIN_WIRE_SPACING - 0.5,
+                `horizontals ${dy}px apart at y≈${a.y1} (${a.from} & ${b.from})`).toBe(true);
+            }
+          }
+        }
+      });
+
       it('has no overlapping gate bodies', () => {
         const l = build(src);
         const gates = l.nodes.filter(n => n.gateType !== 'INPUT' && n.gateType !== 'OUTPUT');
