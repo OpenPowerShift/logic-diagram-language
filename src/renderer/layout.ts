@@ -556,15 +556,34 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
       for (const blk of ordered) blk.sort((a, b) => rankOf(a) - rankOf(b));
       ordered.flat().forEach((inp, i) => rowMap.set(inp.id, i));
 
-    // Re-propagate gate/output rows from the updated input ranks so the order is consistent.
-    for (let depth = 1; depth <= maxDepth; depth++) {
-      const group = depthGroups.get(depth) ?? [];
-      for (const node of group) {
-        if (node.inputIds.length === 0) { rowMap.set(node.id, 0); continue; }
-        const inputRows = node.inputIds.map(id => rowMap.get(id)).filter((r): r is number => r !== undefined);
-        if (inputRows.length === 0) { rowMap.set(node.id, 0); continue; }
-        rowMap.set(node.id, (Math.min(...inputRows) + Math.max(...inputRows)) / 2);
-      }
+    // Multi-layer crossing minimisation: order the DERIVED layers (gates + outputs) by BOTH sides,
+    // not just their inputs. Alternate a down-sweep (rank = mean of input ranks) with an up-sweep
+    // (rank = mean of consumer ranks) over layers 1..maxDepth, iterating; the input layer stays
+    // fixed. The up-sweep is the half that was missing: a gate driving outputs far below it (a
+    // cascade OR feeding bottom outputs) is pulled toward its consumers, so its output wires don't
+    // dogleg back across another gate's fan-out. Continuous ranks are fine — only the order is used.
+    const meanRank = (ids: string[]): number | null => {
+      const rs = ids.map(id => rowMap.get(id)).filter((r): r is number => r !== undefined);
+      return rs.length ? rs.reduce((s, r) => s + r, 0) / rs.length : null;
+    };
+    const succOf = new Map<string, string[]>();
+    for (const nd of nodes.values()) for (const id of nd.inputIds) {
+      if (nodes.get(id)?.kind === 'output') continue; // feedback edge, not a forward consumer
+      (succOf.get(id) ?? succOf.set(id, []).get(id)!).push(nd.id);
+    }
+    for (let it = 0; it < 6; it++) {
+      for (let depth = 1; depth <= maxDepth; depth++)
+        for (const node of depthGroups.get(depth) ?? []) {
+          // Side-balanced barycentre: the midpoint between the input barycentre and the consumer
+          // barycentre (each SIDE weighted equally, regardless of how many edges it has). This pulls
+          // a reconvergent gate — many inputs high, few outputs low — to the true middle so its
+          // output wires don't dogleg back across another gate's fan-out, while a gate whose inputs
+          // and consumers already align barely moves (so it doesn't dogleg its own fan-in). Outputs
+          // have no consumers and keep their driver order.
+          const inM = meanRank(node.inputIds), outM = meanRank(succOf.get(node.id) ?? []);
+          const t = inM !== null && outM !== null ? (inM + outM) / 2 : inM ?? outM;
+          if (t !== null) rowMap.set(node.id, t);
+        }
     }
   }
 
