@@ -13,6 +13,10 @@ exports[`Visual regression (layout geometry) > Boolean Algebra 1`] = `
     ],
     [
       355,
+      130,
+    ],
+    [
+      355,
       70,
     ],
     [
@@ -336,16 +340,16 @@ exports[`Visual regression (layout geometry) > Boolean Algebra 1`] = `
           70,
         ],
         [
-          350,
+          355,
           70,
         ],
         [
-          350,
-          215,
+          355,
+          130,
         ],
         [
-          430,
-          215,
+          438,
+          130,
         ],
       ],
     },
@@ -362,11 +366,11 @@ exports[`Visual regression (layout geometry) > Boolean Algebra 1`] = `
         ],
         [
           355,
-          130,
+          215,
         ],
         [
-          438,
-          130,
+          430,
+          215,
         ],
       ],
     },
@@ -7161,7 +7165,7 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       195,
     ],
     [
-      395,
+      400,
       225,
     ],
   ],
@@ -7483,16 +7487,16 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
           225,
         ],
         [
-          395,
+          400,
           225,
         ],
         [
-          395,
-          295,
+          400,
+          190,
         ],
         [
-          440,
-          295,
+          420,
+          190,
         ],
       ],
     },
@@ -7509,11 +7513,11 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
         ],
         [
           400,
-          190,
+          295,
         ],
         [
-          420,
-          190,
+          440,
+          295,
         ],
       ],
     },

@@ -1726,6 +1726,7 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     const moveClear = (self: LayoutWire, sharedX: number) => {
       const vyMin = Math.min(self.points[1].y, self.points[2].y);
       const vyMax = Math.max(self.points[1].y, self.points[2].y);
+      const origX = self.points[1].x; // where the vertical is now
       const hy = self.points[3].y, hx0 = Math.min(sharedX, self.points[3].x), hx1 = Math.max(sharedX, self.points[3].x);
       for (const o of wires) {
         if (o.fromId === self.fromId) continue;
@@ -1734,7 +1735,15 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
           if (Math.abs(a.x - b.x) < 0.5) { // other vertical
             if (Math.abs(a.x - sharedX) < GRID && Math.max(a.y, b.y) > vyMin - 0.5 && Math.min(a.y, b.y) < vyMax + 0.5) return false;
           } else if (Math.abs(a.y - b.y) < 0.5) { // other horizontal vs our vertical or peel-off
-            if (a.y > vyMin - 0.5 && a.y < vyMax + 0.5 && sharedX > Math.min(a.x, b.x) - 0.5 && sharedX < Math.max(a.x, b.x) + 0.5) return false;
+            // A horizontal crossing our vertical is a crossover (acceptable), not a collision — only
+            // reject it if the shared channel would create a NEW crossing the wire didn't already have
+            // at its current X (otherwise same-source trunks can never merge past any crossing wire).
+            if (a.y > vyMin - 0.5 && a.y < vyMax + 0.5) {
+              const oxMin = Math.min(a.x, b.x) - 0.5, oxMax = Math.max(a.x, b.x) + 0.5;
+              const crossesShared = sharedX > oxMin && sharedX < oxMax;
+              const crossesOrig = origX > oxMin && origX < oxMax;
+              if (crossesShared && !crossesOrig) return false;
+            }
             if (Math.abs(a.y - hy) < 0.5 && Math.max(a.x, b.x) > hx0 - 0.5 && Math.min(a.x, b.x) < hx1 + 0.5) return false;
           }
         }
