@@ -129,6 +129,12 @@ Wires between ports follow these rules:
 . The wire enters the destination port horizontally. For AND/NOT inputs it enters at the
   straight bounding-box left edge; for OR inputs it terminates **on the concave curve**
   (see <<or-curve-ports>>).
+. **Minimum gate entrance.** When a wire turns into a gate input port, its final horizontal
+  run (the entrance) MUST be at least `GATE_ENTRANCE` (15px) long, so the vertical turn sits
+  clear of the gate body/curve and the wire visibly enters horizontally rather than turning on
+  the gate's edge. Equivalently, a turning wire's vertical channel sits at least `GATE_ENTRANCE`
+  to the left of the port's X. This matters most for OR inputs, whose curve-tap X lies inside
+  the bounding box: without the rule the channel would hug (or fall on) the box's left edge.
 
 [#feedback-loops]
 === Feedback (Loop-Back) Wires

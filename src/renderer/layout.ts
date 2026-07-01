@@ -1380,11 +1380,16 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
   // channels that actually collide: a channel whose assignment can't be validated (gate in the
   // way, window too narrow) keeps its routed geometry, so we never trade a clean route for a
   // collision, and clean channels are left untouched.
+  // A wire entering a gate input port must arrive with a horizontal run of at least
+  // GATE_ENTRANCE, so the vertical turn sits clear of the gate body/curve and the wire visibly
+  // enters horizontally rather than turning on the gate's edge (see spec: minimum gate entrance).
+  const GATE_ENTRANCE = 15;
   interface Movable {
     w: LayoutWire; vi: number;
     aX: number; bX: number;         // left/right ends of run A / run B (the vertical's X-window)
     yA: number; yB: number;         // Y of run A (before V) and run B (after V)
     yTop: number; yBot: number;
+    destIsGate: boolean;            // destination is a gate input port (entrance rule applies)
   }
   const movables: Movable[] = [];
   for (const w of wires) {
@@ -1400,7 +1405,9 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     const aX = p[vi - 1].x, bX = p[vi + 2].x;
     if (bX <= aX + 0.5) continue;                                          // left-to-right turns only
     const yA = p[vi].y, yB = p[vi + 1].y;
-    movables.push({ w, vi, aX, bX, yA, yB, yTop: Math.min(yA, yB), yBot: Math.max(yA, yB) });
+    const destNode = nodeMap.get(w.toId);
+    const destIsGate = !!destNode && destNode.gateType !== 'INPUT' && destNode.gateType !== 'OUTPUT';
+    movables.push({ w, vi, aX, bX, yA, yB, yTop: Math.min(yA, yB), yBot: Math.max(yA, yB), destIsGate });
   }
 
   // Group into channels by overlapping X-window (union-find).
@@ -1435,19 +1442,23 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
   const SPREAD = 3 * GRID;                                        // preferred gap between cross-net tracks
   for (const group of channels.values()) {
     if (group.length < 2) continue;
-    // Only touch channels that actually collide today (a cross-net same-X Y-overlap). Clean
-    // channels are left exactly as routed.
+    // Process a channel if it either collides today (a cross-net same-X Y-overlap) or has a wire
+    // turning too close to its gate (entrance shorter than GATE_ENTRANCE). Otherwise leave it as
+    // routed — clean channels are untouched.
     const collides = group.some((a, i) => group.some((b, j) =>
       j > i && a.w.fromId !== b.w.fromId && Math.abs(a.w.points[a.vi].x - b.w.points[b.vi].x) < 0.5 && yOverlap(a, b)));
-    if (!collides) continue;
+    const shortEntrance = group.some(m => m.destIsGate && m.bX - m.w.points[m.vi].x < GATE_ENTRANCE - 0.5);
+    if (!collides && !shortEntrance) continue;
 
     // Greedy CSP, most-constrained-first: a vertical that is boxed in by gate bodies (few valid
     // X's — e.g. a long output wire threading past a gate column) is pinned early; freer verticals
-    // then choose an X that clears every already-placed track. Each vertical's candidate X's are
-    // the grid positions in its own [aX,bX] window that keep both runs and the vertical gate-clear.
+    // then choose an X that clears every already-placed track. Each vertical's candidate X's are the
+    // grid positions in its [aX,bX] window that keep both runs gate-clear; a gate-bound vertical is
+    // additionally capped at bX-GATE_ENTRANCE so its horizontal entrance stays >= GATE_ENTRANCE.
     const withCands = group.map(m => {
       const cands: number[] = [];
-      for (let x = Math.ceil(m.aX / GRID) * GRID; x <= Math.floor(m.bX / GRID) * GRID; x += GRID) {
+      const capX = m.destIsGate ? m.bX - GATE_ENTRANCE : m.bX;
+      for (let x = Math.ceil(m.aX / GRID) * GRID; x <= Math.floor(capX / GRID) * GRID; x += GRID) {
         if (placeValid(m, x)) cands.push(x);
       }
       return { m, cands };

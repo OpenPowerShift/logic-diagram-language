@@ -225,7 +225,7 @@ exports[`Bend/crossing metrics > Shared Intermediates 1`] = `
   "H": 460,
   "bends": 20,
   "bent": 7,
-  "crossings": 4,
+  "crossings": 6,
   "straight": 5,
   "wires": 12,
 }
