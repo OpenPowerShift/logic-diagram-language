@@ -437,11 +437,11 @@ exports[`Visual regression (layout geometry) > Boolean Algebra 1`] = `
           260,
         ],
         [
-          720,
+          690,
           260,
         ],
         [
-          720,
+          690,
           290,
         ],
         [
@@ -1781,7 +1781,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
   ],
   "junctions": [
     [
-      415,
+      430,
       660,
     ],
   ],
@@ -2686,11 +2686,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
           660,
         ],
         [
-          415,
+          430,
           660,
         ],
         [
-          415,
+          430,
           585,
         ],
         [
@@ -5454,16 +5454,16 @@ exports[`Visual regression (layout geometry) > Inversion Bubbles 1`] = `
       140,
     ],
     [
+      320,
+      210,
+    ],
+    [
       335,
       110,
     ],
     [
       335,
       180,
-    ],
-    [
-      350,
-      140,
     ],
     [
       350,
@@ -5768,27 +5768,6 @@ exports[`Visual regression (layout geometry) > Inversion Bubbles 1`] = `
         ],
         [
           320,
-          300,
-        ],
-        [
-          690,
-          300,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          140,
-        ],
-        [
-          350,
-          140,
-        ],
-        [
-          350,
           210,
         ],
         [
@@ -5805,11 +5784,32 @@ exports[`Visual regression (layout geometry) > Inversion Bubbles 1`] = `
           140,
         ],
         [
-          350,
+          320,
           140,
         ],
         [
-          350,
+          320,
+          300,
+        ],
+        [
+          690,
+          300,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          140,
+        ],
+        [
+          365,
+          140,
+        ],
+        [
+          365,
           95,
         ],
         [

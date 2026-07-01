@@ -595,10 +595,20 @@ gaps, no gate there ever → no-gate-crossing is structural); horizontal runs li
 against the same obstacle set so even the fallback never clips a gate.
 
 **Incremental plan (NOT a big-bang rewrite; corpus + invariants green at each step):**
-- **R-step 1 — channel-aware turn selection.** Make clean-Z / fan-out choose a bend X that lies in a
-  channel (never inside a gate column). Local change; fixes the Inversion Bubbles gate-crossing.
-- **R-step 2 — explicit per-channel track assignment** (spacing, crossing-minimising order); lets us
-  delete balanced-Z + the fan-in patch. Fixes close parallel verticals.
+- **R-step 1 — channel-aware turn selection. LANDED (2026-07).** `segHitsObstacle` now skips an
+  obstacle whose body is entirely left/right of a segment (only its buffer reached in and blocked the
+  exit-stub past a same-column neighbour), so `orthFallback` bends in the inter-column channel instead
+  of the gate midpoint. Fixed the Inversion Bubbles gate-crossing (in_6→out_3 bends at a channel X).
+- **R-step 2 — explicit per-channel track assignment. LANDED (2026-07).** Replaced the per-wire
+  balanced-Z greedy (which gave up on *mutual* conflicts — `firstValid=-1` — and left verticals
+  stacked) with a joint channel pass: H–V–H verticals are grouped into channels by overlapping
+  X-window, then a most-constrained-first greedy CSP assigns each a track X in its own gate-clear
+  window, avoiding same-X Y-overlaps (pinned long verticals go first; freer ones route around them),
+  minimising crossings and nudging tracks apart (SPREAD). All-or-nothing per colliding channel; clean
+  channels are untouched. Cross-net vertical collisions now 0 across every example; Inversion Bubbles
+  crossings 8→5. The nested fan-in pass is **kept** — empirically it still reshapes A*'s multi-bend
+  fan-in into clean nested channels for 16 examples (removing it regresses their appearance, though
+  not correctness); the track pass only de-collides already-H–V–H wires.
 - **R-step 3 — block port mapping in ordering** (SR S/R) so its wires don't cross.
 - **R-step 4 — collapse the correction passes** as each is subsumed, keeping A* as the named fallback.
 Each step flips one `it.fails` back to green; if a step can't hold the robustness corpus, stop and let

@@ -1348,12 +1348,8 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     }
   }
 
-  // Balanced-Z pass: slide each wire's single vertical segment toward the midpoint of
-  // its free horizontal span, so wires make long runs and turn in open space rather than
-  // hugging a gate (which causes late-turn crossings). Each move is validated against gate
-  // bodies (kept GATE_CLEARANCE away) and against other-source wires, so it never creates
-  // a new gate crossing or an overlapping/parallel collision. If nothing validates the
-  // wire keeps its routed position.
+  // Gate-clearance helpers, shared by the channel track-assignment pass and the fan-in
+  // nesting below. A vertical/horizontal run must stay GATE_CLEARANCE clear of every gate body.
   const GATE_CLEARANCE = 15;
   function vGateClear(x: number, y0: number, y1: number): boolean {
     const yMin = Math.min(y0, y1), yMax = Math.max(y0, y1);
@@ -1371,27 +1367,28 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     }
     return true;
   }
-  function crossesOtherWire(w: LayoutWire, vx: number, vy0: number, vy1: number, hyA: number, hxA0: number, hxA1: number, hyB: number, hxB0: number, hxB1: number): boolean {
-    const vyMin = Math.min(vy0, vy1), vyMax = Math.max(vy0, vy1);
-    for (const o of wires) {
-      if (o === w || o.fromId === w.fromId) continue;
-      for (let i = 0; i < o.points.length - 1; i++) {
-        const a = o.points[i], b = o.points[i + 1];
-        if (Math.abs(a.y - b.y) < 0.5) { // other horizontal: crosses our vertical?
-          const oxMin = Math.min(a.x, b.x), oxMax = Math.max(a.x, b.x);
-          if (vx > oxMin - 0.5 && vx < oxMax + 0.5 && a.y > vyMin - 0.5 && a.y < vyMax + 0.5) return true;
-        } else if (Math.abs(a.x - b.x) < 0.5) { // other vertical: overlaps ours / crosses our horizontals?
-          const oyMin = Math.min(a.y, b.y), oyMax = Math.max(a.y, b.y);
-          if (Math.abs(a.x - vx) < GRID && oyMax > vyMin - 0.5 && oyMin < vyMax + 0.5) return true;
-          if (a.x > Math.min(hxA0, hxA1) - 0.5 && a.x < Math.max(hxA0, hxA1) + 0.5 && hyA > oyMin - 0.5 && hyA < oyMax + 0.5) return true;
-          if (a.x > Math.min(hxB0, hxB1) - 0.5 && a.x < Math.max(hxB0, hxB1) + 0.5 && hyB > oyMin - 0.5 && hyB < oyMax + 0.5) return true;
-        }
-      }
-    }
-    return false;
+  // ── Channel track assignment ────────────────────────────────────────────────
+  // Every wire that turns once (H–V–H) carries a single vertical segment living in the
+  // inter-column channel between its two horizontal runs. Verticals that overlap in Y must
+  // occupy distinct X "tracks" or they collide (the no-parallel-overlap invariant). A greedy
+  // per-wire search can't resolve a *mutual* conflict — it never moves the other wire to make
+  // room — so we assign tracks jointly: (1) collect the movable verticals, (2) group them into
+  // channels by overlapping X-window, (3) interval-graph-colour each channel by Y so overlapping
+  // cross-net verticals land on different tracks (same-source verticals may share a track — they
+  // form a trunk), then (4) pick the track→X placement that minimises wire crossings, spreading
+  // tracks across the channel's gate-clear window. All-or-nothing per channel and only for
+  // channels that actually collide: a channel whose assignment can't be validated (gate in the
+  // way, window too narrow) keeps its routed geometry, so we never trade a clean route for a
+  // collision, and clean channels are left untouched.
+  interface Movable {
+    w: LayoutWire; vi: number;
+    aX: number; bX: number;         // left/right ends of run A / run B (the vertical's X-window)
+    yA: number; yB: number;         // Y of run A (before V) and run B (after V)
+    yTop: number; yBot: number;
   }
-
+  const movables: Movable[] = [];
   for (const w of wires) {
+    if (w.feedback) continue;
     const p = w.points;
     let vi = -1, vcount = 0;
     for (let i = 0; i < p.length - 1; i++) {
@@ -1400,37 +1397,80 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     if (vcount !== 1 || vi <= 0 || vi + 2 >= p.length) continue;            // need H–V–H
     if (Math.abs(p[vi - 1].y - p[vi].y) > 0.5) continue;                    // segment before V is horizontal
     if (Math.abs(p[vi + 1].y - p[vi + 2].y) > 0.5) continue;                // segment after V is horizontal
-    const sourceX = p[0].x, destX = p[p.length - 1].x;
+    const aX = p[vi - 1].x, bX = p[vi + 2].x;
+    if (bX <= aX + 0.5) continue;                                          // left-to-right turns only
     const yA = p[vi].y, yB = p[vi + 1].y;
-    const mid = Math.round((sourceX + destX) / 2 / GRID) * GRID;
-    const lo = Math.round((Math.min(sourceX, destX) + 15) / GRID) * GRID;
-    const hi = Math.round((Math.max(sourceX, destX) - 15) / GRID) * GRID;
-    const cands: number[] = [];
-    for (let x = lo; x <= hi; x += GRID) cands.push(x);
-    cands.sort((a, b) => Math.abs(a - mid) - Math.abs(b - mid));
-    // Pick the valid channel closest to the midpoint, but strongly prefer one that also keeps
-    // clear (>= SPREAD) of other nets' parallel verticals so wires read as separate tracks
-    // rather than a cramped 5px bundle.
-    const SPREAD = 3 * GRID;
-    const yMin = Math.min(yA, yB), yMax = Math.max(yA, yB);
-    const tooClose = (x: number) => wires.some(o => o.fromId !== w.fromId && o.points.some((pt, k) =>
-      k < o.points.length - 1 && Math.abs(pt.x - o.points[k + 1].x) < 0.5 &&
-      Math.abs(pt.x - x) > 0.5 && Math.abs(pt.x - x) < SPREAD &&
-      Math.max(pt.y, o.points[k + 1].y) > yMin - 0.5 && Math.min(pt.y, o.points[k + 1].y) < yMax + 0.5));
-    // Candidates are ordered by distance from the midpoint, so the first valid channel that
-    // is also spread-clear is optimal — take it and stop. If none is spread-clear, fall back
-    // to the closest valid channel. (Early exit keeps this cheap on big fan-in.)
-    let chosen = -1, firstValid = -1;
-    for (const x of cands) {
-      if (!vGateClear(x, yA, yB)) continue;
-      if (!hGateClear(yA, sourceX, x, w.fromId)) continue;
-      if (!hGateClear(yB, x, destX, w.toId)) continue;
-      if (crossesOtherWire(w, x, yA, yB, yA, sourceX, x, yB, x, destX)) continue;
-      if (firstValid < 0) firstValid = x;
-      if (!tooClose(x)) { chosen = x; break; }
+    movables.push({ w, vi, aX, bX, yA, yB, yTop: Math.min(yA, yB), yBot: Math.max(yA, yB) });
+  }
+
+  // Group into channels by overlapping X-window (union-find).
+  const uf = movables.map((_, i) => i);
+  const find = (x: number): number => { while (uf[x] !== x) { uf[x] = uf[uf[x]]; x = uf[x]; } return x; };
+  for (let i = 0; i < movables.length; i++) {
+    for (let j = i + 1; j < movables.length; j++) {
+      const A = movables[i], B = movables[j];
+      if (Math.min(A.bX, B.bX) - Math.max(A.aX, B.aX) > 2 * GRID) uf[find(i)] = find(j);
     }
-    const finalX = chosen >= 0 ? chosen : firstValid >= 0 ? firstValid : p[vi].x;
-    p[vi].x = finalX; p[vi + 1].x = finalX;
+  }
+  const channels = new Map<number, Movable[]>();
+  movables.forEach((m, i) => { const r = find(i); (channels.get(r) ?? channels.set(r, []).get(r)!).push(m); });
+
+  const yOverlap = (a: Movable, b: Movable) => Math.min(a.yBot, b.yBot) - Math.max(a.yTop, b.yTop) >= GRID;
+  const placeValid = (m: Movable, X: number) =>
+    X >= m.aX - 0.5 && X <= m.bX + 0.5 &&
+    vGateClear(X, m.yA, m.yB) && hGateClear(m.yA, m.aX, X, m.w.fromId) && hGateClear(m.yB, X, m.bX, m.w.toId);
+  // Interior crossing between a horizontal run and another wire's vertical.
+  const orthCross = (hx0: number, hx1: number, hy: number, vx: number, vy0: number, vy1: number) =>
+    vx > Math.min(hx0, hx1) + 0.5 && vx < Math.max(hx0, hx1) - 0.5 &&
+    hy > Math.min(vy0, vy1) + 0.5 && hy < Math.max(vy0, vy1) - 0.5;
+  const pairCross = (m1: Movable, x1: number, m2: Movable, x2: number) => {
+    if (m1.w.fromId === m2.w.fromId) return 0;                    // same source: shared trunk, not a crossing
+    let c = 0;
+    if (orthCross(m1.aX, x1, m1.yA, x2, m2.yA, m2.yB)) c++;
+    if (orthCross(x1, m1.bX, m1.yB, x2, m2.yA, m2.yB)) c++;
+    if (orthCross(m2.aX, x2, m2.yA, x1, m1.yA, m1.yB)) c++;
+    if (orthCross(x2, m2.bX, m2.yB, x1, m1.yA, m1.yB)) c++;
+    return c;
+  };
+  const SPREAD = 3 * GRID;                                        // preferred gap between cross-net tracks
+  for (const group of channels.values()) {
+    if (group.length < 2) continue;
+    // Only touch channels that actually collide today (a cross-net same-X Y-overlap). Clean
+    // channels are left exactly as routed.
+    const collides = group.some((a, i) => group.some((b, j) =>
+      j > i && a.w.fromId !== b.w.fromId && Math.abs(a.w.points[a.vi].x - b.w.points[b.vi].x) < 0.5 && yOverlap(a, b)));
+    if (!collides) continue;
+
+    // Greedy CSP, most-constrained-first: a vertical that is boxed in by gate bodies (few valid
+    // X's — e.g. a long output wire threading past a gate column) is pinned early; freer verticals
+    // then choose an X that clears every already-placed track. Each vertical's candidate X's are
+    // the grid positions in its own [aX,bX] window that keep both runs and the vertical gate-clear.
+    const withCands = group.map(m => {
+      const cands: number[] = [];
+      for (let x = Math.ceil(m.aX / GRID) * GRID; x <= Math.floor(m.bX / GRID) * GRID; x += GRID) {
+        if (placeValid(m, x)) cands.push(x);
+      }
+      return { m, cands };
+    }).sort((a, b) => a.cands.length - b.cands.length);
+
+    const assigned: { m: Movable; x: number }[] = [];
+    for (const { m, cands } of withCands) {
+      const origX = m.w.points[m.vi].x;
+      let bestX: number | null = null, bestCost = Infinity;
+      for (const x of cands) {
+        let collide = false, cost = Math.abs(x - origX);           // prefer staying near the routed X
+        for (const a of assigned) {
+          const cross = a.m.w.fromId === m.w.fromId;
+          if (!cross && Math.abs(a.x - x) < 0.5 && yOverlap(a.m, m)) { collide = true; break; }
+          cost += pairCross(m, x, a.m, a.x) * 100000;              // avoid new crossings above all
+          if (!cross && Math.abs(a.x - x) < SPREAD && yOverlap(a.m, m)) cost += 50; // nudge tracks apart
+        }
+        if (collide) continue;
+        if (cost < bestCost) { bestCost = cost; bestX = x; }
+      }
+      assigned.push({ m, x: bestX ?? origX });                     // no collision-free slot → keep routed X
+    }
+    for (const { m, x } of assigned) { m.w.points[m.vi].x = x; m.w.points[m.vi + 1].x = x; }
   }
 
   // Nested fan-in channels: when several wires dogleg into the same gate, give each its own
