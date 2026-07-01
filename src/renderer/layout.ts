@@ -268,86 +268,84 @@ function assignCoordinates(
     }
   }
 
-  const median = (vals: number[]): number | null => {
-    if (vals.length === 0) return null;
-    const s = vals.slice().sort((a, b) => a - b);
-    const m = s.length >> 1;
-    return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+  // Weighted isotonic regression (Pool Adjacent Violators) — the exact L2 optimum for
+  // min Σ wᵢ(xᵢ − tᵢ)² subject to x non-decreasing. Applied per column after removing the
+  // separation gaps (substitute zᵢ = centreᵢ − Σ_{k<i} sepₖ, turning "centre_{i+1} − centreᵢ ≥ sep"
+  // into "z monotone"), so a whole column is placed at its JOINT optimum in one shot — no greedy
+  // node-at-a-time blocking that leaves a column stuck in a locally-fixed arrangement.
+  const pava = (t: number[], w: number[]): number[] => {
+    const val: number[] = [], wt: number[] = [], cnt: number[] = [];
+    for (let i = 0; i < t.length; i++) {
+      let v = t[i], ww = w[i], c = 1;
+      while (val.length && val[val.length - 1] > v) {
+        const pv = val.pop()!, pw = wt.pop()!, pc = cnt.pop()!;
+        v = (v * ww + pv * pw) / (ww + pw); ww += pw; c += pc;
+      }
+      val.push(v); wt.push(ww); cnt.push(c);
+    }
+    const out: number[] = [];
+    for (let b = 0; b < val.length; b++) for (let k = 0; k < cnt[b]; k++) out.push(val[b]);
+    return out;
   };
 
-  // Move col[k] toward `desired`, blocked by the nearest higher-or-equal-priority node in
-  // that direction, pushing lower-priority nodes to preserve order and minimum gaps.
-  const place = (col: FlatNode[], prio: number[], k: number, desired: number) => {
-    const cur = centre.get(col[k].id)!;
-    if (desired > cur + 0.5) {
-      let limit = Infinity, gap = 0;
-      for (let j = k + 1; j < col.length; j++) {
-        gap += sep(col[j - 1], col[j]);
-        if (prio[j] >= prio[k]) { limit = centre.get(col[j].id)! - gap; break; }
-      }
-      const nc = Math.min(desired, limit);
-      if (nc > cur + 0.5) {
-        centre.set(col[k].id, nc);
-        for (let j = k + 1; j < col.length; j++) {
-          const need = centre.get(col[j - 1].id)! + sep(col[j - 1], col[j]);
-          if (centre.get(col[j].id)! < need) centre.set(col[j].id, need); else break;
-        }
-      }
-    } else if (desired < cur - 0.5) {
-      let limit = -Infinity, gap = 0;
-      for (let j = k - 1; j >= 0; j--) {
-        gap += sep(col[j], col[j + 1]);
-        if (prio[j] >= prio[k]) { limit = centre.get(col[j].id)! + gap; break; }
-      }
-      const nc = Math.max(desired, limit);
-      if (nc < cur - 0.5) {
-        centre.set(col[k].id, nc);
-        for (let j = k - 1; j >= 0; j--) {
-          const need = centre.get(col[j + 1].id)! - sep(col[j], col[j + 1]);
-          if (centre.get(col[j].id)! > need) centre.set(col[j].id, need); else break;
-        }
-      }
+  // Absolute centre-space Y of the port that `sourceId` feeds in consumer `c`. AND/OR assign ports
+  // to sources in ascending Y; a fixed-port block / NOT / output uses its centre.
+  const portYForSource = (c: FlatNode, sourceId: string, cCentre: number): number => {
+    if ((c.gateType === 'AND' || c.gateType === 'OR') && c.inputIds.length >= 2) {
+      const gap = gateGap(c);
+      const rank = c.inputIds.filter(id => !isFeedback(id))
+        .map(id => ({ id, y: centre.get(id) ?? cCentre }))
+        .sort((a, b) => a.y - b.y)
+        .findIndex(r => r.id === sourceId);
+      if (rank >= 0) return cCentre - H.get(c.id)! / 2 + GATE_END_PAD + rank * gap;
     }
+    return cCentre;
   };
 
-  const sweep = (col: FlatNode[], prio: number[], desiredFn: (n: FlatNode) => number | null) => {
-    const order = col.map((_, i) => i).sort((a, b) => prio[b] - prio[a]);
-    for (const k of order) {
-      const d = desiredFn(col[k]);
-      if (d != null) place(col, prio, k, d);
+  // A node's desired centre = mean over ALL its edges of the centre that draws that edge straight:
+  // a source edge wants port_i aligned to source_i; a consumer edge wants the node's output aligned
+  // to the consumer's port. Two sources feeding ADJACENT ports of one gate therefore pull to
+  // positions ≥ the port gap apart — fan-in spreads to the port spacing rather than crowding (which
+  // is what previously forced the cramped-port / sub-MIN-dogleg compromise).
+  const nodeTarget = (n: FlatNode): number | null => {
+    let sum = 0, wsum = 0;
+    const h = H.get(n.id)!, gap = gateGap(n);
+    const srcYs = n.inputIds.filter(id => !isFeedback(id))
+      .map(id => ({ id, y: centre.get(id) }))
+      .filter((s): s is { id: string; y: number } => s.y !== undefined);
+    if ((n.gateType === 'AND' || n.gateType === 'OR') && srcYs.length >= 2) {
+      srcYs.sort((a, b) => a.y - b.y).forEach((s, rank) => { sum += s.y - (GATE_END_PAD + rank * gap) + h / 2; wsum++; });
+    } else {
+      for (const s of srcYs) { sum += s.y; wsum++; }
     }
+    for (const cid of successors.get(n.id) ?? []) {
+      const c = nodes.get(cid), cy = centre.get(cid);
+      if (c && cy !== undefined) { sum += portYForSource(c, n.id, cy); wsum++; }
+    }
+    return wsum === 0 ? null : sum / wsum;
   };
 
-  // Downward target: position the node so its input PORTS line up with their sources, not
-  // just its centre. A multi-input gate assigns ports to sources in ascending Y at
-  // PORT_SPACING intervals, so the centre that aligns port i to source i is
-  // source_i - ((i+1)*PORT_SPACING - h/2); the median over inputs minimises residual bends.
-  const downTarget = (n: FlatNode): number | null => {
-    const srcs = n.inputIds.filter(id => !isFeedback(id)).map(id => centre.get(id)).filter((v): v is number => v !== undefined).sort((a, b) => a - b);
-    if (srcs.length === 0) return null;
-    if (n.kind === 'gate' && n.gateType !== 'NOT' && srcs.length >= 2) {
-      const h = H.get(n.id)!;
-      const gap = gateGap(n);
-      return median(srcs.map((s, i) => s - ((GATE_END_PAD + i * gap) - h / 2)));
+  // Place a whole column at its joint optimum: target per node, then PAVA in gap-removed space.
+  // Node weight = its degree, so a well-connected node holds its target more firmly.
+  const solveColumn = (col: FlatNode[]) => {
+    const n = col.length;
+    if (n === 0) return;
+    const G: number[] = [0];
+    for (let i = 1; i < n; i++) G[i] = G[i - 1] + sep(col[i - 1], col[i]);
+    const t: number[] = [], w: number[] = [];
+    for (let i = 0; i < n; i++) {
+      t.push((nodeTarget(col[i]) ?? centre.get(col[i].id)!) - G[i]);
+      w.push(Math.max(1, col[i].inputIds.filter(id => !isFeedback(id)).length + (successors.get(col[i].id) ?? []).length));
     }
-    return median(srcs);
+    const z = pava(t, w);
+    for (let i = 0; i < n; i++) centre.set(col[i].id, z[i] + G[i]);
   };
-  const upTarget = (n: FlatNode): number | null =>
-    median((successors.get(n.id) ?? []).map(id => centre.get(id)).filter((v): v is number => v !== undefined));
 
-  // Up-sweep first (consumers), down-sweep last (sources). Ending on the down-sweep keeps each
-  // gate near the inputs it fans in from — short, clean fan-in — while still picking up
-  // consumer influence from the up-sweep. (Ending on the up-sweep instead pulls gates toward
-  // their consumers and can leave a gate far above its inputs, congesting the fan-in.)
-  for (let it = 0; it < 6; it++) {
-    for (let d = maxDepth - 1; d >= 0; d--) {
-      const col = columns[d];
-      sweep(col, col.map(n => (successors.get(n.id) ?? []).length), upTarget);
-    }
-    for (let d = 1; d <= maxDepth; d++) {
-      const col = columns[d];
-      sweep(col, col.map(n => n.inputIds.length), downTarget);
-    }
+  // Iterate to convergence, alternating direction so both source and consumer influence propagate.
+  // Each column solve is the exact constrained optimum given its neighbours' current positions.
+  for (let it = 0; it < 12; it++) {
+    if (it % 2 === 0) for (let d = 0; d <= maxDepth; d++) solveColumn(columns[d]);
+    else for (let d = maxDepth; d >= 0; d--) solveColumn(columns[d]);
   }
 
   let minTop = Infinity;

@@ -48,13 +48,9 @@ function expectedInputX(n: LayoutNode, port: { absX: number; absY: number; bubbl
 // GATE_INPUT_STYLE = BARS routing is known-broken and intentionally out of scope here.
 const BARS = /OPTION\s+GATE_INPUT_STYLE\s*=\s*BARS/i;
 
-// Known wire-routing-stage issues, tracked for the upcoming routing redesign. Placement is correct
-// for these; the defects are in routing/ordering: the SEL block->output jog, an Inversion Bubbles
-// fan-out branch that routes through a gate column, and the close parallel verticals that follow.
-// Marked `it.fails` (xfail) so the suite stays green AND flags us the moment a fix makes them pass.
-const KNOWN_ROUTING_ISSUES = new Set([
-  'SEL Function Blocks::no-doglegs', // block->output jog; router dodges an obstacle. Tracked for routing redesign.
-]);
+// No known routing-stage defects remain: the global coordinate optimizer straightened the SEL
+// block->output jog that was the last xfail. Any regression here fails loudly instead of hiding.
+const KNOWN_ROUTING_ISSUES = new Set<string>();
 const itRoute = (name: string, key: string) =>
   (KNOWN_ROUTING_ISSUES.has(`${name}::${key}`) ? it.fails : it);
 
