@@ -3681,21 +3681,21 @@ exports[`Visual regression (layout geometry) > Generic Block (FB) 1`] = `
           430,
           120,
           "in_1",
-          "PHASE",
+          "EARTH",
           0,
         ],
         [
           430,
           150,
           "in_2",
-          "EARTH",
+          "EN",
           0,
         ],
         [
           430,
           90,
           "in_0",
-          "EN",
+          "PHASE",
           0,
         ],
       ],
@@ -3733,7 +3733,7 @@ exports[`Visual regression (layout geometry) > Generic Block (FB) 1`] = `
       ],
       "desc": null,
       "inputs": [],
-      "label": "IA",
+      "label": "IN",
       "name": null,
       "outputs": [
         [
@@ -3755,7 +3755,7 @@ exports[`Visual regression (layout geometry) > Generic Block (FB) 1`] = `
       ],
       "desc": null,
       "inputs": [],
-      "label": "IN",
+      "label": "ENABLE",
       "name": null,
       "outputs": [
         [
@@ -3777,7 +3777,7 @@ exports[`Visual regression (layout geometry) > Generic Block (FB) 1`] = `
       ],
       "desc": null,
       "inputs": [],
-      "label": "ENABLE",
+      "label": "IA",
       "name": null,
       "outputs": [
         [
@@ -10341,21 +10341,21 @@ exports[`Visual regression (layout geometry) > Styled by ID 1`] = `
           430,
           110,
           "in_0",
-          "EN",
+          "BAND",
           0,
         ],
         [
           430,
           140,
           "in_1",
-          "BAND",
+          "EARTH",
           0,
         ],
         [
           430,
           170,
           "in_2",
-          "EARTH",
+          "EN",
           0,
         ],
       ],
@@ -10387,7 +10387,7 @@ exports[`Visual regression (layout geometry) > Styled by ID 1`] = `
       ],
       "desc": null,
       "inputs": [],
-      "label": "IA",
+      "label": "IN",
       "name": null,
       "outputs": [
         [
@@ -10409,7 +10409,7 @@ exports[`Visual regression (layout geometry) > Styled by ID 1`] = `
       ],
       "desc": null,
       "inputs": [],
-      "label": "IN",
+      "label": "BLK",
       "name": null,
       "outputs": [
         [
@@ -10475,7 +10475,7 @@ exports[`Visual regression (layout geometry) > Styled by ID 1`] = `
       ],
       "desc": null,
       "inputs": [],
-      "label": "BLK",
+      "label": "IA",
       "name": null,
       "outputs": [
         [

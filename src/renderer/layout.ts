@@ -416,6 +416,18 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     }
   }
 
+  // Fixed-port blocks (SR, timers, comparators, edge-triggers, FB) bind their arguments to ports
+  // in a FIXED order — unlike AND/OR, which assign ports by ascending source Y and so never cross.
+  // Bias a source's barycentre row by the port index it feeds (top port → lower row) so the two
+  // sources land in port order and their wires don't cross entering the block. The bias (±<1 row)
+  // only breaks ties / near-ties between siblings; it never reorders across distinct gate rows.
+  const FIXED_PORT = (gt?: string) => !!gt && !['AND', 'OR', 'NOT', 'DUMMY', 'INPUT', 'OUTPUT'].includes(gt);
+  const portBias = (consumer: FlatNode, inputId: string): number => {
+    if (!FIXED_PORT(consumer.gateType) || consumer.inputIds.length < 2) return 0;
+    const idx = consumer.inputIds.indexOf(inputId);
+    return idx < 0 ? 0 : (idx - (consumer.inputIds.length - 1) / 2) * 0.5;
+  };
+
   // INPUT_ORDER = AUTO (default): reorder input rows by the Sugiyama barycentre method to
   // minimise wire crossings. INPUT_ORDER = DECLARATION: keep inputs in their declared
   // (natural-sorted) order and only propagate gate rows from that fixed input order.
@@ -425,7 +437,7 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     for (const node of sortedInputGroup) {
       const downNodes = Array.from(nodes.values()).filter(n => n.inputIds.includes(node.id));
       if (downNodes.length > 0) {
-        const bary = downNodes.reduce((s, n) => s + (rowMap.get(n.id) ?? 0), 0) / downNodes.length;
+        const bary = downNodes.reduce((s, n) => s + (rowMap.get(n.id) ?? 0) + portBias(n, node.id), 0) / downNodes.length;
         rowMap.set(node.id, bary);
       }
     }
