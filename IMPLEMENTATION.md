@@ -578,13 +578,33 @@ Captured 2026-06 from user review. Roughly priority-ordered; tiers group by kind
       from the fan-in channel Y. Both are ≤25px and cosmetic; fixing them safely needs the deeper
       placement rework (lane priority / curve-tap-aware fan-in) rather than a local patch.
 
-## Routing redesign (proposed — channel-based orthogonal routing)
+## Routing redesign — channels as the frame, A* as a constrained fallback (approach reviewed)
 
-The placement pipeline is now clean (named single-purpose phases). The wire router is still the old
-ad-hoc stack: per-wire `routeWireAStar` (fast-path → `tryCleanZ` → A* grid → `orthFallback`), then
-balanced-Z, nested fan-in channels, jog-straightening, shared fan-out trunk, output-snap-to-approach,
-block-output straighten, junction-dot merge — ~10 interacting stages that re-derive (badly) what is a
-textbook orthogonal/channel-routing problem. The three remaining defects all live here.
+**Framing correction (2026-07).** Not "remove A*." A* was added for a real reason — congestion and
+multistage weaving have no closed-form path, and A* always finds *some* orthogonal one. The mess is
+that A* is the *primary* router producing almost-right paths that a stack of ~10 correction passes
+then patches. Keep A*, but demote it to a **constrained fallback** and let a channel/lane frame carry
+the common case.
+
+**Why this scales to complex multilevel diagrams (the original worry):** placement already reserves a
+**clear row (lane)** for every edge spanning >1 column (the obstacle-aware dummy-node pass). Those are
+exactly the corridors a long edge needs across intermediate stages — the router doesn't have to
+*discover* them by search, they already exist. So: vertical turns live in **channels** (inter-column
+gaps, no gate there ever → no-gate-crossing is structural); horizontal runs live in **reserved lanes**
+(placement guarantees clear); A* only serves the rare wire the frame can't route cleanly, and is run
+against the same obstacle set so even the fallback never clips a gate.
+
+**Incremental plan (NOT a big-bang rewrite; corpus + invariants green at each step):**
+- **R-step 1 — channel-aware turn selection.** Make clean-Z / fan-out choose a bend X that lies in a
+  channel (never inside a gate column). Local change; fixes the Inversion Bubbles gate-crossing.
+- **R-step 2 — explicit per-channel track assignment** (spacing, crossing-minimising order); lets us
+  delete balanced-Z + the fan-in patch. Fixes close parallel verticals.
+- **R-step 3 — block port mapping in ordering** (SR S/R) so its wires don't cross.
+- **R-step 4 — collapse the correction passes** as each is subsumed, keeping A* as the named fallback.
+Each step flips one `it.fails` back to green; if a step can't hold the robustness corpus, stop and let
+A* carry more there.
+
+The full channel model below is the *target shape*; the steps above reach it incrementally.
 
 **Core principle:** every wire is horizontal in node *rows* and only changes Y inside a **channel** —
 a vertical X-track that lives in the gap *between* node columns, never inside a gate/block body. This
