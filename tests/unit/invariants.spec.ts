@@ -53,9 +53,8 @@ const BARS = /OPTION\s+GATE_INPUT_STYLE\s*=\s*BARS/i;
 // fan-out branch that routes through a gate column, and the close parallel verticals that follow.
 // Marked `it.fails` (xfail) so the suite stays green AND flags us the moment a fix makes them pass.
 const KNOWN_ROUTING_ISSUES = new Set([
-  'SEL Function Blocks::no-doglegs',
-  'Inversion Bubbles::no-gate-crossing',
-  'Inversion Bubbles::no-parallel-overlap',
+  'SEL Function Blocks::no-doglegs',            // block->output jog; router dodges an obstacle
+  'Inversion Bubbles::no-parallel-overlap',     // close parallel verticals — R-step 2 (track assignment)
 ]);
 const itRoute = (name: string, key: string) =>
   (KNOWN_ROUTING_ISSUES.has(`${name}::${key}`) ? it.fails : it);

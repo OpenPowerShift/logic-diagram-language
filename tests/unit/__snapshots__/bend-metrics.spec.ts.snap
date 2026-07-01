@@ -126,7 +126,7 @@ exports[`Bend/crossing metrics > Inversion Bubbles 1`] = `
   "H": 315,
   "bends": 14,
   "bent": 7,
-  "crossings": 6,
+  "crossings": 8,
   "straight": 2,
   "wires": 9,
 }

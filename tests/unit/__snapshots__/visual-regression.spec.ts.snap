@@ -5450,16 +5450,20 @@ exports[`Visual regression (layout geometry) > Inversion Bubbles 1`] = `
   ],
   "junctions": [
     [
-      330,
+      320,
       140,
     ],
     [
-      330,
-      210,
+      335,
+      110,
     ],
     [
-      345,
-      110,
+      335,
+      180,
+    ],
+    [
+      350,
+      140,
     ],
     [
       350,
@@ -5717,11 +5721,11 @@ exports[`Visual regression (layout geometry) > Inversion Bubbles 1`] = `
           110,
         ],
         [
-          345,
+          335,
           110,
         ],
         [
-          345,
+          335,
           180,
         ],
         [
@@ -5738,11 +5742,11 @@ exports[`Visual regression (layout geometry) > Inversion Bubbles 1`] = `
           110,
         ],
         [
-          475,
+          335,
           110,
         ],
         [
-          475,
+          335,
           260,
         ],
         [
@@ -5759,16 +5763,16 @@ exports[`Visual regression (layout geometry) > Inversion Bubbles 1`] = `
           140,
         ],
         [
-          330,
+          320,
           140,
         ],
         [
-          330,
-          210,
+          320,
+          300,
         ],
         [
-          430,
-          210,
+          690,
+          300,
         ],
       ],
     },
@@ -5780,16 +5784,16 @@ exports[`Visual regression (layout geometry) > Inversion Bubbles 1`] = `
           140,
         ],
         [
-          330,
+          350,
           140,
         ],
         [
-          330,
-          300,
+          350,
+          210,
         ],
         [
-          690,
-          300,
+          430,
+          210,
         ],
       ],
     },

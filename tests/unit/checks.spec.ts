@@ -33,7 +33,7 @@ describe('validateLayout', () => {
   // Inversion Bubbles has a known wire-routing-stage defect (a fan-out branch routes through a gate
   // column) tracked for the routing redesign; placement is correct. xfail so the suite stays green
   // and flags us when routing is fixed.
-  const KNOWN_ROUTING_ISSUE = new Set(['Inversion Bubbles']);
+  const KNOWN_ROUTING_ISSUE = new Set(['Inversion Bubbles']); // close parallel verticals — R-step 2
   for (const [name, src] of Object.entries(EXAMPLES)) {
     if (BARS.test(src)) continue;
     (KNOWN_ROUTING_ISSUE.has(name) ? it.fails : it)(`${name}: orthogonal, gaps and connectivity pass`, () => {

@@ -235,10 +235,16 @@ function segHitsObstacle(
   obstacles: GateObstacle[], sgx: number, sgy: number, dgx: number, dgy: number,
 ): boolean {
   const xMin = Math.min(ax, bx), yMin = Math.min(ay, by);
+  const xMax = Math.max(ax, bx);
   const w = Math.abs(bx - ax) + 1, h = Math.abs(by - ay) + 1;
   for (const o of obstacles) {
     if (o.x === sgx && o.y === sgy) continue;
     if (o.x === dgx && o.y === dgy) continue;
+    // An obstacle whose BODY is entirely left of the segment's start (or right of its end) can't lie
+    // on the segment — only its buffer would reach in. Don't let that buffer block: it's what makes
+    // a wire's exit-stub past its same-column neighbour (e.g. the input stacked just below the
+    // source) impossible. (Mirrors the straight-line fast-path check.)
+    if (o.x + o.w <= xMin + 0.5 || o.x >= xMax - 0.5) continue;
     const bufX = Math.max(GATE_BUFFER_MIN, Math.ceil(o.w * GATE_BUFFER_RATIO));
     const bufY = Math.max(GATE_BUFFER_MIN_Y, Math.ceil(o.h * GATE_BUFFER_RATIO));
     if (rectsOverlap(xMin - 0.5, yMin - 0.5, w, h, o.x - bufX, o.y - bufY, o.w + 2 * bufX, o.h + 2 * bufY, 0)) return true;
