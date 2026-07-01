@@ -533,6 +533,29 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
       inputGroup.sort((a, b) => (clampedTwoHop(a.id) - clampedTwoHop(b.id)) || ((bary.get(a.id) ?? 0) - (bary.get(b.id) ?? 0)));
       for (let i = 0; i < inputGroup.length; i++) rowMap.set(inputGroup[i].id, i);
 
+      // Fan-in contiguity: keep each gate's single-consumer inputs contiguous, so a large fan-in
+      // aligns straight to its ports instead of being split — and doglegged around — by an input
+      // that feeds a DIFFERENT gate (the split is what tangles a big OR/AND and crowds its wires).
+      // Group single-consumer inputs by consumer; order the blocks by their members' average rank
+      // (keeps each block roughly where it was); within a block keep rank/Y order so it still matches
+      // the gate's ascending-Y port assignment. Multi-consumer inputs stay singletons (they serve
+      // several gates legitimately). Then reassign contiguous ranks.
+      const soleConsumer = new Map<string, string>();
+      for (const inp of inputGroup) {
+        const cs = [...nodes.values()].filter(nd => nd.inputIds.includes(inp.id));
+        if (cs.length === 1) soleConsumer.set(inp.id, cs[0].id);
+      }
+      const rankOf = (inp: FlatNode) => rowMap.get(inp.id) ?? 0;
+      const blocks = new Map<string, FlatNode[]>();
+      for (const inp of inputGroup) {
+        const key = soleConsumer.get(inp.id) ?? inp.id;
+        (blocks.get(key) ?? blocks.set(key, []).get(key)!).push(inp);
+      }
+      const ordered = [...blocks.values()].sort((a, b) =>
+        a.reduce((s, x) => s + rankOf(x), 0) / a.length - b.reduce((s, x) => s + rankOf(x), 0) / b.length);
+      for (const blk of ordered) blk.sort((a, b) => rankOf(a) - rankOf(b));
+      ordered.flat().forEach((inp, i) => rowMap.set(inp.id, i));
+
     // Re-propagate gate/output rows from the updated input ranks so the order is consistent.
     for (let depth = 1; depth <= maxDepth; depth++) {
       const group = depthGroups.get(depth) ?? [];
