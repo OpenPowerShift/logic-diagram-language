@@ -703,22 +703,22 @@ exports[`Visual regression (layout geometry) > Breaker Failure (SEL-751A) 1`] = 
       "block": null,
       "box": [
         1210,
-        120,
+        125,
         60,
-        60,
+        50,
       ],
       "desc": null,
       "inputs": [
         [
           1218,
-          135,
+          140,
           "in_0",
           null,
           0,
         ],
         [
-          1218,
-          165,
+          1220,
+          155,
           "in_1",
           null,
           0,
@@ -811,11 +811,11 @@ exports[`Visual regression (layout geometry) > Breaker Failure (SEL-751A) 1`] = 
         ],
         [
           1180,
-          165,
+          155,
         ],
         [
-          1218,
-          165,
+          1220,
+          155,
         ],
       ],
     },
@@ -897,11 +897,11 @@ exports[`Visual regression (layout geometry) > Breaker Failure (SEL-751A) 1`] = 
         ],
         [
           1190,
-          135,
+          140,
         ],
         [
           1218,
-          135,
+          140,
         ],
       ],
     },
@@ -997,7 +997,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
 {
   "canvas": [
     1310,
-    230,
+    225,
   ],
   "junctions": [
     [
@@ -1048,22 +1048,22 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "block": null,
       "box": [
         690,
-        170,
+        175,
         60,
-        60,
+        50,
       ],
       "desc": null,
       "inputs": [
         [
           690,
-          185,
+          190,
           "in_0",
           null,
           0,
         ],
         [
           690,
-          215,
+          205,
           "in_1",
           null,
           0,
@@ -1107,7 +1107,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "block": null,
       "box": [
         170,
-        205,
+        195,
         100,
         20,
       ],
@@ -1118,7 +1118,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "outputs": [
         [
           270,
-          215,
+          205,
           "out",
           0,
         ],
@@ -1299,11 +1299,11 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "points": [
         [
           270,
-          215,
+          205,
         ],
         [
           690,
-          215,
+          205,
         ],
       ],
     },
@@ -1354,11 +1354,11 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
         ],
         [
           595,
-          185,
+          190,
         ],
         [
           690,
-          185,
+          190,
         ],
       ],
     },
@@ -1808,22 +1808,22 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "block": null,
       "box": [
         690,
-        515,
+        520,
         60,
-        60,
+        50,
       ],
       "desc": null,
       "inputs": [
         [
           690,
-          530,
+          535,
           "in_0",
           null,
           0,
         ],
         [
           690,
-          560,
+          550,
           "in_1",
           null,
           0,
@@ -2162,7 +2162,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "block": null,
       "box": [
         170,
-        925,
+        930,
         100,
         20,
       ],
@@ -2173,7 +2173,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "outputs": [
         [
           270,
-          935,
+          940,
           "out",
           0,
         ],
@@ -2266,22 +2266,22 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "block": null,
       "box": [
         690,
-        920,
+        925,
         60,
-        60,
+        50,
       ],
       "desc": null,
       "inputs": [
         [
           698,
-          935,
+          940,
           "in_0",
           null,
           0,
         ],
         [
-          698,
-          965,
+          700,
+          955,
           "in_1",
           null,
           0,
@@ -2425,22 +2425,22 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "block": "SR",
       "box": [
         950,
-        205,
+        210,
         60,
-        60,
+        50,
       ],
       "desc": null,
       "inputs": [
         [
           950,
-          220,
+          225,
           "S",
           null,
           0,
         ],
         [
           950,
-          250,
+          240,
           "R",
           null,
           0,
@@ -2611,11 +2611,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
         ],
         [
           920,
-          250,
+          240,
         ],
         [
           950,
-          250,
+          240,
         ],
       ],
     },
@@ -2658,11 +2658,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
         ],
         [
           410,
-          560,
+          550,
         ],
         [
           690,
-          560,
+          550,
         ],
       ],
     },
@@ -2710,11 +2710,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "points": [
         [
           270,
-          935,
+          940,
         ],
         [
           698,
-          935,
+          940,
         ],
       ],
     },
@@ -2731,11 +2731,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
         ],
         [
           590,
-          965,
+          955,
         ],
         [
-          698,
-          965,
+          700,
+          955,
         ],
       ],
     },
@@ -2794,11 +2794,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
         ],
         [
           670,
-          530,
+          535,
         ],
         [
           690,
-          530,
+          535,
         ],
       ],
     },
@@ -2857,11 +2857,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
         ],
         [
           930,
-          220,
+          225,
         ],
         [
           950,
-          220,
+          225,
         ],
       ],
     },
@@ -2921,22 +2921,22 @@ exports[`Visual regression (layout geometry) > Complex Protection 1`] = `
       "block": null,
       "box": [
         690,
-        90,
+        95,
         60,
-        60,
+        50,
       ],
       "desc": null,
       "inputs": [
         [
           690,
-          105,
+          110,
           "in_0",
           null,
           0,
         ],
         [
           690,
-          135,
+          125,
           "in_1",
           null,
           0,
@@ -2995,7 +2995,7 @@ exports[`Visual regression (layout geometry) > Complex Protection 1`] = `
       "block": null,
       "box": [
         170,
-        125,
+        115,
         100,
         20,
       ],
@@ -3006,7 +3006,7 @@ exports[`Visual regression (layout geometry) > Complex Protection 1`] = `
       "outputs": [
         [
           270,
-          135,
+          125,
           "out",
           0,
         ],
@@ -3189,11 +3189,11 @@ exports[`Visual regression (layout geometry) > Complex Protection 1`] = `
       "points": [
         [
           270,
-          135,
+          125,
         ],
         [
           690,
-          135,
+          125,
         ],
       ],
     },
@@ -3270,11 +3270,11 @@ exports[`Visual regression (layout geometry) > Complex Protection 1`] = `
         ],
         [
           595,
-          105,
+          110,
         ],
         [
           690,
-          105,
+          110,
         ],
       ],
     },
@@ -3307,12 +3307,12 @@ exports[`Visual regression (layout geometry) > Differential Protection 1`] = `
 {
   "canvas": [
     1050,
-    235,
+    305,
   ],
   "junctions": [
     [
-      595,
-      215,
+      660,
+      285,
     ],
   ],
   "labels": [],
@@ -3321,30 +3321,30 @@ exports[`Visual regression (layout geometry) > Differential Protection 1`] = `
       "block": null,
       "box": [
         690,
-        50,
+        135,
         75,
-        90,
+        60,
       ],
       "desc": null,
       "inputs": [
         [
           690,
-          125,
-          "in_2",
-          null,
-          0,
-        ],
-        [
-          690,
-          65,
+          150,
           "in_0",
           null,
           0,
         ],
         [
           690,
-          95,
+          165,
           "in_1",
+          null,
+          0,
+        ],
+        [
+          690,
+          180,
+          "in_2",
           null,
           0,
         ],
@@ -3354,7 +3354,7 @@ exports[`Visual regression (layout geometry) > Differential Protection 1`] = `
       "outputs": [
         [
           765,
-          95,
+          165,
           "out",
           0,
         ],
@@ -3365,7 +3365,29 @@ exports[`Visual regression (layout geometry) > Differential Protection 1`] = `
       "block": null,
       "box": [
         170,
-        200,
+        150,
+        100,
+        30,
+      ],
+      "desc": "CT secondary current",
+      "inputs": [],
+      "label": "I2",
+      "name": "$I_{out}$",
+      "outputs": [
+        [
+          270,
+          165,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        270,
         100,
         30,
       ],
@@ -3376,7 +3398,7 @@ exports[`Visual regression (layout geometry) > Differential Protection 1`] = `
       "outputs": [
         [
           270,
-          215,
+          285,
           "out",
           0,
         ],
@@ -3408,30 +3430,8 @@ exports[`Visual regression (layout geometry) > Differential Protection 1`] = `
     {
       "block": null,
       "box": [
-        170,
-        80,
-        100,
-        30,
-      ],
-      "desc": "CT secondary current",
-      "inputs": [],
-      "label": "I2",
-      "name": "$I_{out}$",
-      "outputs": [
-        [
-          270,
-          95,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
         430,
-        195,
+        145,
         65,
         40,
       ],
@@ -3439,7 +3439,7 @@ exports[`Visual regression (layout geometry) > Differential Protection 1`] = `
       "inputs": [
         [
           430,
-          215,
+          165,
           "in_0",
           null,
           0,
@@ -3450,7 +3450,7 @@ exports[`Visual regression (layout geometry) > Differential Protection 1`] = `
       "outputs": [
         [
           495,
-          215,
+          165,
           "out",
           0,
         ],
@@ -3461,7 +3461,7 @@ exports[`Visual regression (layout geometry) > Differential Protection 1`] = `
       "block": null,
       "box": [
         430,
-        75,
+        265,
         65,
         40,
       ],
@@ -3469,7 +3469,7 @@ exports[`Visual regression (layout geometry) > Differential Protection 1`] = `
       "inputs": [
         [
           430,
-          95,
+          285,
           "in_0",
           null,
           0,
@@ -3480,7 +3480,7 @@ exports[`Visual regression (layout geometry) > Differential Protection 1`] = `
       "outputs": [
         [
           495,
-          95,
+          285,
           "out",
           0,
         ],
@@ -3491,30 +3491,7 @@ exports[`Visual regression (layout geometry) > Differential Protection 1`] = `
       "block": null,
       "box": [
         950,
-        200,
-        100,
-        30,
-      ],
-      "desc": "$I_0 > I_{0\\_set}$",
-      "inputs": [
-        [
-          950,
-          215,
-          "in",
-          null,
-          0,
-        ],
-      ],
-      "label": "O2",
-      "name": "Restricted Earth Fault",
-      "outputs": [],
-      "type": "OUTPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        950,
-        80,
+        150,
         100,
         30,
       ],
@@ -3522,7 +3499,7 @@ exports[`Visual regression (layout geometry) > Differential Protection 1`] = `
       "inputs": [
         [
           950,
-          95,
+          165,
           "in",
           null,
           0,
@@ -3533,6 +3510,29 @@ exports[`Visual regression (layout geometry) > Differential Protection 1`] = `
       "outputs": [],
       "type": "OUTPUT",
     },
+    {
+      "block": null,
+      "box": [
+        950,
+        270,
+        100,
+        30,
+      ],
+      "desc": "$I_0 > I_{0\\_set}$",
+      "inputs": [
+        [
+          950,
+          285,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "O2",
+      "name": "Restricted Earth Fault",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
   ],
   "wires": [
     {
@@ -3540,11 +3540,24 @@ exports[`Visual regression (layout geometry) > Differential Protection 1`] = `
       "points": [
         [
           270,
-          215,
+          165,
         ],
         [
           430,
-          215,
+          165,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          285,
+        ],
+        [
+          430,
+          285,
         ],
       ],
     },
@@ -3556,42 +3569,16 @@ exports[`Visual regression (layout geometry) > Differential Protection 1`] = `
           65,
         ],
         [
-          690,
+          670,
           65,
         ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
         [
-          270,
-          95,
-        ],
-        [
-          430,
-          95,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          495,
-          215,
-        ],
-        [
-          595,
-          215,
-        ],
-        [
-          595,
-          125,
+          670,
+          150,
         ],
         [
           690,
-          125,
+          150,
         ],
       ],
     },
@@ -3600,24 +3587,45 @@ exports[`Visual regression (layout geometry) > Differential Protection 1`] = `
       "points": [
         [
           495,
-          215,
+          165,
+        ],
+        [
+          690,
+          165,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          285,
+        ],
+        [
+          660,
+          285,
+        ],
+        [
+          660,
+          180,
+        ],
+        [
+          690,
+          180,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          285,
         ],
         [
           950,
-          215,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          495,
-          95,
-        ],
-        [
-          690,
-          95,
+          285,
         ],
       ],
     },
@@ -3626,11 +3634,11 @@ exports[`Visual regression (layout geometry) > Differential Protection 1`] = `
       "points": [
         [
           765,
-          95,
+          165,
         ],
         [
           950,
-          95,
+          165,
         ],
       ],
     },
@@ -3979,15 +3987,15 @@ exports[`Visual regression (layout geometry) > Hidden Dots 1`] = `
       "block": null,
       "box": [
         690,
-        175,
+        190,
         75,
-        90,
+        60,
       ],
       "desc": null,
       "inputs": [
         [
           690,
-          190,
+          205,
           "in_0",
           null,
           0,
@@ -4001,7 +4009,7 @@ exports[`Visual regression (layout geometry) > Hidden Dots 1`] = `
         ],
         [
           690,
-          250,
+          235,
           "in_2",
           null,
           0,
@@ -4346,11 +4354,11 @@ exports[`Visual regression (layout geometry) > Hidden Dots 1`] = `
         ],
         [
           660,
-          250,
+          235,
         ],
         [
           690,
-          250,
+          235,
         ],
       ],
     },
@@ -4367,11 +4375,11 @@ exports[`Visual regression (layout geometry) > Hidden Dots 1`] = `
         ],
         [
           670,
-          190,
+          205,
         ],
         [
           690,
-          190,
+          205,
         ],
       ],
     },
@@ -4712,7 +4720,7 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
 {
   "canvas": [
     1310,
-    735,
+    655,
   ],
   "junctions": [],
   "labels": [],
@@ -4721,7 +4729,7 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "block": null,
       "box": [
         430,
-        505,
+        425,
         75,
         90,
       ],
@@ -4729,21 +4737,21 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "inputs": [
         [
           430,
-          520,
+          440,
           "in_0",
           null,
           0,
         ],
         [
           430,
-          550,
+          470,
           "in_1",
           null,
           0,
         ],
         [
           430,
-          580,
+          500,
           "in_2",
           null,
           0,
@@ -4754,7 +4762,7 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "outputs": [
         [
           505,
-          550,
+          470,
           "out",
           0,
         ],
@@ -4765,7 +4773,7 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "block": null,
       "box": [
         430,
-        675,
+        595,
         60,
         60,
       ],
@@ -4773,14 +4781,14 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "inputs": [
         [
           430,
-          690,
+          610,
           "in_0",
           null,
           0,
         ],
         [
           430,
-          720,
+          640,
           "in_1",
           null,
           0,
@@ -4791,7 +4799,7 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "outputs": [
         [
           490,
-          705,
+          625,
           "out",
           0,
         ],
@@ -4802,50 +4810,50 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "block": null,
       "box": [
         950,
-        200,
+        165,
         75,
-        180,
+        110,
       ],
       "desc": null,
       "inputs": [
         [
           950,
-          215,
+          180,
           "in_0",
           null,
           0,
         ],
         [
           950,
-          245,
+          195,
           "in_1",
           null,
           0,
         ],
         [
           950,
-          275,
+          210,
           "in_2",
           null,
           0,
         ],
         [
           950,
-          305,
+          225,
           "in_3",
           null,
           0,
         ],
         [
           950,
-          335,
+          240,
           "in_4",
           null,
           0,
         ],
         [
           950,
-          365,
+          255,
           "in_5",
           null,
           0,
@@ -4856,7 +4864,7 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "outputs": [
         [
           1025,
-          290,
+          220,
           "out",
           0,
         ],
@@ -4871,10 +4879,10 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
         100,
         30,
       ],
-      "desc": "(BI 3.24)",
+      "desc": "(BI 3.3)",
       "inputs": [],
-      "label": "I2",
-      "name": "BB Not Earthed",
+      "label": "I3",
+      "name": "D/S Q01 Open",
       "outputs": [
         [
           270,
@@ -4889,18 +4897,18 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "block": null,
       "box": [
         170,
-        260,
+        165,
         100,
         30,
       ],
-      "desc": "(BI 3.3)",
+      "desc": "(BI 3.1)",
       "inputs": [],
-      "label": "I3",
-      "name": "D/S Q01 Open",
+      "label": "I1",
+      "name": "CBQ 00 Open",
       "outputs": [
         [
           270,
-          275,
+          180,
           "out",
           0,
         ],
@@ -4911,7 +4919,7 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "block": null,
       "box": [
         170,
-        290,
+        210,
         100,
         30,
       ],
@@ -4922,7 +4930,7 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "outputs": [
         [
           270,
-          305,
+          225,
           "out",
           0,
         ],
@@ -4933,7 +4941,7 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "block": null,
       "box": [
         170,
-        390,
+        310,
         100,
         30,
       ],
@@ -4944,7 +4952,73 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "outputs": [
         [
           270,
-          405,
+          325,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        425,
+        100,
+        30,
+      ],
+      "desc": "(BI 3.11)",
+      "inputs": [],
+      "label": "I6",
+      "name": "In Remote",
+      "outputs": [
+        [
+          270,
+          440,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        455,
+        100,
+        30,
+      ],
+      "desc": "(BI 3.23)",
+      "inputs": [],
+      "label": "I7",
+      "name": "SCADA ON",
+      "outputs": [
+        [
+          270,
+          470,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        485,
+        100,
+        30,
+      ],
+      "desc": "(via RTU)",
+      "inputs": [],
+      "label": "I8",
+      "name": "DNP Close Command",
+      "outputs": [
+        [
+          270,
+          500,
           "out",
           0,
         ],
@@ -4959,10 +5033,10 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
         100,
         30,
       ],
-      "desc": "(BI 3.1)",
+      "desc": "(BI 3.24)",
       "inputs": [],
-      "label": "I1",
-      "name": "CBQ 00 Open",
+      "label": "I2",
+      "name": "BB Not Earthed",
       "outputs": [
         [
           270,
@@ -4977,73 +5051,7 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "block": null,
       "box": [
         170,
-        505,
-        100,
-        30,
-      ],
-      "desc": "(BI 3.11)",
-      "inputs": [],
-      "label": "I6",
-      "name": "In Remote",
-      "outputs": [
-        [
-          270,
-          520,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        535,
-        100,
-        30,
-      ],
-      "desc": "(BI 3.23)",
-      "inputs": [],
-      "label": "I7",
-      "name": "SCADA ON",
-      "outputs": [
-        [
-          270,
-          550,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        565,
-        100,
-        30,
-      ],
-      "desc": "(via RTU)",
-      "inputs": [],
-      "label": "I8",
-      "name": "DNP Close Command",
-      "outputs": [
-        [
-          270,
-          580,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        675,
+        595,
         100,
         30,
       ],
@@ -5054,7 +5062,7 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "outputs": [
         [
           270,
-          690,
+          610,
           "out",
           0,
         ],
@@ -5065,7 +5073,7 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "block": null,
       "box": [
         170,
-        705,
+        625,
         100,
         30,
       ],
@@ -5076,7 +5084,7 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "outputs": [
         [
           270,
-          720,
+          640,
           "out",
           0,
         ],
@@ -5087,7 +5095,7 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "block": null,
       "box": [
         430,
-        385,
+        305,
         65,
         40,
       ],
@@ -5095,7 +5103,7 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "inputs": [
         [
           430,
-          405,
+          325,
           "in_0",
           null,
           0,
@@ -5106,7 +5114,7 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "outputs": [
         [
           495,
-          405,
+          325,
           "out",
           0,
         ],
@@ -5117,7 +5125,7 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "block": null,
       "box": [
         690,
-        600,
+        520,
         60,
         50,
       ],
@@ -5125,14 +5133,14 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "inputs": [
         [
           698,
-          615,
+          535,
           "in_0",
           null,
           0,
         ],
         [
           700,
-          630,
+          550,
           "in_1",
           null,
           0,
@@ -5143,7 +5151,7 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "outputs": [
         [
           750,
-          625,
+          545,
           "out",
           0,
         ],
@@ -5154,7 +5162,7 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "block": null,
       "box": [
         1210,
-        275,
+        205,
         100,
         30,
       ],
@@ -5162,7 +5170,7 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "inputs": [
         [
           1210,
-          290,
+          220,
           "in",
           null,
           0,
@@ -5180,11 +5188,11 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "points": [
         [
           1025,
-          290,
+          220,
         ],
         [
           1210,
-          290,
+          220,
         ],
       ],
     },
@@ -5201,11 +5209,11 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
         ],
         [
           915,
-          245,
+          195,
         ],
         [
           950,
-          245,
+          195,
         ],
       ],
     },
@@ -5214,11 +5222,19 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "points": [
         [
           270,
-          275,
+          180,
+        ],
+        [
+          900,
+          180,
+        ],
+        [
+          900,
+          210,
         ],
         [
           950,
-          275,
+          210,
         ],
       ],
     },
@@ -5227,11 +5243,11 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "points": [
         [
           270,
-          305,
+          225,
         ],
         [
           950,
-          305,
+          225,
         ],
       ],
     },
@@ -5240,11 +5256,11 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "points": [
         [
           270,
-          405,
+          325,
         ],
         [
           430,
-          405,
+          325,
         ],
       ],
     },
@@ -5253,11 +5269,11 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "points": [
         [
           270,
-          520,
+          440,
         ],
         [
           430,
-          520,
+          440,
         ],
       ],
     },
@@ -5266,11 +5282,11 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "points": [
         [
           270,
-          550,
+          470,
         ],
         [
           430,
-          550,
+          470,
         ],
       ],
     },
@@ -5279,11 +5295,37 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "points": [
         [
           270,
-          580,
+          500,
         ],
         [
           430,
-          580,
+          500,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          610,
+        ],
+        [
+          430,
+          610,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          640,
+        ],
+        [
+          430,
+          640,
         ],
       ],
     },
@@ -5300,37 +5342,11 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
         ],
         [
           930,
-          215,
+          180,
         ],
         [
           950,
-          215,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          690,
-        ],
-        [
-          430,
-          690,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          720,
-        ],
-        [
-          430,
-          720,
+          180,
         ],
       ],
     },
@@ -5339,19 +5355,19 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "points": [
         [
           490,
-          705,
+          625,
         ],
         [
           660,
-          705,
+          625,
         ],
         [
           660,
-          630,
+          550,
         ],
         [
           700,
-          630,
+          550,
         ],
       ],
     },
@@ -5360,19 +5376,19 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "points": [
         [
           495,
-          405,
+          325,
         ],
         [
           905,
-          405,
+          325,
         ],
         [
           905,
-          335,
+          240,
         ],
         [
           950,
-          335,
+          240,
         ],
       ],
     },
@@ -5381,19 +5397,19 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "points": [
         [
           505,
-          550,
+          470,
         ],
         [
           670,
-          550,
+          470,
         ],
         [
           670,
-          615,
+          535,
         ],
         [
           698,
-          615,
+          535,
         ],
       ],
     },
@@ -5402,19 +5418,19 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
       "points": [
         [
           750,
-          625,
+          545,
         ],
         [
           920,
-          625,
+          545,
         ],
         [
           920,
-          365,
+          255,
         ],
         [
           950,
-          365,
+          255,
         ],
       ],
     },
@@ -6639,22 +6655,22 @@ exports[`Visual regression (layout geometry) > Mixed Logic 1`] = `
       "block": null,
       "box": [
         690,
-        210,
+        215,
         60,
-        60,
+        50,
       ],
       "desc": null,
       "inputs": [
         [
           690,
-          225,
+          230,
           "in_0",
           null,
           0,
         ],
         [
           690,
-          255,
+          245,
           "in_1",
           null,
           0,
@@ -6676,7 +6692,7 @@ exports[`Visual regression (layout geometry) > Mixed Logic 1`] = `
       "block": null,
       "box": [
         170,
-        215,
+        220,
         100,
         20,
       ],
@@ -6687,7 +6703,7 @@ exports[`Visual regression (layout geometry) > Mixed Logic 1`] = `
       "outputs": [
         [
           270,
-          225,
+          230,
           "out",
           0,
         ],
@@ -6972,11 +6988,11 @@ exports[`Visual regression (layout geometry) > Mixed Logic 1`] = `
       "points": [
         [
           270,
-          225,
+          230,
         ],
         [
           690,
-          225,
+          230,
         ],
       ],
     },
@@ -7100,11 +7116,11 @@ exports[`Visual regression (layout geometry) > Mixed Logic 1`] = `
         ],
         [
           595,
-          255,
+          245,
         ],
         [
           690,
-          255,
+          245,
         ],
       ],
     },
@@ -8665,7 +8681,7 @@ exports[`Visual regression (layout geometry) > SEL Function Blocks 1`] = `
 {
   "canvas": [
     1310,
-    340,
+    345,
   ],
   "junctions": [
     [
@@ -8857,7 +8873,7 @@ exports[`Visual regression (layout geometry) > SEL Function Blocks 1`] = `
       "block": null,
       "box": [
         1210,
-        300,
+        310,
         100,
         20,
       ],
@@ -8865,7 +8881,7 @@ exports[`Visual regression (layout geometry) > SEL Function Blocks 1`] = `
       "inputs": [
         [
           1210,
-          310,
+          320,
           "in",
           null,
           0,
@@ -8933,15 +8949,15 @@ exports[`Visual regression (layout geometry) > SEL Function Blocks 1`] = `
       "block": "SR",
       "box": [
         690,
-        280,
+        295,
         60,
-        60,
+        50,
       ],
       "desc": null,
       "inputs": [
         [
           690,
-          295,
+          310,
           "S",
           null,
           0,
@@ -8959,7 +8975,7 @@ exports[`Visual regression (layout geometry) > SEL Function Blocks 1`] = `
       "outputs": [
         [
           750,
-          310,
+          320,
           "Q",
           0,
         ],
@@ -8970,7 +8986,7 @@ exports[`Visual regression (layout geometry) > SEL Function Blocks 1`] = `
       "block": "TIMER",
       "box": [
         950,
-        285,
+        295,
         85,
         50,
       ],
@@ -8978,7 +8994,7 @@ exports[`Visual regression (layout geometry) > SEL Function Blocks 1`] = `
       "inputs": [
         [
           950,
-          310,
+          320,
           "in",
           null,
           0,
@@ -8989,7 +9005,7 @@ exports[`Visual regression (layout geometry) > SEL Function Blocks 1`] = `
       "outputs": [
         [
           1035,
-          310,
+          320,
           "OUT",
           0,
         ],
@@ -9003,11 +9019,11 @@ exports[`Visual regression (layout geometry) > SEL Function Blocks 1`] = `
       "points": [
         [
           1035,
-          310,
+          320,
         ],
         [
           1210,
-          310,
+          320,
         ],
       ],
     },
@@ -9089,11 +9105,11 @@ exports[`Visual regression (layout geometry) > SEL Function Blocks 1`] = `
         ],
         [
           595,
-          295,
+          310,
         ],
         [
           690,
-          295,
+          310,
         ],
       ],
     },
@@ -9128,11 +9144,11 @@ exports[`Visual regression (layout geometry) > SEL Function Blocks 1`] = `
       "points": [
         [
           750,
-          310,
+          320,
         ],
         [
           950,
-          310,
+          320,
         ],
       ],
     },
@@ -9292,22 +9308,22 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "block": null,
       "box": [
         950,
-        245,
+        260,
         75,
-        90,
+        60,
       ],
       "desc": null,
       "inputs": [
         [
-          956,
-          260,
+          958,
+          275,
           "in_0",
           null,
           0,
         ],
         [
-          956,
-          320,
+          958,
+          305,
           "in_2",
           null,
           0,
@@ -9359,7 +9375,7 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "block": null,
       "box": [
         1470,
-        320,
+        335,
         100,
         20,
       ],
@@ -9367,7 +9383,7 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "inputs": [
         [
           1470,
-          330,
+          345,
           "in",
           null,
           0,
@@ -9435,22 +9451,22 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "block": "SR",
       "box": [
         690,
-        335,
+        340,
         60,
-        60,
+        50,
       ],
       "desc": null,
       "inputs": [
         [
           690,
-          350,
+          355,
           "S",
           null,
           0,
         ],
         [
           690,
-          380,
+          370,
           "R",
           null,
           0,
@@ -9565,11 +9581,11 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
         ],
         [
           660,
-          380,
+          370,
         ],
         [
           690,
-          380,
+          370,
         ],
       ],
     },
@@ -9586,11 +9602,11 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
         ],
         [
           930,
-          260,
+          275,
         ],
         [
-          956,
-          260,
+          958,
+          275,
         ],
       ],
     },
@@ -9607,11 +9623,11 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
         ],
         [
           670,
-          350,
+          355,
         ],
         [
           690,
-          350,
+          355,
         ],
       ],
     },
@@ -9657,11 +9673,11 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
         ],
         [
           675,
-          420,
+          415,
         ],
         [
           1465,
-          420,
+          415,
         ],
         [
           1465,
@@ -9699,19 +9715,15 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
         ],
         [
           930,
-          360,
+          345,
         ],
         [
           1445,
-          360,
-        ],
-        [
-          1445,
-          330,
+          345,
         ],
         [
           1470,
-          330,
+          345,
         ],
       ],
     },
@@ -9728,11 +9740,11 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
         ],
         [
           920,
-          320,
+          305,
         ],
         [
-          956,
-          320,
+          958,
+          305,
         ],
       ],
     },
@@ -10218,7 +10230,7 @@ exports[`Visual regression (layout geometry) > Styled by ID 1`] = `
 {
   "canvas": [
     1050,
-    295,
+    340,
   ],
   "junctions": [],
   "labels": [],
@@ -10227,15 +10239,15 @@ exports[`Visual regression (layout geometry) > Styled by ID 1`] = `
       "block": null,
       "box": [
         690,
-        205,
+        220,
         75,
-        90,
+        60,
       ],
       "desc": null,
       "inputs": [
         [
           690,
-          220,
+          235,
           "in_0",
           null,
           0,
@@ -10249,7 +10261,7 @@ exports[`Visual regression (layout geometry) > Styled by ID 1`] = `
         ],
         [
           690,
-          280,
+          265,
           "in_2",
           null,
           0,
@@ -10387,7 +10399,7 @@ exports[`Visual regression (layout geometry) > Styled by ID 1`] = `
       "block": null,
       "box": [
         170,
-        270,
+        320,
         100,
         20,
       ],
@@ -10398,7 +10410,7 @@ exports[`Visual regression (layout geometry) > Styled by ID 1`] = `
       "outputs": [
         [
           270,
-          280,
+          330,
           "out",
           0,
         ],
@@ -10519,11 +10531,19 @@ exports[`Visual regression (layout geometry) > Styled by ID 1`] = `
       "points": [
         [
           270,
-          280,
+          330,
+        ],
+        [
+          660,
+          330,
+        ],
+        [
+          660,
+          265,
         ],
         [
           690,
-          280,
+          265,
         ],
       ],
     },
@@ -10561,16 +10581,16 @@ exports[`Visual regression (layout geometry) > Styled by ID 1`] = `
           90,
         ],
         [
-          665,
+          670,
           90,
         ],
         [
-          665,
-          220,
+          670,
+          235,
         ],
         [
           690,
-          220,
+          235,
         ],
       ],
     },
@@ -10841,7 +10861,7 @@ exports[`Visual regression (layout geometry) > Trip Logic 1`] = `
       "block": null,
       "box": [
         170,
-        125,
+        115,
         100,
         20,
       ],
@@ -10852,7 +10872,7 @@ exports[`Visual regression (layout geometry) > Trip Logic 1`] = `
       "outputs": [
         [
           270,
-          135,
+          125,
           "out",
           0,
         ],
@@ -10996,22 +11016,22 @@ exports[`Visual regression (layout geometry) > Trip Logic 1`] = `
       "block": null,
       "box": [
         690,
-        90,
+        95,
         60,
-        60,
+        50,
       ],
       "desc": null,
       "inputs": [
         [
           698,
-          105,
+          110,
           "in_0",
           null,
           0,
         ],
         [
-          698,
-          135,
+          700,
+          125,
           "in_1",
           null,
           0,
@@ -11072,11 +11092,11 @@ exports[`Visual regression (layout geometry) > Trip Logic 1`] = `
       "points": [
         [
           270,
-          135,
+          125,
         ],
         [
-          698,
-          135,
+          700,
+          125,
         ],
       ],
     },
@@ -11153,11 +11173,11 @@ exports[`Visual regression (layout geometry) > Trip Logic 1`] = `
         ],
         [
           595,
-          105,
+          110,
         ],
         [
           698,
-          105,
+          110,
         ],
       ],
     },

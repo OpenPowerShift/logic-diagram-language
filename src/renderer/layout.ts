@@ -374,8 +374,15 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
   for (const n of nodes.values()) {
     if (n.kind !== 'gate' || !n.gateType || n.gateType === 'NOT' || n.inputIds.length < 2) continue;
     if (opts.gateInputStyle === 'BARS' && n.inputIds.length > 2) continue; // BARS gates own their port layout
-    const hasInputSource = n.inputIds.some(id => nodes.get(id)?.kind === 'input');
-    if (hasInputSource) n.portGap = INPUT_PORT_GAP;
+    // Only widen ports for a labelled input that is ADJACENT (one column left), because only then
+    // is the input actually placed ON the port (a straight fan-in whose label needs the room). A
+    // labelled input feeding a deeper gate is columns away and doglegs in regardless, so widening
+    // there just bloats the gate — keep it at the tight PORT_SPACING.
+    const hasAdjacentInputSource = n.inputIds.some(id => {
+      const s = nodes.get(id);
+      return s?.kind === 'input' && s.depth === n.depth - 1;
+    });
+    if (hasAdjacentInputSource) n.portGap = INPUT_PORT_GAP;
   }
 
   const rowMap = new Map<string, number>();

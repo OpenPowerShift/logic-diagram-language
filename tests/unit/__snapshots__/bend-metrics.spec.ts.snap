@@ -24,7 +24,7 @@ exports[`Bend/crossing metrics > Breaker Failure (SEL-751A) 1`] = `
 
 exports[`Bend/crossing metrics > Combined Logic (CBFPS) 1`] = `
 {
-  "H": 230,
+  "H": 225,
   "bends": 10,
   "bent": 5,
   "crossings": 0,
@@ -68,11 +68,11 @@ exports[`Bend/crossing metrics > Complex Protection 1`] = `
 
 exports[`Bend/crossing metrics > Differential Protection 1`] = `
 {
-  "H": 235,
-  "bends": 2,
-  "bent": 1,
+  "H": 305,
+  "bends": 4,
+  "bent": 2,
   "crossings": 0,
-  "straight": 6,
+  "straight": 5,
   "wires": 7,
 }
 `;
@@ -112,11 +112,11 @@ exports[`Bend/crossing metrics > Input Bars 1`] = `
 
 exports[`Bend/crossing metrics > Interlocking Q01 Close 1`] = `
 {
-  "H": 735,
-  "bends": 12,
-  "bent": 6,
+  "H": 655,
+  "bends": 14,
+  "bent": 7,
   "crossings": 0,
-  "straight": 9,
+  "straight": 8,
   "wires": 15,
 }
 `;
@@ -211,7 +211,7 @@ exports[`Bend/crossing metrics > Overcurrent Protection 1`] = `
 
 exports[`Bend/crossing metrics > SEL Function Blocks 1`] = `
 {
-  "H": 340,
+  "H": 345,
   "bends": 2,
   "bent": 1,
   "crossings": 0,
@@ -223,7 +223,7 @@ exports[`Bend/crossing metrics > SEL Function Blocks 1`] = `
 exports[`Bend/crossing metrics > Shared Intermediates 1`] = `
 {
   "H": 455,
-  "bends": 20,
+  "bends": 18,
   "bent": 7,
   "crossings": 4,
   "straight": 5,
@@ -266,11 +266,11 @@ exports[`Bend/crossing metrics > Square Ports 1`] = `
 
 exports[`Bend/crossing metrics > Styled by ID 1`] = `
 {
-  "H": 295,
-  "bends": 2,
-  "bent": 1,
+  "H": 340,
+  "bends": 4,
+  "bent": 2,
   "crossings": 0,
-  "straight": 7,
+  "straight": 6,
   "wires": 8,
 }
 `;
