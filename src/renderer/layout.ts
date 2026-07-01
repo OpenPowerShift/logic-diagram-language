@@ -1350,7 +1350,7 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
 
   // Gate-clearance helpers, shared by the channel track-assignment pass and the fan-in
   // nesting below. A vertical/horizontal run must stay GATE_CLEARANCE clear of every gate body.
-  const GATE_CLEARANCE = 15;
+  const GATE_CLEARANCE = 20;
   function vGateClear(x: number, y0: number, y1: number): boolean {
     const yMin = Math.min(y0, y1), yMax = Math.max(y0, y1);
     for (const o of allObstacles) {
@@ -1383,7 +1383,8 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
   // A wire entering a gate input port must arrive with a horizontal run of at least
   // GATE_ENTRANCE, so the vertical turn sits clear of the gate body/curve and the wire visibly
   // enters horizontally rather than turning on the gate's edge (see spec: minimum gate entrance).
-  const GATE_ENTRANCE = 15;
+  const GATE_ENTRANCE = 20;
+  const MIN_WIRE_SPACING = 2 * GRID;   // 10px: cross-net parallel verticals must keep this clear
   interface Movable {
     w: LayoutWire; vi: number;
     aX: number; bX: number;         // left/right ends of run A / run B (the vertical's X-window)
@@ -1391,6 +1392,10 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     yTop: number; yBot: number;
     destIsGate: boolean;            // destination is a gate input port (entrance rule applies)
   }
+  // The track pass adjusts a wire's single vertical (a clean H–V–H turn). It deliberately does NOT
+  // touch multi-bend wires: their extra bends are obstacle detours, and sliding the approach vertical
+  // of such a wire would just drag its entrance horizontal along a sibling's wire (trading a gate-hug
+  // for a horizontal overlap). Those cases are congestion to solve at placement, not here.
   const movables: Movable[] = [];
   for (const w of wires) {
     if (w.feedback) continue;
@@ -1399,7 +1404,7 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     for (let i = 0; i < p.length - 1; i++) {
       if (Math.abs(p[i].x - p[i + 1].x) < 0.5 && Math.abs(p[i].y - p[i + 1].y) >= GRID) { vi = i; vcount++; }
     }
-    if (vcount !== 1 || vi <= 0 || vi + 2 >= p.length) continue;            // need H–V–H
+    if (vcount !== 1 || vi <= 0 || vi + 2 >= p.length) continue;            // single clean H–V–H only
     if (Math.abs(p[vi - 1].y - p[vi].y) > 0.5) continue;                    // segment before V is horizontal
     if (Math.abs(p[vi + 1].y - p[vi + 2].y) > 0.5) continue;                // segment after V is horizontal
     const aX = p[vi - 1].x, bX = p[vi + 2].x;
@@ -1410,17 +1415,25 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     movables.push({ w, vi, aX, bX, yA, yB, yTop: Math.min(yA, yB), yBot: Math.max(yA, yB), destIsGate });
   }
 
-  // Group into channels by overlapping X-window (union-find).
-  const uf = movables.map((_, i) => i);
-  const find = (x: number): number => { while (uf[x] !== x) { uf[x] = uf[uf[x]]; x = uf[x]; } return x; };
-  for (let i = 0; i < movables.length; i++) {
-    for (let j = i + 1; j < movables.length; j++) {
-      const A = movables[i], B = movables[j];
-      if (Math.min(A.bX, B.bX) - Math.max(A.aX, B.aX) > 2 * GRID) uf[find(i)] = find(j);
+  // Fixed verticals: every vertical segment the track pass does NOT adjust (straight wires have
+  // none; a multi-bend wire's non-tail verticals are pinned by the obstacles they detour around).
+  // The pass treats these as occupied tracks so it keeps MIN_WIRE_SPACING clear of them — otherwise
+  // a track can land 5px from a pinned vertical and read as a cluster. Only the specific adjustable
+  // tail vertical of each movable is excluded (by wire id + segment index), not the whole wire.
+  const movVi = new Map<string, number>();
+  for (const m of movables) movVi.set(m.w.id, m.vi);
+  const fixedVerts: { x: number; y0: number; y1: number; from: string }[] = [];
+  for (const w of wires) {
+    for (let i = 0; i < w.points.length - 1; i++) {
+      if (movVi.get(w.id) === i) continue;                    // the adjustable tail vertical
+      const a = w.points[i], b = w.points[i + 1];
+      if (Math.abs(a.x - b.x) < 0.5 && Math.abs(a.y - b.y) >= GRID)
+        fixedVerts.push({ x: a.x, y0: Math.min(a.y, b.y), y1: Math.max(a.y, b.y), from: w.fromId });
     }
   }
-  const channels = new Map<number, Movable[]>();
-  movables.forEach((m, i) => { const r = find(i); (channels.get(r) ?? channels.set(r, []).get(r)!).push(m); });
+  // Cross-net fixed verticals overlapping m's Y-span (excludes m's own source).
+  const nearFixed = (m: Movable) => fixedVerts.filter(fv =>
+    fv.from !== m.w.fromId && Math.min(m.yBot, fv.y1) - Math.max(m.yTop, fv.y0) > 0);
 
   const yOverlap = (a: Movable, b: Movable) => Math.min(a.yBot, b.yBot) - Math.max(a.yTop, b.yTop) >= GRID;
   const placeValid = (m: Movable, X: number) =>
@@ -1440,49 +1453,62 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     return c;
   };
   const SPREAD = 3 * GRID;                                        // preferred gap between cross-net tracks
-  for (const group of channels.values()) {
-    if (group.length < 2) continue;
-    // Process a channel if it either collides today (a cross-net same-X Y-overlap) or has a wire
-    // turning too close to its gate (entrance shorter than GATE_ENTRANCE). Otherwise leave it as
-    // routed — clean channels are untouched.
-    const collides = group.some((a, i) => group.some((b, j) =>
-      j > i && a.w.fromId !== b.w.fromId && Math.abs(a.w.points[a.vi].x - b.w.points[b.vi].x) < 0.5 && yOverlap(a, b)));
-    const shortEntrance = group.some(m => m.destIsGate && m.bX - m.w.points[m.vi].x < GATE_ENTRANCE - 0.5);
-    if (!collides && !shortEntrance) continue;
+  // Current X of each adjustable tail vertical (mutated as we place); every movable, whether or not
+  // it is re-placed, acts as an obstacle at its current X. Working globally (no channel grouping)
+  // means two verticals can never be blind to each other, so we can't reintroduce a collision.
+  const curX = new Map<Movable, number>(movables.map(m => [m, m.w.points[m.vi].x]));
+  const crossNet = (m: Movable) => movables.filter(o => o !== m && o.w.fromId !== m.w.fromId && yOverlap(o, m));
 
-    // Greedy CSP, most-constrained-first: a vertical that is boxed in by gate bodies (few valid
-    // X's — e.g. a long output wire threading past a gate column) is pinned early; freer verticals
-    // then choose an X that clears every already-placed track. Each vertical's candidate X's are the
-    // grid positions in its [aX,bX] window that keep both runs gate-clear; a gate-bound vertical is
-    // additionally capped at bX-GATE_ENTRANCE so its horizontal entrance stays >= GATE_ENTRANCE.
-    const withCands = group.map(m => {
-      const cands: number[] = [];
-      const capX = m.destIsGate ? m.bX - GATE_ENTRANCE : m.bX;
-      for (let x = Math.ceil(m.aX / GRID) * GRID; x <= Math.floor(capX / GRID) * GRID; x += GRID) {
-        if (placeValid(m, x)) cands.push(x);
-      }
-      return { m, cands };
-    }).sort((a, b) => a.cands.length - b.cands.length);
+  // A movable violates if it hugs a gate (fails its own gate-clearance), has too short a gate
+  // entrance, or runs within MIN_WIRE_SPACING of any cross-net vertical (fixed or another movable)
+  // it overlaps in Y. Only violating movables are re-placed; clean ones stay put (minimal churn).
+  const crowded = (m: Movable, X: number) =>
+    nearFixed(m).some(fv => Math.abs(fv.x - X) < MIN_WIRE_SPACING - 0.5) ||
+    crossNet(m).some(o => Math.abs(curX.get(o)! - X) < MIN_WIRE_SPACING - 0.5);
+  const violates = (m: Movable) => {
+    const X = curX.get(m)!;
+    return !placeValid(m, X) || (m.destIsGate && m.bX - X < GATE_ENTRANCE - 0.5) || crowded(m, X);
+  };
 
-    const assigned: { m: Movable; x: number }[] = [];
-    for (const { m, cands } of withCands) {
-      const origX = m.w.points[m.vi].x;
-      let bestX: number | null = null, bestCost = Infinity;
-      for (const x of cands) {
-        let collide = false, cost = Math.abs(x - origX);           // prefer staying near the routed X
-        for (const a of assigned) {
-          const cross = a.m.w.fromId === m.w.fromId;
-          if (!cross && Math.abs(a.x - x) < 0.5 && yOverlap(a.m, m)) { collide = true; break; }
-          cost += pairCross(m, x, a.m, a.x) * 100000;              // avoid new crossings above all
-          if (!cross && Math.abs(a.x - x) < SPREAD && yOverlap(a.m, m)) cost += 50; // nudge tracks apart
-        }
-        if (collide) continue;
-        if (cost < bestCost) { bestCost = cost; bestX = x; }
+  // Candidate X's: grid positions in [aX, cap] that keep both runs gate-clear; a gate-bound vertical
+  // is capped at bX-GATE_ENTRANCE so its horizontal entrance stays >= GATE_ENTRANCE.
+  const candsFor = (m: Movable) => {
+    const cands: number[] = [];
+    const capX = m.destIsGate ? m.bX - GATE_ENTRANCE : m.bX;
+    for (let x = Math.ceil(m.aX / GRID) * GRID; x <= Math.floor(capX / GRID) * GRID; x += GRID)
+      if (placeValid(m, x)) cands.push(x);
+    return cands;
+  };
+
+  // Place violating movables most-constrained-first. Each avoids exact overlap with every fixed
+  // vertical and every other movable's current X, and is scored to keep MIN_WIRE_SPACING clear,
+  // minimise crossings, and stay near its routed X.
+  const toPlace = movables.filter(violates).map(m => ({ m, cands: candsFor(m) }))
+    .sort((a, b) => a.cands.length - b.cands.length);
+  for (const { m, cands } of toPlace) {
+    const origX = curX.get(m)!;
+    const fixedForM = nearFixed(m), others = crossNet(m);
+    let bestX: number | null = null, bestCost = Infinity;
+    for (const x of cands) {
+      let bad = false, cost = Math.abs(x - origX);
+      for (const fv of fixedForM) {
+        const d = Math.abs(fv.x - x);
+        if (d < 0.5) { bad = true; break; }                       // exact overlap with a pinned vertical
+        if (d < MIN_WIRE_SPACING - 0.5) cost += 2000; else if (d < SPREAD) cost += 50;
       }
-      assigned.push({ m, x: bestX ?? origX });                     // no collision-free slot → keep routed X
+      if (bad) continue;
+      for (const o of others) {
+        const d = Math.abs(curX.get(o)! - x);
+        if (d < 0.5) { bad = true; break; }                       // exact overlap with another track
+        cost += pairCross(m, x, o, curX.get(o)!) * 100000;        // avoid new crossings above all
+        if (d < MIN_WIRE_SPACING - 0.5) cost += 2000; else if (d < SPREAD) cost += 50;
+      }
+      if (bad) continue;
+      if (cost < bestCost) { bestCost = cost; bestX = x; }
     }
-    for (const { m, x } of assigned) { m.w.points[m.vi].x = x; m.w.points[m.vi + 1].x = x; }
+    if (bestX !== null) curX.set(m, bestX);                        // no valid slot → keep routed X
   }
+  for (const m of movables) { m.w.points[m.vi].x = curX.get(m)!; m.w.points[m.vi + 1].x = curX.get(m)!; }
 
   // Nested fan-in channels: when several wires dogleg into the same gate, give each its own
   // vertical channel just left of the gate, evenly spaced (FANIN_SPACING) and nested so they

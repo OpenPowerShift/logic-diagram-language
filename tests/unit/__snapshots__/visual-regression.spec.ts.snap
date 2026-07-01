@@ -16,7 +16,7 @@ exports[`Visual regression (layout geometry) > Boolean Algebra 1`] = `
       70,
     ],
     [
-      415,
+      410,
       70,
     ],
     [
@@ -327,11 +327,11 @@ exports[`Visual regression (layout geometry) > Boolean Algebra 1`] = `
           140,
         ],
         [
-          400,
+          395,
           140,
         ],
         [
-          400,
+          395,
           170,
         ],
         [
@@ -369,11 +369,11 @@ exports[`Visual regression (layout geometry) > Boolean Algebra 1`] = `
           70,
         ],
         [
-          415,
+          410,
           70,
         ],
         [
-          415,
+          410,
           140,
         ],
         [
@@ -826,11 +826,11 @@ exports[`Visual regression (layout geometry) > Breaker Failure (SEL-751A) 1`] = 
           260,
         ],
         [
-          1185,
+          1180,
           260,
         ],
         [
-          1185,
+          1180,
           175,
         ],
         [
@@ -912,11 +912,11 @@ exports[`Visual regression (layout geometry) > Breaker Failure (SEL-751A) 1`] = 
           65,
         ],
         [
-          1195,
+          1190,
           65,
         ],
         [
-          1195,
+          1190,
           145,
         ],
         [
@@ -933,11 +933,11 @@ exports[`Visual regression (layout geometry) > Breaker Failure (SEL-751A) 1`] = 
           175,
         ],
         [
-          675,
+          670,
           175,
         ],
         [
-          675,
+          670,
           240,
         ],
         [
@@ -954,11 +954,11 @@ exports[`Visual regression (layout geometry) > Breaker Failure (SEL-751A) 1`] = 
           330,
         ],
         [
-          665,
+          660,
           330,
         ],
         [
-          665,
+          660,
           255,
         ],
         [
@@ -1348,11 +1348,11 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
           80,
         ],
         [
-          935,
+          930,
           80,
         ],
         [
-          935,
+          930,
           135,
         ],
         [
@@ -1390,11 +1390,11 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
           210,
         ],
         [
-          925,
+          920,
           210,
         ],
         [
-          925,
+          920,
           150,
         ],
         [
@@ -1646,87 +1646,87 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
           110,
         ],
         [
-          400,
+          395,
           110,
         ],
         [
+          395,
+          145,
+        ],
+        [
+          420,
+          145,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          160,
+        ],
+        [
+          420,
+          160,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          210,
+        ],
+        [
+          370,
+          210,
+        ],
+        [
+          370,
+          175,
+        ],
+        [
+          420,
+          175,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          260,
+        ],
+        [
+          385,
+          260,
+        ],
+        [
+          385,
+          190,
+        ],
+        [
+          420,
+          190,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          310,
+        ],
+        [
           400,
-          145,
-        ],
-        [
-          420,
-          145,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          160,
-        ],
-        [
-          420,
-          160,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          210,
-        ],
-        [
-          375,
-          210,
-        ],
-        [
-          375,
-          175,
-        ],
-        [
-          420,
-          175,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          260,
-        ],
-        [
-          390,
-          260,
-        ],
-        [
-          390,
-          190,
-        ],
-        [
-          420,
-          190,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
           310,
         ],
         [
-          405,
-          310,
-        ],
-        [
-          405,
+          400,
           205,
         ],
         [
@@ -1743,11 +1743,11 @@ exports[`Visual regression (layout geometry) > Combined Options 1`] = `
           60,
         ],
         [
-          415,
+          410,
           60,
         ],
         [
-          415,
+          410,
           130,
         ],
         [
@@ -1781,7 +1781,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
   ],
   "junctions": [
     [
-      430,
+      410,
       660,
     ],
   ],
@@ -2639,11 +2639,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
           335,
         ],
         [
-          925,
+          920,
           335,
         ],
         [
-          925,
+          920,
           250,
         ],
         [
@@ -2686,11 +2686,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
           660,
         ],
         [
-          430,
+          410,
           660,
         ],
         [
-          430,
+          410,
           585,
         ],
         [
@@ -2767,11 +2767,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
           660,
         ],
         [
-          675,
+          670,
           660,
         ],
         [
-          675,
+          670,
           735,
         ],
         [
@@ -2788,11 +2788,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
           200,
         ],
         [
-          665,
+          660,
           200,
         ],
         [
-          665,
+          660,
           140,
         ],
         [
@@ -2809,11 +2809,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
           475,
         ],
         [
-          675,
+          670,
           475,
         ],
         [
-          675,
+          670,
           555,
         ],
         [
@@ -2830,11 +2830,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
           70,
         ],
         [
-          675,
+          670,
           70,
         ],
         [
-          675,
+          670,
           125,
         ],
         [
@@ -2851,11 +2851,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
           830,
         ],
         [
-          665,
+          660,
           830,
         ],
         [
-          665,
+          660,
           750,
         ],
         [
@@ -2885,11 +2885,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
           135,
         ],
         [
-          935,
+          930,
           135,
         ],
         [
-          935,
+          930,
           220,
         ],
         [
@@ -3264,11 +3264,11 @@ exports[`Visual regression (layout geometry) > Complex Protection 1`] = `
           280,
         ],
         [
-          925,
+          920,
           280,
         ],
         [
-          925,
+          920,
           205,
         ],
         [
@@ -3306,11 +3306,11 @@ exports[`Visual regression (layout geometry) > Complex Protection 1`] = `
           120,
         ],
         [
-          935,
+          930,
           120,
         ],
         [
-          935,
+          930,
           190,
         ],
         [
@@ -4361,11 +4361,11 @@ exports[`Visual regression (layout geometry) > Hidden Dots 1`] = `
           285,
         ],
         [
-          665,
+          660,
           285,
         ],
         [
-          665,
+          660,
           220,
         ],
         [
@@ -4382,11 +4382,11 @@ exports[`Visual regression (layout geometry) > Hidden Dots 1`] = `
           95,
         ],
         [
-          675,
+          670,
           95,
         ],
         [
-          675,
+          670,
           160,
         ],
         [
@@ -4622,11 +4622,11 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
           110,
         ],
         [
-          400,
+          395,
           110,
         ],
         [
-          400,
+          395,
           145,
         ],
         [
@@ -4656,11 +4656,11 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
           210,
         ],
         [
-          390,
+          385,
           210,
         ],
         [
-          390,
+          385,
           175,
         ],
         [
@@ -4677,11 +4677,11 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
           260,
         ],
         [
-          405,
+          400,
           260,
         ],
         [
-          405,
+          400,
           190,
         ],
         [
@@ -4698,11 +4698,11 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
           60,
         ],
         [
-          415,
+          410,
           60,
         ],
         [
-          415,
+          410,
           130,
         ],
         [
@@ -5216,11 +5216,11 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
           145,
         ],
         [
-          920,
+          915,
           145,
         ],
         [
-          920,
+          915,
           245,
         ],
         [
@@ -5315,11 +5315,11 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
           65,
         ],
         [
-          935,
+          930,
           65,
         ],
         [
-          935,
+          930,
           215,
         ],
         [
@@ -5362,11 +5362,11 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
           720,
         ],
         [
-          665,
+          660,
           720,
         ],
         [
-          665,
+          660,
           640,
         ],
         [
@@ -5383,11 +5383,11 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
           405,
         ],
         [
-          910,
+          905,
           405,
         ],
         [
-          910,
+          905,
           335,
         ],
         [
@@ -5404,11 +5404,11 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
           550,
         ],
         [
-          675,
+          670,
           550,
         ],
         [
-          675,
+          670,
           625,
         ],
         [
@@ -5425,11 +5425,11 @@ exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
           635,
         ],
         [
-          925,
+          920,
           635,
         ],
         [
-          925,
+          920,
           365,
         ],
         [
@@ -5466,7 +5466,7 @@ exports[`Visual regression (layout geometry) > Inversion Bubbles 1`] = `
       180,
     ],
     [
-      350,
+      365,
       65,
     ],
   ],
@@ -5805,11 +5805,11 @@ exports[`Visual regression (layout geometry) > Inversion Bubbles 1`] = `
           140,
         ],
         [
-          365,
+          350,
           140,
         ],
         [
-          365,
+          350,
           95,
         ],
         [
@@ -5826,11 +5826,11 @@ exports[`Visual regression (layout geometry) > Inversion Bubbles 1`] = `
           65,
         ],
         [
-          350,
+          365,
           65,
         ],
         [
-          350,
+          365,
           150,
         ],
         [
@@ -6500,11 +6500,11 @@ exports[`Visual regression (layout geometry) > Labelled Gates 1`] = `
           80,
         ],
         [
-          935,
+          930,
           80,
         ],
         [
-          935,
+          930,
           205,
         ],
         [
@@ -6521,11 +6521,11 @@ exports[`Visual regression (layout geometry) > Labelled Gates 1`] = `
           335,
         ],
         [
-          675,
+          670,
           335,
         ],
         [
-          675,
+          670,
           395,
         ],
         [
@@ -6542,11 +6542,11 @@ exports[`Visual regression (layout geometry) > Labelled Gates 1`] = `
           480,
         ],
         [
-          665,
+          660,
           480,
         ],
         [
-          665,
+          660,
           410,
         ],
         [
@@ -6563,11 +6563,11 @@ exports[`Visual regression (layout geometry) > Labelled Gates 1`] = `
           405,
         ],
         [
-          925,
+          920,
           405,
         ],
         [
-          925,
+          920,
           235,
         ],
         [
@@ -6969,11 +6969,11 @@ exports[`Visual regression (layout geometry) > Mixed Logic 1`] = `
           150,
         ],
         [
-          1195,
+          1190,
           150,
         ],
         [
-          1195,
+          1190,
           260,
         ],
         [
@@ -7081,11 +7081,11 @@ exports[`Visual regression (layout geometry) > Mixed Logic 1`] = `
           390,
         ],
         [
-          1185,
+          1180,
           390,
         ],
         [
-          1185,
+          1180,
           275,
         ],
         [
@@ -7102,11 +7102,11 @@ exports[`Visual regression (layout geometry) > Mixed Logic 1`] = `
           80,
         ],
         [
-          935,
+          930,
           80,
         ],
         [
-          935,
+          930,
           140,
         ],
         [
@@ -7144,11 +7144,11 @@ exports[`Visual regression (layout geometry) > Mixed Logic 1`] = `
           225,
         ],
         [
-          925,
+          920,
           225,
         ],
         [
-          925,
+          920,
           155,
         ],
         [
@@ -7440,11 +7440,11 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
           115,
         ],
         [
-          400,
+          395,
           115,
         ],
         [
-          400,
+          395,
           180,
         ],
         [
@@ -7482,11 +7482,11 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
           160,
         ],
         [
-          385,
+          380,
           160,
         ],
         [
-          385,
+          380,
           210,
         ],
         [
@@ -7524,11 +7524,11 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
           210,
         ],
         [
-          370,
+          365,
           210,
         ],
         [
-          370,
+          365,
           240,
         ],
         [
@@ -7558,11 +7558,11 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
           65,
         ],
         [
-          415,
+          410,
           65,
         ],
         [
-          415,
+          410,
           150,
         ],
         [
@@ -8153,11 +8153,11 @@ exports[`Visual regression (layout geometry) > Named Gates 1`] = `
           195,
         ],
         [
-          675,
+          670,
           195,
         ],
         [
-          675,
+          670,
           255,
         ],
         [
@@ -8174,11 +8174,11 @@ exports[`Visual regression (layout geometry) > Named Gates 1`] = `
           340,
         ],
         [
-          665,
+          660,
           340,
         ],
         [
-          665,
+          660,
           270,
         ],
         [
@@ -9211,10 +9211,6 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       675,
       305,
     ],
-    [
-      675,
-      350,
-    ],
   ],
   "labels": [
     [
@@ -9624,11 +9620,11 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
           450,
         ],
         [
-          665,
+          660,
           450,
         ],
         [
-          665,
+          660,
           420,
         ],
         [
@@ -9645,16 +9641,37 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
           60,
         ],
         [
-          935,
+          915,
           60,
         ],
         [
-          935,
+          915,
           275,
         ],
         [
           956,
           275,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          305,
+        ],
+        [
+          670,
+          305,
+        ],
+        [
+          670,
+          390,
+        ],
+        [
+          690,
+          390,
         ],
       ],
     },
@@ -9724,27 +9741,6 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
           305,
         ],
         [
-          675,
-          305,
-        ],
-        [
-          675,
-          390,
-        ],
-        [
-          690,
-          390,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          495,
-          305,
-        ],
-        [
           690,
           305,
         ],
@@ -9787,11 +9783,11 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
           405,
         ],
         [
-          935,
+          915,
           405,
         ],
         [
-          935,
+          915,
           335,
         ],
         [
@@ -10560,11 +10556,11 @@ exports[`Visual regression (layout geometry) > Styled by ID 1`] = `
           205,
         ],
         [
-          405,
+          400,
           205,
         ],
         [
-          405,
+          400,
           170,
         ],
         [
@@ -10607,11 +10603,11 @@ exports[`Visual regression (layout geometry) > Styled by ID 1`] = `
           60,
         ],
         [
-          415,
+          410,
           60,
         ],
         [
-          415,
+          410,
           110,
         ],
         [
@@ -11207,11 +11203,11 @@ exports[`Visual regression (layout geometry) > Trip Logic 1`] = `
           280,
         ],
         [
-          925,
+          920,
           280,
         ],
         [
-          925,
+          920,
           205,
         ],
         [
@@ -11249,11 +11245,11 @@ exports[`Visual regression (layout geometry) > Trip Logic 1`] = `
           120,
         ],
         [
-          935,
+          930,
           120,
         ],
         [
-          935,
+          930,
           190,
         ],
         [
