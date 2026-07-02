@@ -2018,6 +2018,174 @@ function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: Render
     }
   }
 
+  // ── Gate-entrance contract (single guarantee) ────────────────────────────────────────────────
+  // Every wire entering a gate input port MUST arrive with a horizontal approach of at least
+  // GATE_ENTRANCE, so its final turn sits clear of the gate body/curve and the wire visibly enters
+  // horizontally instead of turning on the gate's edge. The reshaping passes above (channel tracks,
+  // fan-in nesting) satisfy this only as a SIDE EFFECT and each has an escape hatch that can leave a
+  // gate-hugging entrance behind — the track pass skips multi-bend wires by design, and nesting is
+  // all-or-nothing (it reverts a whole group to raw A* geometry when one channel won't fit). So a
+  // multi-bend A* route whose final vertical lands a few px off the gate was fixed by NEITHER pass.
+  // This is the ONE place that GUARANTEES the contract for EVERY gate-input wire regardless of how it
+  // was routed, backed by an invariant (invariants.spec: "gate-input wires keep the GATE_ENTRANCE
+  // approach"). It only pulls a turn back (never toward the gate) and validates every move through
+  // the shared separation contract (wireClear), gate clearance, and a no-new-crossing check, so it
+  // can never introduce a crowd, a hug, or a crossing; a move that can't be made cleanly is left as
+  // routed (genuine congestion, which the invariant then surfaces rather than hiding).
+  {
+    // Crossings contributed by one wire against all other cross-net, non-feedback wires (mirrors
+    // findWireCrossings' H×V test, interior-only). Used to reject any reshape that adds a crossing.
+    type XY = { x: number; y: number };
+    const hvHit = (h1: XY, h2: XY, v1: XY, v2: XY) =>
+      Math.abs(h1.y - h2.y) < 1 && Math.abs(v1.x - v2.x) < 1 &&
+      h1.y > Math.min(v1.y, v2.y) - 1 && h1.y < Math.max(v1.y, v2.y) + 1 &&
+      v1.x > Math.min(h1.x, h2.x) - 1 && v1.x < Math.max(h1.x, h2.x) + 1;
+    const wireCrosses = (self: LayoutWire): number => {
+      let c = 0;
+      for (const o of wires) {
+        if (o === self || o.fromId === self.fromId || o.feedback) continue;
+        for (let i = 0; i < self.points.length - 1; i++)
+          for (let j = 0; j < o.points.length - 1; j++) {
+            const p1 = self.points[i], p2 = self.points[i + 1], q1 = o.points[j], q2 = o.points[j + 1];
+            if (hvHit(p1, p2, q1, q2) || hvHit(q1, q2, p1, p2)) c++;
+          }
+      }
+      return c;
+    };
+    // Collinear-overlap check: segCrowds (the spacing contract) deliberately ignores segments at the
+    // SAME perpendicular coordinate ("overlap check elsewhere" — the no-parallel-overlap invariant).
+    // The entrance pass must honour that half too, or a straightened/pulled-back segment could land
+    // exactly on another net's parallel run. Rejects a proposed geometry whose axis-aligned segment
+    // overlaps a cross-net parallel segment at the same coordinate by >= GRID.
+    const overlapsCollinear = (pts: XY[], skip: (w: LayoutWire) => boolean): boolean => {
+      for (let i = 0; i < pts.length - 1; i++) {
+        const a = pts[i], b = pts[i + 1];
+        const horiz = Math.abs(a.y - b.y) < 0.5;
+        if (!horiz && Math.abs(a.x - b.x) >= 0.5) continue;
+        const perp = horiz ? a.y : a.x, mn = horiz ? Math.min(a.x, b.x) : Math.min(a.y, b.y), mx = horiz ? Math.max(a.x, b.x) : Math.max(a.y, b.y);
+        for (const o of wires) {
+          if (skip(o)) continue;
+          for (let k = 0; k < o.points.length - 1; k++) {
+            const c = o.points[k], d = o.points[k + 1];
+            const oh = Math.abs(c.y - d.y) < 0.5;
+            if (oh !== horiz || (!oh && Math.abs(c.x - d.x) >= 0.5) || (oh && Math.abs(c.x - d.x) < 0.5)) continue;
+            if (Math.abs((oh ? c.y : c.x) - perp) >= 0.5) continue;    // only exact-collinear runs
+            const omn = oh ? Math.min(c.x, d.x) : Math.min(c.y, d.y), omx = oh ? Math.max(c.x, d.x) : Math.max(c.y, d.y);
+            if (Math.min(mx, omx) - Math.max(mn, omn) >= GRID) return true;
+          }
+        }
+      }
+      return false;
+    };
+    for (const w of wires) {
+      if (w.feedback) continue;
+      const p = w.points, n = p.length;
+      if (n < 3) continue;
+      const dest = nodeMap.get(w.toId);
+      if (!dest || dest.gateType === 'INPUT' || dest.gateType === 'OUTPUT') continue; // gate inputs only
+      const port = p[n - 1];
+      if (Math.abs(p[n - 2].y - port.y) >= 0.5) continue;                // enters horizontally (invariant)
+      if (Math.abs(port.x - p[n - 2].x) >= GATE_ENTRANCE - 0.5) continue; // already clear
+      const before = wireCrosses(w);
+      const skip = (o: LayoutWire) => o.id === w.id || o.fromId === w.fromId;
+
+      // (1) Straight-first: collinear source & port whose A* route wandered — one straight segment
+      // removes the wander AND the hug at once, if the straight path is clean.
+      if (Math.abs(p[0].y - port.y) < 0.5 && port.x - p[0].x >= GATE_ENTRANCE - 0.5) {
+        const straight = [{ x: p[0].x, y: port.y }, { x: port.x, y: port.y }];
+        if (hGateClear(port.y, p[0].x, port.x, w.fromId) && hGateClear(port.y, p[0].x, port.x, w.toId) &&
+            wireClear(straight, skip) && !overlapsCollinear(straight, skip)) {
+          const saved = w.points; w.points = straight;
+          if (wireCrosses(w) <= before) continue;                        // accept
+          w.points = saved;                                              // else revert, try (2)
+        }
+      }
+
+      // (2) Pull the tail vertical back to the gate-most clear track <= port.x - GATE_ENTRANCE. Needs
+      // a movable tail vertical (>= 4 points, so it isn't the segment anchored at the source).
+      if (n < 4) continue;
+      const tv = n - 3;                                                  // tail vertical p[tv]->p[tv+1]
+      if (Math.abs(p[tv].x - p[tv + 1].x) >= 0.5) continue;             // must be vertical
+      if (Math.abs(p[tv - 1].y - p[tv].y) >= 0.5) continue;            // preceded by a horizontal run
+      const preStartX = p[tv - 1].x, preY = p[tv].y, portY = port.y;
+      const saved = p.map(pt => ({ x: pt.x, y: pt.y }));
+      let placed = false;
+      const hi = Math.floor((port.x - GATE_ENTRANCE) / GRID) * GRID;
+      for (let x = hi; x > preStartX + 0.5; x -= GRID) {                 // leftward, keep pre-horizontal non-degenerate
+        p[tv].x = x; p[tv + 1].x = x;
+        const seg = [{ x: preStartX, y: preY }, { x, y: preY }, { x, y: portY }, { x: port.x, y: portY }];
+        if (hGateClear(preY, preStartX, x, w.fromId) && vGateClear(x, preY, portY) &&
+            hGateClear(portY, x, port.x, w.toId) && wireClear(seg, skip) &&
+            !overlapsCollinear(seg, skip) && wireCrosses(w) <= before) {
+          placed = true; break;
+        }
+      }
+      if (!placed) for (let i = 0; i < n; i++) { p[i].x = saved[i].x; p[i].y = saved[i].y; } // revert
+    }
+
+    // Joint fallback: a wire can still hug a gate when a SIBLING fan-in channel occupies the only
+    // clean track (e.g. three inputs converging where the gate-clear boundary, one input's channel,
+    // and an unrelated trunk-end all coincide). Re-pack ALL of that gate's incoming tail verticals
+    // onto distinct tracks stepping left from the gate-clear boundary, giving the gate-most track to
+    // the LEAST-deflected (straightest) wire so no crossing is introduced. All-or-nothing and fully
+    // validated (entrance + separation + gate clearance + no net new crossings): committed only if
+    // every incoming wire then clears, else the whole gate reverts — so it can only resolve a hug.
+    const countCross = (): number => {
+      let c = 0;
+      for (let i = 0; i < wires.length; i++)
+        for (let j = i + 1; j < wires.length; j++) {
+          const a = wires[i], b = wires[j];
+          if (a.fromId === b.fromId || a.feedback || b.feedback) continue;
+          for (let si = 0; si < a.points.length - 1; si++)
+            for (let sj = 0; sj < b.points.length - 1; sj++)
+              if (hvHit(a.points[si], a.points[si + 1], b.points[sj], b.points[sj + 1]) ||
+                  hvHit(b.points[sj], b.points[sj + 1], a.points[si], a.points[si + 1])) c++;
+        }
+      return c;
+    };
+    const violates = (w: LayoutWire) => {
+      const p = w.points, port = p[p.length - 1];
+      return p.length >= 4 && Math.abs(p[p.length - 2].y - port.y) < 0.5 &&
+        Math.abs(port.x - p[p.length - 2].x) < GATE_ENTRANCE - 0.5;
+    };
+    for (const gate of layoutNodes) {
+      if (gate.gateType === 'INPUT' || gate.gateType === 'OUTPUT') continue;
+      const incoming = wires.filter(w => !w.feedback && w.toId === gate.id && w.points.length >= 4);
+      if (incoming.length < 2 || !incoming.some(violates)) continue;
+      // Each incoming wire must expose a movable tail vertical (clean H–V–H tail).
+      const items: { w: LayoutWire; tv: number; preStartX: number; preY: number; portY: number; portX: number; deflect: number }[] = [];
+      let shapesOk = true;
+      for (const w of incoming) {
+        const p = w.points, m = p.length, port = p[m - 1], tv = m - 3;
+        if (Math.abs(p[m - 2].y - port.y) >= 0.5 || Math.abs(p[tv].x - p[tv + 1].x) >= 0.5 || Math.abs(p[tv - 1].y - p[tv].y) >= 0.5) { shapesOk = false; break; }
+        items.push({ w, tv, preStartX: p[tv - 1].x, preY: p[tv].y, portY: port.y, portX: port.x, deflect: Math.abs(p[0].y - port.y) });
+      }
+      if (!shapesOk) continue;
+      items.sort((a, b) => a.deflect - b.deflect);                     // straightest first → gate-most track
+      const boundary = Math.floor((gate.absX - GATE_CLEARANCE) / GRID) * GRID;
+      const crossBefore = countCross();
+      const saved = items.map(it => it.w.points.map(pt => ({ x: pt.x, y: pt.y })));
+      const used: number[] = [];
+      let good = true;
+      for (const it of items) {
+        const skip = (o: LayoutWire) => o.id === it.w.id || o.fromId === it.w.fromId;
+        let placedX: number | null = null;
+        const top = Math.min(boundary, Math.floor((it.portX - GATE_ENTRANCE) / GRID) * GRID);
+        for (let x = top; x > it.preStartX + 0.5; x -= GRID) {
+          if (used.some(u => Math.abs(u - x) < MIN_WIRE_SPACING - 0.5)) continue;
+          it.w.points[it.tv].x = x; it.w.points[it.tv + 1].x = x;
+          const seg = [{ x: it.preStartX, y: it.preY }, { x, y: it.preY }, { x, y: it.portY }, { x: it.portX, y: it.portY }];
+          if (hGateClear(it.preY, it.preStartX, x, it.w.fromId) && vGateClear(x, it.preY, it.portY) &&
+              hGateClear(it.portY, x, it.portX, it.w.toId) && wireClear(seg, skip) && !overlapsCollinear(seg, skip)) { placedX = x; break; }
+        }
+        if (placedX === null) { good = false; break; }
+        used.push(placedX);
+      }
+      if (good && countCross() > crossBefore) good = false;            // never add a crossing
+      if (!good) items.forEach((it, i) => { it.w.points = saved[i]; }); // revert the whole gate
+    }
+  }
+
   // Snap an output to its incoming wire's approach Y. A wire that had to clear a gate body
   // (vertical clearance) can arrive a few px off its output port, leaving a small terminal
   // jog. Since an output is a sink, just move it to where the wire arrives — eliminating the

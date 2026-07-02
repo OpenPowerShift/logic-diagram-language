@@ -129,12 +129,26 @@ Wires between ports follow these rules:
 . The wire enters the destination port horizontally. For AND/NOT inputs it enters at the
   straight bounding-box left edge; for OR inputs it terminates **on the concave curve**
   (see <<or-curve-ports>>).
-. **Minimum gate entrance.** When a wire turns into a gate input port, its final horizontal
-  run (the entrance) MUST be at least `GATE_ENTRANCE` (15px) long, so the vertical turn sits
-  clear of the gate body/curve and the wire visibly enters horizontally rather than turning on
-  the gate's edge. Equivalently, a turning wire's vertical channel sits at least `GATE_ENTRANCE`
-  to the left of the port's X. This matters most for OR inputs, whose curve-tap X lies inside
-  the bounding box: without the rule the channel would hug (or fall on) the box's left edge.
+. **Minimum gate entrance (a guaranteed contract).** When a wire turns into a gate input port,
+  its final horizontal run (the entrance) MUST be at least `GATE_ENTRANCE` (20px) long, so the
+  vertical turn sits clear of the gate body/curve and the wire visibly enters horizontally rather
+  than turning on the gate's edge. Equivalently, a turning wire's vertical channel sits at least
+  `GATE_ENTRANCE` to the left of the port's X. This matters most for OR inputs, whose curve-tap X
+  lies inside the bounding box: without the rule the channel would hug (or fall on) the box's left
+  edge.
++
+This is not left to chance in the routing/reshaping heuristics (which each satisfy it only as a
+side effect and can leave a hug behind — the channel-track pass skips multi-bend wires, and fan-in
+nesting is all-or-nothing). It is *guaranteed* by a dedicated final pass that, for **every**
+gate-input wire, pulls its final turn back to the gate-most clear track that satisfies the contract
+— first trying to draw a wandered-but-collinear wire straight, then a per-wire pull-back, then a
+joint re-pack of all of a gate's incoming channels. Every move is validated through the wire-
+separation contract, gate clearance, and a no-new-crossing check, so it can never introduce a crowd
+or crossing; a move that cannot be made cleanly is left as routed. The guarantee is asserted for
+every example by the `gate-input wires keep the GATE_ENTRANCE approach` invariant. The single
+documented exception is a wire that can only reach a compliant entrance by adding a crossing (a
+middle input whose straight line is occupied by another net): there the shorter approach is kept,
+because crossing-minimisation outranks entrance — a *placement* over-constraint, not a routing gap.
 
 [#feedback-loops]
 === Feedback (Loop-Back) Wires

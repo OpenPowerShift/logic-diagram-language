@@ -14,6 +14,7 @@ import { EXAMPLES } from '../../src/examples.js';
 
 const GRID = 5;
 const MIN_WIRE_SPACING = 10; // adjacent parallel segments from different nets must clear this
+const GATE_ENTRANCE = 20;    // min horizontal approach into a gate input port (turn clear of the gate)
 
 function build(src: string): LayoutResult {
   const r = parse(src);
@@ -48,9 +49,16 @@ function expectedInputX(n: LayoutNode, port: { absX: number; absY: number; bubbl
 // GATE_INPUT_STYLE = BARS routing is known-broken and intentionally out of scope here.
 const BARS = /OPTION\s+GATE_INPUT_STYLE\s*=\s*BARS/i;
 
-// No known routing-stage defects remain: the global coordinate optimizer straightened the SEL
-// block->output jog that was the last xfail. Any regression here fails loudly instead of hiding.
-const KNOWN_ROUTING_ISSUES = new Set<string>();
+// Known routing-stage exceptions, documented and auto-detected (an xfail that starts passing fails
+// the build, so we learn when it's resolved):
+// - 'Shared Intermediates::gate-entrance': compare_6 is the MIDDLE input to or_10, and its natural
+//   straight line (y=290) is occupied by the RISING->ALARM trunk, so it must jog. The only track that
+//   satisfies GATE_ENTRANCE forces its vertical to be crossed by a neighbouring input's approach —
+//   achieving the 20px entrance would add 2 crossings (4->6). The entrance pass correctly keeps the
+//   shorter (15px) approach because crossing-minimisation outranks entrance. This is a PLACEMENT
+//   over-constraint (the ALARM trunk sits on the middle port's line), not a routing gap; it clears if
+//   rising_12 is ever placed off y=290.
+const KNOWN_ROUTING_ISSUES = new Set<string>(['Shared Intermediates::gate-entrance']);
 const itRoute = (name: string, key: string) =>
   (KNOWN_ROUTING_ISSUES.has(`${name}::${key}`) ? it.fails : it);
 
@@ -123,6 +131,28 @@ describe('Layout invariants', () => {
           const last = w.points[w.points.length - 2], pN = w.points[w.points.length - 1];
           expect(Math.abs(p0.y - first.y) < 0.5, `${w.fromId}->${w.toId} does not exit horizontally`).toBe(true);
           expect(Math.abs(pN.y - last.y) < 0.5, `${w.fromId}->${w.toId} does not enter horizontally`).toBe(true);
+        }
+      });
+
+      // The gate-entrance CONTRACT: a wire entering a gate input port must arrive with a horizontal
+      // approach of at least GATE_ENTRANCE, so its final turn sits clear of the gate body/curve and it
+      // never turns on the gate's edge. Guaranteed by the dedicated entrance pass in layout.ts;
+      // asserting it here fails the build if any routing/reshaping path ever leaves a gate-hugging
+      // entrance again — the class of defect that recurred across examples.
+      itRoute(name, 'gate-entrance')('gate-input wires keep the GATE_ENTRANCE approach', () => {
+        const l = build(src);
+        const isGate = (id: string) => { const n = nodeById(l, id); return !!n && n.gateType !== 'INPUT' && n.gateType !== 'OUTPUT'; };
+        for (const w of l.wires) {
+          if (w.feedback || w.points.length < 3) continue;
+          if (!isGate(w.toId)) continue;
+          const port = w.points[w.points.length - 1];
+          const prev = w.points[w.points.length - 2];
+          const pprev = w.points[w.points.length - 3];
+          if (Math.abs(prev.y - port.y) >= 0.5) continue;    // non-horizontal entrance: other invariant covers
+          if (Math.abs(pprev.x - prev.x) >= 0.5) continue;   // no turn before the port (straight-in): vacuous
+          const run = Math.abs(port.x - prev.x);
+          expect(run >= GATE_ENTRANCE - 0.5,
+            `${w.fromId}->${w.toId} enters ${run}px from gate (< ${GATE_ENTRANCE})`).toBe(true);
         }
       });
 
