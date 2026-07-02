@@ -13,7 +13,7 @@ exports[`Bend/crossing metrics > Boolean Algebra 1`] = `
 
 exports[`Bend/crossing metrics > Breaker Failure (SEL-751A) 1`] = `
 {
-  "H": 345,
+  "H": 300,
   "bends": 8,
   "bent": 4,
   "crossings": 0,
@@ -57,7 +57,7 @@ exports[`Bend/crossing metrics > Complex Protection (SEL) 1`] = `
 
 exports[`Bend/crossing metrics > Complex Protection 1`] = `
 {
-  "H": 310,
+  "H": 210,
   "bends": 6,
   "bent": 3,
   "crossings": 0,
@@ -68,7 +68,7 @@ exports[`Bend/crossing metrics > Complex Protection 1`] = `
 
 exports[`Bend/crossing metrics > Differential Protection 1`] = `
 {
-  "H": 305,
+  "H": 260,
   "bends": 4,
   "bent": 2,
   "crossings": 0,
@@ -101,7 +101,7 @@ exports[`Bend/crossing metrics > Generic Block (FB) 1`] = `
 
 exports[`Bend/crossing metrics > Hidden Dots 1`] = `
 {
-  "H": 390,
+  "H": 290,
   "bends": 4,
   "bent": 2,
   "crossings": 0,
@@ -156,11 +156,11 @@ exports[`Bend/crossing metrics > Labelled Gates 1`] = `
 
 exports[`Bend/crossing metrics > Mixed Logic 1`] = `
 {
-  "H": 450,
-  "bends": 10,
-  "bent": 5,
+  "H": 350,
+  "bends": 8,
+  "bent": 4,
   "crossings": 0,
-  "straight": 7,
+  "straight": 8,
   "wires": 12,
 }
 `;
@@ -299,7 +299,7 @@ exports[`Bend/crossing metrics > Three-Input AND 1`] = `
 
 exports[`Bend/crossing metrics > Trip Logic 1`] = `
 {
-  "H": 310,
+  "H": 210,
   "bends": 6,
   "bent": 3,
   "crossings": 0,

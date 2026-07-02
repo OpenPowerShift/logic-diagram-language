@@ -200,6 +200,7 @@ function assignCoordinates(
   rowMap: Map<string, number>,
   maxDepth: number,
   rowSpacing: number,
+  laneTight = false,
 ): Map<string, number> {
   // Feedback edges (input is an output node looped back) are excluded from placement: the
   // back-edge would otherwise drag a gate toward the far-right output it feeds.
@@ -243,6 +244,14 @@ function assignCoordinates(
     const lineB = (b.name ? 14 : 0) + (b.description ? 10 : 0);
     return Math.round((MIN_PORT_GAP + 10 + Math.max(lineA, lineB)) / GRID) * GRID;
   };
+  // Two adjacent long-edge dummies are parallel WIRE LANES, not gates. Stacking them at the full
+  // gate-sized routing channel (VGAP) inflates a column and strands a rank-extreme lane far from its
+  // natural line (the "input floated to the top" void). Under `laneTight`, adjacent lanes pack at
+  // MIN_DOGLEG instead (a wire leaving one lane into a nearby port still turns with a legal dogleg).
+  // This is offered as a candidate layout (see layoutDiagram) and kept only where it measurably
+  // improves the geometry, so it can never regress a diagram that relies on the generous spacing. A
+  // dummy adjacent to a real GATE always keeps the full channel, so gates never shift toward a lane.
+  const LANE_GAP = MIN_DOGLEG;
   const sep = (a: FlatNode, b: FlatNode) => {
     if (a.kind === 'input' && b.kind === 'input') {
       // If both inputs feed a common multi-input gate, space them at that gate's port gap so they
@@ -255,7 +264,9 @@ function assignCoordinates(
       if (sharedGap.length) return Math.max(Math.max(...sharedGap), (H.get(a.id)! + H.get(b.id)!) / 2);
       return Math.min((H.get(a.id)! + H.get(b.id)!) / 2 + VGAP, minInputGap(a, b));
     }
-    return (H.get(a.id)! + H.get(b.id)!) / 2 + VGAP;
+    if (laneTight && (a.gateType === 'DUMMY' || b.gateType === 'DUMMY'))
+      return (H.get(a.id)! + H.get(b.id)!) / 2 + LANE_GAP;              // lane↔lane / lane↔gate: pack to a dogleg
+    return (H.get(a.id)! + H.get(b.id)!) / 2 + VGAP;                    // gate↔gate (or loose): full channel
   };
 
   const centre = new Map<string, number>();
@@ -364,21 +375,43 @@ function assignCoordinates(
 // can never render worse than before; 'crossmin' is tried only when 'heuristic' isn't already clean
 // (the common case), keeping cost ~1x. Smarter candidates can be added later — each only ever helps.
 export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], options?: RenderOptions): LayoutResult {
-  const heuristic = layoutOnce(diagram, portMeta, options, 'heuristic');
-  let chosen: LayoutResult;
-  if (findWireCrossings(heuristic.wires, heuristic.junctions).length === 0) {
-    chosen = heuristic;
-  } else {
-    const crossmin = layoutOnce(diagram, portMeta, options, 'crossmin');
-    const cr = (l: LayoutResult) => findWireCrossings(l.wires, l.junctions).length;
-    const bends = (l: LayoutResult) => l.wires.reduce((s, w) => s + Math.max(0, w.points.length - 2), 0);
-    const ch = cr(heuristic), cc = cr(crossmin);                  // fewer crossings, then fewer bends, then shorter
-    chosen = cc !== ch ? (cc < ch ? crossmin : heuristic)
-      : bends(crossmin) !== bends(heuristic) ? (bends(crossmin) < bends(heuristic) ? crossmin : heuristic)
-      : crossmin.height < heuristic.height ? crossmin : heuristic;
+  // Candidates span two independent dimensions: ordering ('heuristic' | 'crossmin') and long-edge
+  // lane packing (loose | tight — see assignCoordinates `laneTight`). Each is a full independent
+  // layout; we keep the best on MEASURED geometry, ranked lexicographically by: fewest sub-min
+  // doglegs, then fewest crossings, then fewest bends, then shortest. The loose-heuristic layout is
+  // always a candidate and is always dogleg-free, so the winner can never have more doglegs or
+  // crossings than today — tight only wins when it genuinely removes a crossing or collapses a void
+  // (shorter height) without cost. Ties keep the earlier (loose) candidate, so diagrams without long
+  // edges stay byte-identical.
+  const subMinDoglegs = (l: LayoutResult) => {
+    let c = 0;
+    for (const w of l.wires) {
+      if (w.feedback) continue;
+      for (let i = 0; i < w.points.length - 1; i++) {
+        const a = w.points[i], b = w.points[i + 1];
+        if (Math.abs(a.x - b.x) < 0.5) { const len = Math.abs(a.y - b.y); if (len >= 0.5 && len < MIN_DOGLEG - 0.01) c++; }
+      }
+    }
+    return c;
+  };
+  const cr = (l: LayoutResult) => findWireCrossings(l.wires, l.junctions).length;
+  const bends = (l: LayoutResult) => l.wires.reduce((s, w) => s + Math.max(0, w.points.length - 2), 0);
+  const score = (l: LayoutResult): number[] => [subMinDoglegs(l), cr(l), bends(l), l.height];
+  const better = (l: LayoutResult, b: LayoutResult) => {
+    const sl = score(l), sb = score(b);
+    for (let i = 0; i < sl.length; i++) if (sl[i] !== sb[i]) return sl[i] < sb[i];
+    return false;                                                 // tie → keep the earlier candidate
+  };
+
+  let best = layoutOnce(diagram, portMeta, options, 'heuristic', false);
+  const consider = (l: LayoutResult) => { if (better(l, best)) best = l; };
+  consider(layoutOnce(diagram, portMeta, options, 'heuristic', true));   // lane-tight variant (collapses voids)
+  if (cr(best) > 0) {                                             // only reach for crossmin if not already clean
+    consider(layoutOnce(diagram, portMeta, options, 'crossmin', false));
+    consider(layoutOnce(diagram, portMeta, options, 'crossmin', true));
   }
-  symmetriseSmallGates(chosen);                                  // cosmetic, validated post-pass
-  return chosen;
+  symmetriseSmallGates(best);                                    // cosmetic, validated post-pass
+  return best;
 }
 
 // Cosmetic symmetry for small gates: for a ≤3-input gate with exactly one dogleg fan-in above the
@@ -541,7 +574,7 @@ function crossminOrder(nodes: Map<string, FlatNode>, maxDepth: number, opts: Ren
   return rowMap;
 }
 
-function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: RenderOptions | undefined, strategy: 'heuristic' | 'crossmin'): LayoutResult {
+function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: RenderOptions | undefined, strategy: 'heuristic' | 'crossmin', laneTight = false): LayoutResult {
   _id = 0;
 
   const opts = options ?? DEFAULT_OPTIONS;
@@ -829,7 +862,7 @@ function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: Render
   // Each node's vertical centre is aligned to the median of its neighbours on BOTH sides
   // (sources and consumers), keeping the per-column barycentre order. Replaces the old global
   // row-rank mapping, which spread nodes apart and ignored the consumer side.
-  const assignedY = assignCoordinates(nodes, depthGroups, rowMap, maxDepth, rowSpacing);
+  const assignedY = assignCoordinates(nodes, depthGroups, rowMap, maxDepth, rowSpacing, laneTight);
 
   // Dummies have done their job (reserving lanes) — restore the original edges and drop them so
   // geometry and routing see only real nodes, now placed clear of the long-edge lanes.
