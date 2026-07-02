@@ -38,3 +38,27 @@ describe('Bend/crossing metrics', () => {
     });
   }
 });
+
+// Hard crossing CEILING — the guardrail that stops crossovers silently creeping back. Each example's
+// rendered crossings must stay AT OR BELOW its recorded baseline; a change that adds a crossing fails
+// the build. Lowering a ceiling (an improvement) is a deliberate, reviewed edit here. Default is 0 —
+// most schematics must render crossing-free; only genuinely reconvergent cases carry a nonzero
+// ceiling, documented by the value. (The `-u` snapshot above tracks exact counts; this asserts the
+// one-directional guarantee.)
+const CROSSING_CEILING: Record<string, number> = {
+  'Shared Intermediates': 4,      // COMPARE fan-out + SR seal-in reconvergence
+  'Inversion Bubbles': 4,         // dense multi-output fan-out
+  'Boolean Algebra': 1,
+  'Motor Control Circuit': 1,
+};
+describe('Crossing ceiling (never regress)', () => {
+  for (const [name, src] of Object.entries(EXAMPLES)) {
+    it(name, () => {
+      const r = parse(src);
+      const l = layoutDiagram(r.diagram, r.diagram.portMeta, resolveOptions(r.diagram.options));
+      const crossings = findWireCrossings(l.wires, l.junctions).length;
+      const ceiling = CROSSING_CEILING[name] ?? 0;
+      expect(crossings, `${name}: ${crossings} crossings exceeds ceiling ${ceiling}`).toBeLessThanOrEqual(ceiling);
+    });
+  }
+});

@@ -319,7 +319,23 @@ into one so a split reads as a single clean dot rather than a cluster.
 [#crossover-minimisation]
 ==== Crossover Minimisation
 
-When wires from opposite sides of a gate converge, the renderer MUST assign channel positions to minimise crossings. Wires whose source ports are higher (smaller Y) SHOULD use the rightmost channel, and wires whose source ports are lower (larger Y) SHOULD use the leftmost channel.
+Crossing count is a *measured optimisation objective*, not a side-effect of ordering heuristics. The
+renderer generates more than one candidate input ORDERING and keeps the one that **renders the fewest
+actual (geometric) crossings** — because the classic combinatorial layer-crossing count diverges
+from the crossings actually drawn once gate heights, multi-port entry and routing doglegs are taken
+into account. Candidates currently are: `heuristic` (barycentre + contiguity ordering — always a
+candidate, so the result can never be worse than it) and `crossmin` (a Sugiyama median/transpose
+optimiser on a dummy-expanded layered graph, port-aware so fixed-port blocks stay uncrossed). The
+`crossmin` candidate is only computed when `heuristic` is not already crossing-free.
+
+Ordering constraints the candidates honour: a **fixed-port block's** sources are ordered to match its
+port order (S above R, …) so its inputs never cross; each gate's single-consumer inputs stay
+**contiguous** so a large fan-in enters straight; a reconvergent gate settles between its inputs and
+consumers so its outputs don't dogleg back across another gate's fan-out.
+
+Rendered crossings per diagram MUST NOT exceed a recorded **ceiling** (guarded by the test suite);
+most diagrams must render crossing-free, and lowering a ceiling is a reviewed improvement. When wires
+from opposite sides of a gate converge, the renderer assigns channel positions to minimise crossings.
 
 [#wire-wire-crossings]
 ==== Wire-Wire Crossing Avoidance

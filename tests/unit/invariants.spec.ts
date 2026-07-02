@@ -204,6 +204,27 @@ describe('Layout invariants', () => {
         }
       });
 
+      // Fixed-port blocks (SR, timers, comparators, edge-triggers, FB) bind arguments to ports in a
+      // FIXED order (S top, R bottom, …), so the source feeding a higher port must sit above the one
+      // feeding a lower port or their wires cross entering the block. AND/OR are exempt (their ports
+      // follow source Y). Guards the SR S/R crossing directly, even where the overall crossing
+      // ceiling is nonzero.
+      it('fixed-port block input wires do not cross', () => {
+        const l = build(src);
+        const fixed = (gt: string) => !['AND', 'OR', 'NOT', 'INPUT', 'OUTPUT'].includes(gt);
+        for (const n of l.nodes) {
+          if (!fixed(n.gateType) || n.inputs.length < 2) continue;
+          const ws = l.wires.filter(w => w.toId === n.id && !w.feedback);
+          for (let i = 0; i < ws.length; i++) for (let j = i + 1; j < ws.length; j++) {
+            const a = ws[i], b = ws[j];
+            const sa = a.points[0].y, sb = b.points[0].y;                     // source Y
+            const pa = a.points[a.points.length - 1].y, pb = b.points[b.points.length - 1].y; // port Y
+            if (Math.abs(sa - sb) < 0.5 || Math.abs(pa - pb) < 0.5) continue;
+            expect((sa < sb) === (pa < pb), `${n.id} inputs cross (${a.fromId} & ${b.fromId})`).toBe(true);
+          }
+        }
+      });
+
       it('has no overlapping gate bodies', () => {
         const l = build(src);
         const gates = l.nodes.filter(n => n.gateType !== 'INPUT' && n.gateType !== 'OUTPUT');
