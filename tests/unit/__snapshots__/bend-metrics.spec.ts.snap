@@ -77,6 +77,17 @@ exports[`Bend/crossing metrics > Differential Protection 1`] = `
 }
 `;
 
+exports[`Bend/crossing metrics > Electrical Trip Matrix 1`] = `
+{
+  "H": 960,
+  "bends": 22,
+  "bent": 11,
+  "crossings": 0,
+  "straight": 22,
+  "wires": 33,
+}
+`;
+
 exports[`Bend/crossing metrics > Generic Block (FB) 1`] = `
 {
   "H": 190,

@@ -354,6 +354,63 @@ OPTION INVERSION = BUBBLES
 A = A1 OR A2 OR A3
 B = B1 AND B2 AND B3
 O = A AND B AND C`,
+
+  'Electrical Trip Matrix': `// Real-world trip matrix: a large (18-input) OR gathers every electrical
+// trip, an SR latch seals it in, and the result fans out to LEDs, ICMS,
+// oscillography and circuit-breaker trips. Exercises large fan-in and
+// reconvergence (PSV01 drives several outputs and the TRS OR; TRS drives more).
+OPTION OUTPUT_ORDER = AUTO
+
+E24U2T1.Name = "TRF OVERFLUX"
+EWT.Name = "WINDING TEMP (IN301)"
+E50TP2.Name = "TRF INSTANT. OC (50TP2)"
+EPSV17.Name = "TRF INSTANT.N OC (PSV17)"
+E51T01.Name = "TRF IDMT OC (51T01)"
+E51T02.Name = "TRF IDMT OC (51T02)"
+E593P1T.Name = "BUSBAR E/F Stage 1 (594P1T)"
+E593P2T.Name = "BUSBAR E/F Stage 2 (593P1T)"
+EBUCH.Name = "BUCHHOLZ (IN307)"
+ETP.Name = "TANK PRESSURE"
+EREFF2.Name = "RESTRICTED EF (REFF2)"
+E87Z2.Name = "TRF DIFF (87Z2)"
+E87Q2.Name = "TRF NEG. SEQ. DIFF (87Q2)"
+EIN202.Name = "LOSS OF GT COOLING (IN202)"
+EPLQ_X_IT.Name = "PLQ_X INTERTRIP (IN408)"
+EPLQ_X_CBF.Name = "PLQ_X CBF (IN407)"
+EGCB_CBF.Name = "GCB CBF (FBFS)"
+SWA_CON_MON.Name = "6.6kV SWA DC CONTROL MONITOR (PSV20)"
+SWB_CON_MON.Name = "6.6kV SWB DC CONTROL MONITOR (PSV20)"
+CTR.Name = "From Cross-Trip 1 Received (IN203)"
+
+TR01 = E24U2T1 OR EWT OR E50TP2 OR EPSV17 OR E51T01 OR E51T02 OR (E593P1T OR E593P2T) OR EBUCH OR ETP OR EREFF2 OR E87Z2 OR E87Q2 OR EIN202 OR EPLQ_X_IT OR EPLQ_X_CBF OR EGCB_CBF OR SWA_CON_MON OR SWB_CON_MON
+TR01.Name = "ELEC TRIP 1"
+
+PSV01 = SR(TR01, ULTR01).Q OR CTR
+TRS = PSV01 OR TRIP3 OR TRIP5
+
+LED_01 = PSV01
+LED_01.Out = True
+LED_01.Name = "TO LED_01"
+
+ICMS_PSV01 = PSV01
+ICMS_PSV01.Out = True
+ICMS_PSV01.Name = "Electrical Trip 1 [TO LCD] & [TO ICMS]"
+
+OCT = PSV01
+OCT.Out = True
+OCT.Name = "To Oscillography Cross-Trigger (OUT204)"
+
+SWA_CB_TRIP_1 = PSV01
+SWA_CB_TRIP_1.Name = "TO 6.6 kV A CB Trip 1"
+
+SWB_CB_TRIP_1 = PSV01
+SWB_CB_TRIP_1.Name = "TO 6.6 kV B CB Trip 1"
+
+GCB_TRIP_1 = TRS
+GCB_TRIP_1.Name = "TO GCB Trip 1 (OUT401)"
+
+GCB_CBF = TRS
+GCB_CBF.Name = "TO GCB CBF"`,
 };
 
 export const EXAMPLE_NAMES = Object.keys(EXAMPLES);
