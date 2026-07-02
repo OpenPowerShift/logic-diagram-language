@@ -1850,6 +1850,26 @@ function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: Render
   // a non-fan-in wire, so a genuinely obstacle-routed input is never forced through a gate.
   const FANIN_SPACING = 15;
   const lastPt = (w: LayoutWire) => w.points[w.points.length - 1];
+  // Total interior crossings among cross-net, non-feedback wires (mirrors findWireCrossings). Used
+  // as the all-or-nothing guard around a group reshape so nesting can never trade a hug for a crossing.
+  type LPoint = { x: number; y: number };
+  const nestHit = (h1: LPoint, h2: LPoint, v1: LPoint, v2: LPoint) =>
+    Math.abs(h1.y - h2.y) < 1 && Math.abs(v1.x - v2.x) < 1 &&
+    h1.y > Math.min(v1.y, v2.y) - 1 && h1.y < Math.max(v1.y, v2.y) + 1 &&
+    v1.x > Math.min(h1.x, h2.x) - 1 && v1.x < Math.max(h1.x, h2.x) + 1;
+  const nestCross = () => {
+    let c = 0;
+    for (let i = 0; i < wires.length; i++)
+      for (let j = i + 1; j < wires.length; j++) {
+        const a = wires[i], b = wires[j];
+        if (a.fromId === b.fromId || a.feedback || b.feedback) continue;
+        for (let s = 0; s < a.points.length - 1; s++)
+          for (let t = 0; t < b.points.length - 1; t++)
+            if (nestHit(a.points[s], a.points[s + 1], b.points[t], b.points[t + 1]) ||
+                nestHit(b.points[t], b.points[t + 1], a.points[s], a.points[s + 1])) c++;
+      }
+    return c;
+  };
   for (const gate of layoutNodes) {
     if (gate.gateType === 'INPUT' || gate.gateType === 'OUTPUT') continue;
     const fanWires = wires.filter(w => w.toId === gate.id && Math.abs(w.points[0].y - lastPt(w).y) >= 1);
@@ -1878,32 +1898,43 @@ function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: Render
       return wireClear(reshaped, o => o === w || o.fromId === w.fromId || fanSet.has(o));
     };
 
-    // All-or-nothing per group: compute every nested channel, and only apply them if all are
-    // valid and mutually distinct. Otherwise leave the group untouched so we never trade one
-    // problem for another.
+    // All-or-nothing per group. For EACH wire, take the gate-most channel that validates by
+    // SEARCHING leftward from its ideal (nested) X down to its min: a wire whose source-side run at
+    // the near-gate channel would cross a gate body instead turns *before* that obstacle (a slid
+    // channel), rather than the whole group bailing to A*'s detour. Channels stay >= MIN_WIRE_SPACING
+    // apart (mutually distinct, nested order preserved). If any wire finds no valid channel the group
+    // keeps its routed geometry; and the applied reshape is reverted whole if it adds any crossing,
+    // so a robust fan-in is never traded for a new crossover.
     const place = (group: LayoutWire[], offset: number) => {
       const plan: { w: LayoutWire; cx: number; srcX: number; srcY: number; portX: number; portY: number }[] = [];
-      const used = new Set<number>();
+      const used: number[] = [];
       const groupMinX = Math.max(0, ...group.map(w => Math.round((w.points[0].x + MIN_DOGLEG) / GRID) * GRID));
       const room = gate.absX - GATE_CLEARANCE - groupMinX;
       const step = group.length > 1
         ? Math.max(GRID, Math.min(FANIN_SPACING, Math.floor(room / (group.length - 1) / GRID) * GRID))
         : FANIN_SPACING;
+      const gateMost = Math.round((gate.absX - GATE_CLEARANCE) / GRID) * GRID;
       for (let i = 0; i < group.length; i++) {
         const w = group[i];
         const srcX = w.points[0].x, srcY = w.points[0].y;
         const e = lastPt(w), portX = e.x, portY = e.y;
-        let cx = gate.absX - GATE_CLEARANCE - i * step - offset;
+        const ideal = Math.round((gate.absX - GATE_CLEARANCE - i * step - offset) / GRID) * GRID;
         const minX = Math.round((srcX + MIN_DOGLEG) / GRID) * GRID;
-        if (cx < minX) cx = minX;
-        cx = Math.round(cx / GRID) * GRID;
-        if (used.has(cx) || !channelOk(w, cx, srcX, srcY, portX, portY)) return;
-        used.add(cx);
+        let cx: number | null = null;
+        for (let x = Math.min(ideal, gateMost); x >= minX; x -= GRID) {   // gate-most valid channel, sliding before obstacles
+          if (used.some(u => Math.abs(u - x) < MIN_WIRE_SPACING - 0.5)) continue;
+          if (channelOk(w, x, srcX, srcY, portX, portY)) { cx = x; break; }
+        }
+        if (cx === null) return;                                          // no valid channel → keep routed geometry
+        used.push(cx);
         plan.push({ w, cx, srcX, srcY, portX, portY });
       }
+      const saved = group.map(w => w.points.map(p => ({ x: p.x, y: p.y })));
+      const before = nestCross();
       for (const { w, cx, srcX, srcY, portX, portY } of plan) {
         w.points = [{ x: srcX, y: srcY }, { x: cx, y: srcY }, { x: cx, y: portY }, { x: portX, y: portY }];
       }
+      if (nestCross() > before) group.forEach((w, k) => { w.points = saved[k]; }); // never add a crossing
     };
     // Interleave above and below groups so their channels don't share the same X. Without
     // the half-step offset, above[0] and below[0] both map to gate.absX - GATE_CLEARANCE and

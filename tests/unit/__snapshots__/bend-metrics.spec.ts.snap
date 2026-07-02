@@ -46,7 +46,7 @@ exports[`Bend/crossing metrics > Combined Options 1`] = `
 
 exports[`Bend/crossing metrics > Complex Protection (SEL) 1`] = `
 {
-  "H": 1020,
+  "H": 720,
   "bends": 18,
   "bent": 9,
   "crossings": 0,

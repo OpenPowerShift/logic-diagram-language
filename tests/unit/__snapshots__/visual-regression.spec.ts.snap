@@ -1761,12 +1761,12 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
 {
   "canvas": [
     1570,
-    1020,
+    720,
   ],
   "junctions": [
     [
       410,
-      630,
+      455,
     ],
   ],
   "labels": [],
@@ -1812,7 +1812,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "block": null,
       "box": [
         690,
-        520,
+        380,
         60,
         50,
       ],
@@ -1820,14 +1820,14 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "inputs": [
         [
           690,
-          535,
+          395,
           "in_0",
           null,
           0,
         ],
         [
           690,
-          550,
+          410,
           "in_1",
           null,
           0,
@@ -1838,7 +1838,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "outputs": [
         [
           750,
-          545,
+          405,
           "out",
           0,
         ],
@@ -1849,7 +1849,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "block": null,
       "box": [
         690,
-        690,
+        500,
         60,
         50,
       ],
@@ -1857,14 +1857,14 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "inputs": [
         [
           690,
-          705,
+          515,
           "in_0",
           null,
           0,
         ],
         [
           690,
-          720,
+          530,
           "in_1",
           null,
           0,
@@ -1875,7 +1875,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "outputs": [
         [
           750,
-          715,
+          525,
           "out",
           0,
         ],
@@ -1923,7 +1923,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "block": "COMPARE",
       "box": [
         430,
-        430,
+        330,
         65,
         60,
       ],
@@ -1931,14 +1931,14 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "inputs": [
         [
           430,
-          445,
+          345,
           "+",
           null,
           0,
         ],
         [
           430,
-          475,
+          375,
           "-",
           null,
           0,
@@ -1949,7 +1949,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "outputs": [
         [
           495,
-          460,
+          360,
           "OUT",
           0,
         ],
@@ -1960,7 +1960,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "block": "FALLING",
       "box": [
         430,
-        610,
+        435,
         50,
         40,
       ],
@@ -1968,7 +1968,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "inputs": [
         [
           430,
-          630,
+          455,
           "in",
           null,
           0,
@@ -1979,7 +1979,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "outputs": [
         [
           480,
-          630,
+          455,
           "OUT",
           0,
         ],
@@ -2034,7 +2034,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "block": null,
       "box": [
         170,
-        325,
+        275,
         100,
         20,
       ],
@@ -2045,7 +2045,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "outputs": [
         [
           270,
-          335,
+          285,
           "out",
           0,
         ],
@@ -2056,7 +2056,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "block": null,
       "box": [
         170,
-        435,
+        335,
         100,
         20,
       ],
@@ -2067,7 +2067,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "outputs": [
         [
           270,
-          445,
+          345,
           "out",
           0,
         ],
@@ -2078,7 +2078,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "block": null,
       "box": [
         170,
-        465,
+        365,
         100,
         20,
       ],
@@ -2089,7 +2089,51 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "outputs": [
         [
           270,
-          475,
+          375,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        445,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "CB52A",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          455,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        590,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "LOCKOUT",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          600,
           "out",
           0,
         ],
@@ -2122,51 +2166,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "block": null,
       "box": [
         170,
-        620,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "CB52A",
-      "name": null,
-      "outputs": [
-        [
-          270,
-          630,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        790,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "LOCKOUT",
-      "name": null,
-      "outputs": [
-        [
-          270,
-          800,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        930,
+        640,
         100,
         20,
       ],
@@ -2177,7 +2177,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "outputs": [
         [
           270,
-          940,
+          650,
           "out",
           0,
         ],
@@ -2188,7 +2188,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "block": null,
       "box": [
         170,
-        990,
+        690,
         100,
         20,
       ],
@@ -2199,7 +2199,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "outputs": [
         [
           270,
-          1000,
+          700,
           "out",
           0,
         ],
@@ -2240,7 +2240,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "block": null,
       "box": [
         430,
-        780,
+        580,
         65,
         40,
       ],
@@ -2248,7 +2248,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "inputs": [
         [
           430,
-          800,
+          600,
           "in_0",
           null,
           0,
@@ -2259,7 +2259,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "outputs": [
         [
           495,
-          800,
+          600,
           "out",
           0,
         ],
@@ -2270,7 +2270,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "block": null,
       "box": [
         690,
-        925,
+        635,
         60,
         50,
       ],
@@ -2278,14 +2278,14 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "inputs": [
         [
           698,
-          940,
+          650,
           "in_0",
           null,
           0,
         ],
         [
           700,
-          955,
+          665,
           "in_1",
           null,
           0,
@@ -2296,7 +2296,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "outputs": [
         [
           750,
-          950,
+          660,
           "out",
           0,
         ],
@@ -2307,7 +2307,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "block": null,
       "box": [
         1470,
-        225,
+        200,
         100,
         20,
       ],
@@ -2315,7 +2315,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "inputs": [
         [
           1470,
-          235,
+          210,
           "in",
           null,
           0,
@@ -2330,7 +2330,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "block": null,
       "box": [
         1470,
-        535,
+        395,
         100,
         20,
       ],
@@ -2338,7 +2338,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "inputs": [
         [
           1470,
-          545,
+          405,
           "in",
           null,
           0,
@@ -2353,7 +2353,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "block": null,
       "box": [
         1470,
-        705,
+        515,
         100,
         20,
       ],
@@ -2361,7 +2361,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "inputs": [
         [
           1470,
-          715,
+          525,
           "in",
           null,
           0,
@@ -2376,7 +2376,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "block": null,
       "box": [
         1470,
-        940,
+        650,
         100,
         20,
       ],
@@ -2384,7 +2384,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "inputs": [
         [
           1470,
-          950,
+          660,
           "in",
           null,
           0,
@@ -2399,7 +2399,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "block": "RISING",
       "box": [
         430,
-        980,
+        680,
         50,
         40,
       ],
@@ -2407,7 +2407,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "inputs": [
         [
           430,
-          1000,
+          700,
           "in",
           null,
           0,
@@ -2418,7 +2418,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "outputs": [
         [
           480,
-          1000,
+          700,
           "OUT",
           0,
         ],
@@ -2429,7 +2429,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "block": "SR",
       "box": [
         950,
-        210,
+        185,
         60,
         50,
       ],
@@ -2437,14 +2437,14 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "inputs": [
         [
           950,
-          225,
+          200,
           "S",
           null,
           0,
         ],
         [
           950,
-          240,
+          215,
           "R",
           null,
           0,
@@ -2455,7 +2455,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "outputs": [
         [
           1010,
-          235,
+          210,
           "Q",
           0,
         ],
@@ -2466,7 +2466,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "block": "TIMER",
       "box": [
         1210,
-        210,
+        185,
         85,
         50,
       ],
@@ -2474,7 +2474,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "inputs": [
         [
           1210,
-          235,
+          210,
           "in",
           null,
           0,
@@ -2485,7 +2485,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "outputs": [
         [
           1295,
-          235,
+          210,
           "OUT",
           0,
         ],
@@ -2496,7 +2496,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "block": "TIMER",
       "box": [
         950,
-        520,
+        380,
         85,
         50,
       ],
@@ -2504,7 +2504,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "inputs": [
         [
           950,
-          545,
+          405,
           "in",
           null,
           0,
@@ -2515,7 +2515,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "outputs": [
         [
           1035,
-          545,
+          405,
           "OUT",
           0,
         ],
@@ -2529,11 +2529,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "points": [
         [
           1010,
-          235,
+          210,
         ],
         [
           1210,
-          235,
+          210,
         ],
       ],
     },
@@ -2542,11 +2542,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "points": [
         [
           1035,
-          545,
+          405,
         ],
         [
           1470,
-          545,
+          405,
         ],
       ],
     },
@@ -2555,24 +2555,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "points": [
         [
           1295,
-          235,
+          210,
         ],
         [
           1470,
-          235,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          1000,
-        ],
-        [
-          430,
-          1000,
+          210,
         ],
       ],
     },
@@ -2607,19 +2594,19 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "points": [
         [
           270,
-          335,
+          285,
         ],
         [
           930,
-          335,
+          285,
         ],
         [
           930,
-          240,
+          215,
         ],
         [
           950,
-          240,
+          215,
         ],
       ],
     },
@@ -2628,11 +2615,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "points": [
         [
           270,
-          445,
+          345,
         ],
         [
           430,
-          445,
+          345,
         ],
       ],
     },
@@ -2641,11 +2628,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "points": [
         [
           270,
-          475,
+          375,
         ],
         [
           430,
-          475,
+          375,
         ],
       ],
     },
@@ -2654,19 +2641,19 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "points": [
         [
           270,
-          630,
+          455,
         ],
         [
           410,
-          630,
+          455,
         ],
         [
           410,
-          550,
+          410,
         ],
         [
           690,
-          550,
+          410,
         ],
       ],
     },
@@ -2675,11 +2662,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "points": [
         [
           270,
-          630,
+          455,
         ],
         [
           430,
-          630,
+          455,
         ],
       ],
     },
@@ -2688,11 +2675,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "points": [
         [
           270,
-          70,
+          600,
         ],
         [
           430,
-          70,
+          600,
         ],
       ],
     },
@@ -2701,24 +2688,37 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "points": [
         [
           270,
-          800,
-        ],
-        [
-          430,
-          800,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          940,
+          650,
         ],
         [
           698,
-          940,
+          650,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          700,
+        ],
+        [
+          430,
+          700,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          70,
+        ],
+        [
+          430,
+          70,
         ],
       ],
     },
@@ -2727,40 +2727,40 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "points": [
         [
           480,
-          1000,
+          455,
+        ],
+        [
+          670,
+          455,
+        ],
+        [
+          670,
+          515,
+        ],
+        [
+          690,
+          515,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          480,
+          700,
         ],
         [
           590,
-          1000,
+          700,
         ],
         [
           590,
-          955,
+          665,
         ],
         [
           700,
-          955,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          480,
-          630,
-        ],
-        [
-          670,
-          630,
-        ],
-        [
-          670,
-          705,
-        ],
-        [
-          690,
-          705,
+          665,
         ],
       ],
     },
@@ -2790,19 +2790,40 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "points": [
         [
           495,
-          460,
+          360,
         ],
         [
           670,
-          460,
+          360,
         ],
         [
           670,
-          535,
+          395,
         ],
         [
           690,
-          535,
+          395,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          600,
+        ],
+        [
+          670,
+          600,
+        ],
+        [
+          670,
+          530,
+        ],
+        [
+          690,
+          530,
         ],
       ],
     },
@@ -2831,27 +2852,6 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "feedback": 0,
       "points": [
         [
-          495,
-          800,
-        ],
-        [
-          670,
-          800,
-        ],
-        [
-          670,
-          720,
-        ],
-        [
-          690,
-          720,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
           750,
           140,
         ],
@@ -2861,11 +2861,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
         ],
         [
           930,
-          225,
+          200,
         ],
         [
           950,
-          225,
+          200,
         ],
       ],
     },
@@ -2874,11 +2874,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "points": [
         [
           750,
-          545,
+          405,
         ],
         [
           950,
-          545,
+          405,
         ],
       ],
     },
@@ -2887,11 +2887,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "points": [
         [
           750,
-          715,
+          525,
         ],
         [
           1470,
-          715,
+          525,
         ],
       ],
     },
@@ -2900,11 +2900,11 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
       "points": [
         [
           750,
-          950,
+          660,
         ],
         [
           1470,
-          950,
+          660,
         ],
       ],
     },
@@ -6957,15 +6957,11 @@ exports[`Visual regression (layout geometry) > Inversion Bubbles 1`] = `
   ],
   "junctions": [
     [
-      320,
-      190,
-    ],
-    [
-      335,
+      305,
       145,
     ],
     [
-      400,
+      320,
       190,
     ],
     [
@@ -7224,6 +7220,27 @@ exports[`Visual regression (layout geometry) > Inversion Bubbles 1`] = `
           145,
         ],
         [
+          305,
+          145,
+        ],
+        [
+          305,
+          95,
+        ],
+        [
+          420,
+          95,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          145,
+        ],
+        [
           335,
           145,
         ],
@@ -7246,19 +7263,19 @@ exports[`Visual regression (layout geometry) > Inversion Bubbles 1`] = `
       "points": [
         [
           270,
-          145,
+          190,
         ],
         [
-          385,
-          145,
+          320,
+          190,
         ],
         [
-          385,
-          95,
+          320,
+          125,
         ],
         [
-          420,
-          95,
+          430,
+          125,
         ],
       ],
     },
@@ -7291,32 +7308,11 @@ exports[`Visual regression (layout geometry) > Inversion Bubbles 1`] = `
           190,
         ],
         [
-          400,
+          395,
           190,
         ],
         [
-          400,
-          125,
-        ],
-        [
-          430,
-          125,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          190,
-        ],
-        [
-          400,
-          190,
-        ],
-        [
-          400,
+          395,
           220,
         ],
         [
