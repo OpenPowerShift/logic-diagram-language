@@ -97,20 +97,40 @@ Within each gate, input ports MUST be assigned to source signals in ascending or
 
 === Layout Pipeline
 
-All gate position adjustments MUST be completed before wire routing begins. This ensures that wire obstacle data (gate bounding boxes) reflects the final gate positions.
+The renderer does not produce a single layout; it produces several **candidate** layouts and keeps
+the one that measures best on the real rendered geometry (see <<crossover-minimisation>>). Each
+candidate is a full, independent layout over two orthogonal dimensions — input **ordering**
+(`heuristic` / `crossmin`) and long-edge **lane packing** (loose / tight) — ranked lexicographically
+by *fewest sub-min doglegs, then crossings, then bends, then height*. The loose-heuristic candidate is
+always generated and is always dogleg-free, so the winner can never be worse than it on any of those.
+A final cosmetic symmetry pass (small-gate fan-in doglegs mirrored) is applied to the winner, fully
+validated so it can never add a crossing or crowd.
 
-The pipeline executes in this order:
+Within a single candidate, all gate position adjustments MUST be completed before wire routing begins,
+so wire obstacle data (gate bounding boxes) reflects the final gate positions. A candidate executes in
+this order:
 
-. Row assignment (Sugiyama barycentre)
-. Column and grid placement
-. Gate-input overlap resolution (push gates below overlapping input labels)
-. Single-input alignment (NOT gates: input port aligned with source output Y)
-. Gate height adjustment (expand gates to align ports with sources)
-. Position optimisation (shift non-expanded gates to minimise small doglegs)
-. Dogleg enforcement (ensure all doglegs are either straight-through or at least `MIN_DOGLEG` tall)
-. Protected zone (enforce a minimum vertical gap between adjacent gate bodies in a column, so gates that share an input are not jammed together; the small offset this adds to a pushed gate's wires is kept >= `MIN_DOGLEG` so they stay clean Z-routes)
-. Output re-alignment (output ports aligned with source gate output Y)
-. Wire routing (obstacle-aware, with gate bounding boxes from final positions)
+. Row **ordering** (barycentre + contiguity, or the `crossmin` optimiser) — REAL nodes only.
+. Long-edge **lane reservation**: every edge spanning more than one column is decomposed into a chain
+  of thin dummy nodes so coordinate assignment reserves a clear vertical lane for it. Under tight
+  packing, adjacent dummy lanes pack at `MIN_DOGLEG` rather than the full column channel (a lane next
+  to a real gate always keeps the full channel, so gates never shift toward a lane).
+. **Coordinate assignment**: a joint per-column optimiser (weighted isotonic regression / PAVA) aligns
+  each node to the port-aware mean of its neighbours on both sides, iterated to convergence. This
+  replaces the old greedy median sweeps and settles gate heights, fan-in spreading and single-input
+  alignment together. Dummies are then removed.
+. Downstream placement refinements PAVA does not do on its own: gate min-jog placement, dogleg
+  cleanup, a protected minimum gap between adjacent gate bodies, and output placement.
+. **Wire routing** (obstacle-aware A* fan-out), then the reshaping passes: channel-track assignment,
+  multi-input fan-in channels (<<fan-in-channels>>), obstacle-aware output placement
+  (<<output-placement>>), sub-`MIN_DOGLEG` straightening, feedback routing, shared fan-out trunk
+  merge, and the gate-entrance guarantee (<<gate-entrance>>).
+. **Junction detection** and a final uniform vertical re-normalisation, which shifts every node, wire,
+  junction AND label together so labels never drift from the gates they annotate.
+
+Every reshaping pass validates its proposed geometry through the shared wire-separation contract
+(>= `MIN_WIRE_SPACING` between parallel cross-net segments) plus gate clearance, and reverts any move
+that would add a crossing — so no pass can silently undo another's separation or introduce a crossover.
 
 === Wire Routing
 
@@ -129,7 +149,7 @@ Wires between ports follow these rules:
 . The wire enters the destination port horizontally. For AND/NOT inputs it enters at the
   straight bounding-box left edge; for OR inputs it terminates **on the concave curve**
   (see <<or-curve-ports>>).
-. **Minimum gate entrance (a guaranteed contract).** When a wire turns into a gate input port,
+. [[gate-entrance]]**Minimum gate entrance (a guaranteed contract).** When a wire turns into a gate input port,
   its final horizontal run (the entrance) MUST be at least `GATE_ENTRANCE` (20px) long, so the
   vertical turn sits clear of the gate body/curve and the wire visibly enters horizontally rather
   than turning on the gate's edge. Equivalently, a turning wire's vertical channel sits at least
@@ -303,6 +323,7 @@ The subexpression `A AND B` is referenced by both O1 and O4. The renderer MUST c
 For non-commutative operators (NOT) and future derived operators (NAND, NOR, XOR, XNOR), deduplication MUST preserve input ordering. Two expressions are identical only if their inputs appear in the same gate-specific order.
 
 [#symmetric-channels]
+[#fan-in-channels]
 ==== Multi-Input Fan-In Channels
 
 When several wires dogleg into the same gate, each gets its own vertical channel just to
@@ -317,9 +338,25 @@ the left of the gate, rather than all crowding into one bundle. The channels are
   the gate and progressively inner sources turning further left. This is the ordering that
   is provably crossing-free for a single source column, and it reads symmetrically between
   the top and bottom halves of the gate.
-* **Validated** — a channel is only used if it clears all gate bodies and does not overlap
-  a wire from a different net; a group falls back to its balanced-Z route if any channel in
-  it cannot be placed cleanly, so the optimisation never introduces a new collision.
+* **Obstacle-avoiding** — each wire does not take one fixed channel position; it SEARCHES from its
+  ideal nested channel leftward for the gate-most position that clears all gate bodies (so a wire
+  whose source row is blocked by a gate turns *before* that obstacle instead of the group giving up).
+* **Validated** — a channel is only used if it clears all gate bodies and does not overlap a wire from
+  a different net; a group keeps its routed geometry if any wire finds no valid channel, and the whole
+  group reshape is reverted if it would add a crossing, so the optimisation never introduces a new
+  collision or crossover.
+
+[#output-placement]
+==== Obstacle-Aware Output Placement
+
+An output whose port Y falls inside the vertical shadow of a gate its incoming wire must cross is
+forced to dodge that gate — a down-and-up / up-and-over detour that also tends to land on unrelated
+wires' lines. When this happens the renderer moves the output to the nearest Y clear of every crossed
+gate's shadow and redraws the wire as one clean H–V–H. The move is applied only when a clear position
+and route exist that are strictly simpler (2 bends versus the detour's more) and validate through gate
+clearance, the wire-separation contract, sibling-output spacing, a legal dogleg, and a no-new-crossing
+guard; otherwise it is reverted. So it can only ever simplify a forced detour and never introduces a
+crossing, crowd, overlap, or sub-`MIN_DOGLEG` dogleg.
 
 [#fan-out-dots]
 ==== Fan-Out Junction Dots
@@ -334,13 +371,18 @@ into one so a split reads as a single clean dot rather than a cluster.
 ==== Crossover Minimisation
 
 Crossing count is a *measured optimisation objective*, not a side-effect of ordering heuristics. The
-renderer generates more than one candidate input ORDERING and keeps the one that **renders the fewest
-actual (geometric) crossings** — because the classic combinatorial layer-crossing count diverges
-from the crossings actually drawn once gate heights, multi-port entry and routing doglegs are taken
-into account. Candidates currently are: `heuristic` (barycentre + contiguity ordering — always a
+renderer generates more than one candidate layout and keeps the one that measures best on the drawn
+geometry — because the classic combinatorial layer-crossing count diverges from the crossings actually
+drawn once gate heights, multi-port entry and routing doglegs are taken into account. Candidates span
+two orthogonal dimensions: input **ordering** — `heuristic` (barycentre + contiguity — always a
 candidate, so the result can never be worse than it) and `crossmin` (a Sugiyama median/transpose
-optimiser on a dummy-expanded layered graph, port-aware so fixed-port blocks stay uncrossed). The
-`crossmin` candidate is only computed when `heuristic` is not already crossing-free.
+optimiser on a dummy-expanded layered graph, port-aware so fixed-port blocks stay uncrossed) — and
+long-edge **lane packing** (loose / tight, see the pipeline). The winner is chosen lexicographically by
+**fewest sub-min doglegs, then fewest crossings, then fewest bends, then smallest height**. Because the
+loose-heuristic candidate is always present and always dogleg-free, the winner never has more doglegs
+or crossings than it; a tighter/alternate candidate wins only when it strictly improves. Candidates
+beyond loose-heuristic are computed lazily (e.g. `crossmin` only when `heuristic` is not already
+crossing-free), keeping the common case cheap.
 
 Ordering constraints the candidates honour: a **fixed-port block's** sources are ordered to match its
 port order (S above R, …) so its inputs never cross; each gate's single-consumer inputs stay
