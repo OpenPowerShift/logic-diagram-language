@@ -2431,6 +2431,7 @@ function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: Render
     let minY = Infinity;
     for (const n of layoutNodes) minY = Math.min(minY, n.absY);
     for (const w of wires) for (const p of w.points) minY = Math.min(minY, p.y);
+    for (const l of labels) minY = Math.min(minY, l.y);        // a label may sit above the topmost node
     const dy = PAD_Y - minY;
     if (Number.isFinite(dy) && Math.abs(dy) >= GRID) {
       for (const n of layoutNodes) {
@@ -2440,6 +2441,7 @@ function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: Render
       }
       for (const w of wires) for (const p of w.points) p.y += dy;
       for (const j of mergedJunctions) j.y += dy;
+      for (const l of labels) { l.y += dy; l.anchorY += dy; }  // labels are anchored to gates — shift with them
     }
   }
 

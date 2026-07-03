@@ -145,7 +145,7 @@ exports[`Bend/crossing metrics > Inversion Bubbles 1`] = `
 
 exports[`Bend/crossing metrics > Labelled Gates 1`] = `
 {
-  "H": 540,
+  "H": 550,
   "bends": 8,
   "bent": 4,
   "crossings": 0,
@@ -233,7 +233,7 @@ exports[`Bend/crossing metrics > SEL Function Blocks 1`] = `
 
 exports[`Bend/crossing metrics > Shared Intermediates 1`] = `
 {
-  "H": 225,
+  "H": 235,
   "bends": 10,
   "bent": 5,
   "crossings": 2,
