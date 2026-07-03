@@ -1980,15 +1980,15 @@ function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: Render
   }
 
   // Obstacle-aware output placement. An output whose port Y lands inside the vertical shadow of a gate
-  // its incoming wire must cross is forced to dodge that gate — a down-and-up / up-and-over detour
-  // that also lands on unrelated wires' lines (e.g. Shared Intermediates' B output detouring over the
-  // RISING block onto input C's straight line). Move such an output to the nearest Y clear of every
-  // gate shadow its wire crosses, and redraw the wire as one clean H–V–H. It is applied only when a
-  // clear position + route exists that is strictly simpler (2 bends vs the detour's >2) and validates
+  // its incoming wire must cross is forced either to detour around that gate (a down-and-up /
+  // up-and-over that lands on unrelated wires' lines) OR to drive straight THROUGH the gate body (a
+  // gate crossing — e.g. PSV02's LED/ICMS outputs cutting through the TRS gate under reconvergence).
+  // Move such an output to the nearest Y clear of every gate shadow its wire crosses, and redraw the
+  // wire as one clean H–V–H. It is applied only when a clear position + route exists that validates
   // through gate clearance, the separation contract, sibling-output spacing, a legal dogleg, and a
-  // no-new-crossing guard — otherwise fully reverted. So it can only ever simplify a forced detour and
-  // can never introduce a crossing, crowd, overlap, or sub-min dogleg. Running before the entrance
-  // pass frees any straight input the detour was blocking (the entrance pass then straightens it).
+  // no-new-crossing guard — otherwise fully reverted. So it can only ever remove a detour or a gate
+  // crossing and can never introduce a crossing, crowd, overlap, or sub-min dogleg. Running before the
+  // entrance pass frees any straight input the detour was blocking (the entrance pass straightens it).
   {
     const outGates = layoutNodes.filter(n => n.gateType !== 'INPUT' && n.gateType !== 'OUTPUT');
     const bendsOf = (pts: { x: number; y: number }[]) => {
@@ -1997,10 +1997,23 @@ function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: Render
         if ((Math.abs(pts[i - 1].y - pts[i].y) < 0.5) !== (Math.abs(pts[i].y - pts[i + 1].y) < 0.5)) c++;
       return c;
     };
+    // Does any of the wire's segments cut through a gate body that is not its own endpoint?
+    const crossesGate = (w: LayoutWire) => {
+      for (let i = 0; i < w.points.length - 1; i++) {
+        const a = w.points[i], b = w.points[i + 1];
+        const xm = Math.min(a.x, b.x), xM = Math.max(a.x, b.x), ym = Math.min(a.y, b.y), yM = Math.max(a.y, b.y);
+        for (const g of outGates) {
+          if (g.id === w.fromId || g.id === w.toId) continue;
+          if (xM > g.absX + 1 && g.absX + g.width - 1 > xm && yM > g.absY + 1 && g.absY + g.height - 1 > ym) return true;
+        }
+      }
+      return false;
+    };
     for (const O of layoutNodes) {
       if (O.gateType !== 'OUTPUT' || !O.inputs[0]) continue;
       const w = wires.find(x => x.toId === O.id && !x.feedback);
-      if (!w || w.points.length < 4 || bendsOf(w.points) <= 2) continue;   // already a clean approach
+      // Act on a detour (>2 bends) OR a wire that cuts through a gate body; a clean approach is left alone.
+      if (!w || w.points.length < 4 || (bendsOf(w.points) <= 2 && !crossesGate(w))) continue;
       const sx = w.points[0].x, sy = w.points[0].y, ox = O.inputs[0].absX, oy = O.inputs[0].absY;
       const spanL = Math.min(sx, ox) + 1, spanR = Math.max(sx, ox) - 1;
       const crossing = outGates.filter(g => g.id !== w.fromId && g.absX + g.width > spanL && g.absX < spanR);
