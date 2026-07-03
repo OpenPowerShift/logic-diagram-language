@@ -199,12 +199,32 @@ export class LdlViewer extends LitElement {
   private lastMouseX = 0;
   private lastMouseY = 0;
 
+  private resizeObserver: ResizeObserver | null = null;
+  private refitRaf = 0;
+
   connectedCallback() {
     super.connectedCallback();
     this.scale = 1;
     this.panX = 0;
     this.panY = 0;
     this.applyTheme();
+    // Auto-refit when the viewer changes size — window resize, device rotation, or the pane being
+    // shown/hidden by the mobile Code/Diagram toggle. Observing the host (which always exists and
+    // tracks the pane's size) is robust to the wrapper being re-created between render branches.
+    if ('ResizeObserver' in window) {
+      this.resizeObserver = new ResizeObserver(() => {
+        cancelAnimationFrame(this.refitRaf);
+        this.refitRaf = requestAnimationFrame(() => { if (this.svg) this.handleFit(); });
+      });
+      this.resizeObserver.observe(this);
+    }
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
+    cancelAnimationFrame(this.refitRaf);
   }
 
   updated(changed: Map<string, any>) {
@@ -248,15 +268,19 @@ export class LdlViewer extends LitElement {
     this.style.setProperty('--ldl-toolbar-separator', t.toolbarSeparator);
   }
 
-  private handleZoomIn() {
+  // Public zoom/fit controls — driven from the app toolbar (the controls live there so the viewer
+  // pane is all diagram, no separate header row).
+  zoomIn() {
     this.scale = Math.min(5, this.scale * 1.25);
     this.updateTransform();
   }
 
-  private handleZoomOut() {
+  zoomOut() {
     this.scale = Math.max(0.1, this.scale / 1.25);
     this.updateTransform();
   }
+
+  fit() { this.handleFit(); }
 
   private handleFit() {
     const wrapper = this.shadowRoot?.querySelector(
@@ -325,10 +349,8 @@ export class LdlViewer extends LitElement {
     if (content) {
       content.style.transform = `translate(${this.panX}px, ${this.panY}px) scale(${this.scale})`;
     }
-    const label = this.shadowRoot?.querySelector(".zoom-label") as HTMLElement;
-    if (label) {
-      label.textContent = `${Math.round(this.scale * 100)}%`;
-    }
+    // The zoom % is displayed by the app toolbar; publish the current scale so it can update.
+    this.emitEvent('zoom-change', { pct: Math.round(this.scale * 100) });
   }
 
   private emitEvent(name: string, detail?: any) {
@@ -372,72 +394,10 @@ export class LdlViewer extends LitElement {
     this.revealId = null;
   }
 
-  private handlePngExport(e: Event) {
-    const target = e.target as HTMLSelectElement;
-    const scale = parseInt(target.value || '2', 10);
-    this.emitEvent('export-png', { scale });
-  }
 
   render() {
     if (this.svg) {
       return html`
-        <div class="viewer-header">
-          <span class="viewer-title">Diagram</span>
-          <div class="viewer-controls">
-            <button @click=${this.handleZoomOut} title="Zoom out">-</button>
-            <span class="zoom-label">100%</span>
-            <button @click=${this.handleZoomIn} title="Zoom in">+</button>
-            <button @click=${this.handleFit} title="Fit to view">Fit</button>
-            <div class="separator"></div>
-            <button
-              class="toolbar-btn ${this.showLabels ? "active" : ""}"
-              @click=${() => this.emitEvent("toggle-labels")}
-              title="Show / hide port labels (.Name/.Description)"
-            >
-              Labels
-            </button>
-            <button
-              class="toolbar-btn ${this.showIds ? "active" : ""}"
-              @click=${() => this.emitEvent("toggle-ids")}
-              title="Show / hide bare identifier labels"
-            >
-              IDs
-            </button>
-            <button
-              class="toolbar-btn ${this.hideJunctions ? "active" : ""}"
-              @click=${() => this.emitEvent("toggle-dots")}
-              title="Show / hide junction dots (net tie points)"
-            >
-              Dots
-            </button>
-            <div class="separator"></div>
-            <button
-              class="toolbar-btn"
-              @click=${() => this.emitEvent("download-svg")}
-              title="Export SVG (vector)"
-            >
-              SVG
-            </button>
-            <button
-              class="toolbar-btn"
-              @click=${() => this.emitEvent("export-pdf")}
-              title="Export PDF"
-            >
-              PDF
-            </button>
-            <select
-              class="toolbar-btn png-scale"
-              title="Export PNG at selected scale"
-              @change=${this.handlePngExport}
-            >
-              <option value="" disabled selected hidden>PNG</option>
-              <option value="1">PNG 1x</option>
-              <option value="2">PNG 2x</option>
-              <option value="3">PNG 3x</option>
-              <option value="4">PNG 4x</option>
-            </select>
-          </div>
-        </div>
         <div
           class="viewer-wrapper"
           @wheel=${this.handleWheel}
@@ -460,34 +420,6 @@ export class LdlViewer extends LitElement {
     }
 
     return html`
-      <div class="viewer-header">
-        <span class="viewer-title">Diagram</span>
-        <div class="viewer-controls">
-          <button
-            class="toolbar-btn"
-            @click=${() => this.emitEvent("toggle-labels")}
-          >
-            Labels
-          </button>
-          <button
-            class="toolbar-btn"
-            @click=${() => this.emitEvent("toggle-ids")}
-          >
-            IDs
-          </button>
-          <button
-            class="toolbar-btn"
-            @click=${() => this.emitEvent("toggle-dots")}
-          >
-            Dots
-          </button>
-          <button class="toolbar-btn" disabled>SVG</button>
-          <button class="toolbar-btn" disabled>PDF</button>
-          <select class="toolbar-btn png-scale" disabled>
-            <option value="" disabled selected hidden>PNG</option>
-          </select>
-        </div>
-      </div>
       <div class="viewer-wrapper">
         <div class="empty-state">
           Enter LDL source on the left to see the diagram
