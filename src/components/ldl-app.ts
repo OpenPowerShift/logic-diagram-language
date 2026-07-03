@@ -6,6 +6,7 @@ import type { Diagram, RenderOptions } from '../parser/ast.js';
 import { renderDiagram } from '../renderer/svg-renderer.js';
 import { layoutDiagram } from '../renderer/layout.js';
 import { validateLayout, type CheckResult } from '../renderer/checks.js';
+import type { RenderResponse } from '../worker/render-worker.js';
 import { EXAMPLES, EXAMPLE_NAMES } from '../examples.js';
 import type { AppTheme, DiagramTheme } from '../theme/themes.js';
 import { LIGHT_THEME, DARK_THEME, LIGHT_DIAGRAM } from '../theme/themes.js';
@@ -246,6 +247,13 @@ export class LdlApp extends LitElement {
   private unsubscribeTheme: (() => void) | null = null;
   private narrowMq: MediaQueryList | null = null;
   private narrowHandler: ((e: MediaQueryListEvent) => void) | null = null;
+  // Diagram rendering runs in a Web Worker so a slow layout never blocks typing. Only the latest
+  // request's result is applied; while the worker is busy, newer edits are coalesced into
+  // `pendingRender` and dispatched when it frees up (no queue build-up, always renders the newest).
+  private worker: Worker | null = null;
+  private renderReqId = 0;
+  private pendingRender: string | null = null;
+  private workerBusy = false;
 
   connectedCallback() {
     super.connectedCallback();
@@ -254,14 +262,19 @@ export class LdlApp extends LitElement {
     this.unsubscribeTheme = onThemeChange((theme) => {
       this.currentTheme = theme;
       this.applyUITheme();
-      this.updateDiagram(this.sourceText);
+      this.requestRender(this.sourceText);
     });
     if (typeof window !== 'undefined' && window.matchMedia) {
       this.narrowMq = window.matchMedia(LdlApp.NARROW_MQ);
       this.narrowHandler = (e) => { this.isNarrow = e.matches; };
       this.narrowMq.addEventListener('change', this.narrowHandler);
     }
-    this.updateDiagram(this.sourceText);
+    try {
+      this.worker = new Worker(new URL('../worker/render-worker.ts', import.meta.url), { type: 'module' });
+      this.worker.onmessage = (e: MessageEvent<RenderResponse>) => this.onRenderResult(e.data);
+      this.worker.onerror = () => { this.worker = null; }; // fall back to synchronous rendering
+    } catch { this.worker = null; }
+    this.requestRender(this.sourceText);
   }
 
   // Persist the current diagram so a reload/rebuild restores it. An unmodified example is
@@ -305,6 +318,8 @@ export class LdlApp extends LitElement {
       this.narrowHandler = null;
     }
     if (this.editDebounce !== null) { clearTimeout(this.editDebounce); this.editDebounce = null; }
+    this.worker?.terminate();
+    this.worker = null;
   }
 
   private applyUITheme() {
@@ -330,7 +345,7 @@ export class LdlApp extends LitElement {
       this.sourceText = EXAMPLES[name];
       this.modified = false;
       this.saveState();
-      this.updateDiagram(this.sourceText);
+      this.requestRender(this.sourceText);
     }
   }
 
@@ -345,7 +360,7 @@ export class LdlApp extends LitElement {
     this.editDebounce = setTimeout(() => {
       this.editDebounce = null;
       this.saveState();
-      this.updateDiagram(this.sourceText);
+      this.requestRender(this.sourceText);
     }, 200);
   }
 
@@ -368,17 +383,17 @@ export class LdlApp extends LitElement {
 
   private handleToggleLabels() {
     this.showLabels = !this.showLabels;
-    this.updateDiagram(this.sourceText);
+    this.requestRender(this.sourceText);
   }
 
   private handleToggleIds() {
     this.showIds = !this.showIds;
-    this.updateDiagram(this.sourceText);
+    this.requestRender(this.sourceText);
   }
 
   private handleToggleDots() {
     this.hideJunctions = !this.hideJunctions;
-    this.updateDiagram(this.sourceText);
+    this.requestRender(this.sourceText);
   }
 
   private handleDownloadSvg() {
@@ -495,7 +510,39 @@ export class LdlApp extends LitElement {
     return this.svg;
   }
 
-  private updateDiagram(source: string) {
+  // Render the diagram off the main thread. While the worker is busy, coalesce newer edits into
+  // pendingRender and dispatch the newest when it frees up. Falls back to a synchronous render if the
+  // worker couldn't be created.
+  private requestRender(source: string) {
+    if (!this.worker) { this.updateDiagramSync(source); return; }
+    this.pendingRender = source;
+    if (!this.workerBusy) this.dispatchRender();
+  }
+
+  private dispatchRender() {
+    if (!this.worker || this.pendingRender === null) return;
+    const source = this.pendingRender;
+    this.pendingRender = null;
+    this.workerBusy = true;
+    this.worker.postMessage({
+      id: ++this.renderReqId, source,
+      showLabels: this.showLabels, showIds: this.showIds, hideJunctions: this.hideJunctions,
+      theme: this.currentTheme.diagram,
+    });
+  }
+
+  private onRenderResult(res: RenderResponse) {
+    this.workerBusy = false;
+    if (res.id === this.renderReqId) {                 // ignore any stale (superseded) result
+      this.svg = res.svg;
+      this.checks = res.checks;
+      this.parseErrors = res.parseErrors;
+    }
+    if (this.pendingRender !== null) this.dispatchRender(); // a newer edit arrived while rendering
+  }
+
+  // Synchronous fallback (no worker) — identical result on the main thread.
+  private updateDiagramSync(source: string) {
     try {
       const result = parse(source);
       this.parseErrors = result.errors;
