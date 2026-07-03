@@ -8656,11 +8656,11 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
   ],
   "junctions": [
     [
-      340,
+      380,
       225,
     ],
     [
-      355,
+      390,
       195,
     ],
   ],
@@ -8940,32 +8940,11 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
           195,
         ],
         [
-          355,
+          390,
           195,
         ],
         [
-          355,
-          265,
-        ],
-        [
-          436,
-          265,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          195,
-        ],
-        [
-          385,
-          195,
-        ],
-        [
-          385,
+          390,
           160,
         ],
         [
@@ -8979,14 +8958,35 @@ exports[`Visual regression (layout geometry) > Motor Control Circuit 1`] = `
       "points": [
         [
           270,
+          195,
+        ],
+        [
+          390,
+          195,
+        ],
+        [
+          390,
+          265,
+        ],
+        [
+          436,
+          265,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
           225,
         ],
         [
-          340,
+          380,
           225,
         ],
         [
-          340,
+          380,
           295,
         ],
         [

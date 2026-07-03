@@ -1925,6 +1925,20 @@ function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: Render
       if (!vGateClear(channelX, srcY, portY)) return false;
       if (!hGateClear(srcY, srcX, channelX, w.fromId)) return false;
       if (!hGateClear(portY, channelX, portX, w.toId)) return false;
+      // Reject a channel that lands EXACTLY on another net's vertical (same X, overlapping Y).
+      // wireClear/segCrowds deliberately ignore exact-collinear overlap ("overlap check elsewhere"),
+      // so two gates sitting at the same X would otherwise nest their fan-in channels onto one line
+      // (e.g. TRS and TRT both at x=875 -> both channels at 855). The leftward search then steps to a
+      // distinct channel instead.
+      const my0 = Math.min(srcY, portY), my1 = Math.max(srcY, portY);
+      for (const o of wires) {
+        if (o === w || o.fromId === w.fromId || fanSet.has(o)) continue;
+        for (let i = 0; i < o.points.length - 1; i++) {
+          const a = o.points[i], b = o.points[i + 1];
+          if (Math.abs(a.x - b.x) < 0.5 && Math.abs(a.x - channelX) < 0.5 &&
+              Math.min(my1, Math.max(a.y, b.y)) - Math.max(my0, Math.min(a.y, b.y)) >= GRID) return false;
+        }
+      }
       const reshaped = [{ x: srcX, y: srcY }, { x: channelX, y: srcY }, { x: channelX, y: portY }, { x: portX, y: portY }];
       return wireClear(reshaped, o => o === w || o.fromId === w.fromId || fanSet.has(o));
     };
