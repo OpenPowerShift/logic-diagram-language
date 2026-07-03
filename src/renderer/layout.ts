@@ -2382,50 +2382,39 @@ function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: Render
     w.points = [{ x: sp.absX, y }, { x: dst.inputs[0].absX, y }];
   }
 
-  for (let i = 0; i < wires.length; i++) {
-    for (let j = i + 1; j < wires.length; j++) {
-      if (wires[i].fromId !== wires[j].fromId) continue;
-      for (let k = 1; k < wires[i].points.length - 1; k++) {
-        const pk = wires[i].points[k];
-        for (let m = 0; m < wires[j].points.length - 1; m++) {
-          const s0 = wires[j].points[m];
-          const s1 = wires[j].points[m + 1];
-          if (Math.abs(s0.y - s1.y) < 1 && Math.abs(pk.y - s0.y) < 2) {
-            const minX = Math.min(s0.x, s1.x);
-            const maxX = Math.max(s0.x, s1.x);
-            if (pk.x >= minX - 1 && pk.x <= maxX + 1) {
-              addJunction(pk.x, pk.y);
-            }
-          }
-          if (Math.abs(s0.x - s1.x) < 1 && Math.abs(pk.x - s0.x) < 2) {
-            const minY = Math.min(s0.y, s1.y);
-            const maxY = Math.max(s0.y, s1.y);
-            if (pk.y >= minY - 1 && pk.y <= maxY + 1) {
-              addJunction(pk.x, pk.y);
-            }
-          }
-        }
-      }
-      for (let k = 1; k < wires[j].points.length - 1; k++) {
-        const pk = wires[j].points[k];
-        for (let m = 0; m < wires[i].points.length - 1; m++) {
-          const s0 = wires[i].points[m];
-          const s1 = wires[i].points[m + 1];
-          if (Math.abs(s0.y - s1.y) < 1 && Math.abs(pk.y - s0.y) < 2) {
-            const minX = Math.min(s0.x, s1.x);
-            const maxX = Math.max(s0.x, s1.x);
-            if (pk.x >= minX - 1 && pk.x <= maxX + 1) {
-              addJunction(pk.x, pk.y);
-            }
-          }
-          if (Math.abs(s0.x - s1.x) < 1 && Math.abs(pk.x - s0.x) < 2) {
-            const minY = Math.min(s0.y, s1.y);
-            const maxY = Math.max(s0.y, s1.y);
-            if (pk.y >= minY - 1 && pk.y <= maxY + 1) {
-              addJunction(pk.x, pk.y);
+  // Junction dots mark where a NET actually branches — a point where its wires' segments leave in
+  // three or more distinct directions (a T or a cross). A point where two same-source wires merely
+  // bend together (only two directions, e.g. a shared trunk turning a corner) is NOT a branch and
+  // gets no dot; a point where the trunk continues straight and one branch peels off (a T-tap) does.
+  {
+    const bySource = new Map<string, LayoutWire[]>();
+    for (const w of wires) { const a = bySource.get(w.fromId); if (a) a.push(w); else bySource.set(w.fromId, [w]); }
+    const dirFrom = (ax: number, ay: number, bx: number, by: number): string =>
+      Math.abs(ax - bx) >= 0.5 ? (bx > ax ? 'R' : 'L') : (by > ay ? 'D' : 'U');
+    for (const group of bySource.values()) {
+      if (group.length < 2) continue;                            // a single wire never taps itself
+      const pts = new Map<string, { x: number; y: number }>();   // candidate points: every vertex in the net
+      for (const w of group) for (const p of w.points) pts.set(`${Math.round(p.x)},${Math.round(p.y)}`, p);
+      for (const { x: px, y: py } of pts.values()) {
+        const set = new Set<string>();
+        for (const w of group) {
+          const pp = w.points;
+          for (let s = 0; s < pp.length - 1; s++) {
+            const a = pp[s], b = pp[s + 1];
+            const atA = Math.abs(a.x - px) < 1 && Math.abs(a.y - py) < 1;
+            const atB = Math.abs(b.x - px) < 1 && Math.abs(b.y - py) < 1;
+            if (atA) set.add(dirFrom(a.x, a.y, b.x, b.y));       // segment leaves pk toward b
+            else if (atB) set.add(dirFrom(b.x, b.y, a.x, a.y));  // toward a
+            else {                                               // pk strictly interior → the run passes through both ways
+              const horiz = Math.abs(a.y - b.y) < 0.5;
+              const through = horiz
+                ? Math.abs(py - a.y) < 1 && px > Math.min(a.x, b.x) + 0.5 && px < Math.max(a.x, b.x) - 0.5
+                : Math.abs(px - a.x) < 1 && py > Math.min(a.y, b.y) + 0.5 && py < Math.max(a.y, b.y) - 0.5;
+              if (through) { set.add(dirFrom(px, py, a.x, a.y)); set.add(dirFrom(px, py, b.x, b.y)); }
             }
           }
         }
+        if (set.size >= 3) addJunction(px, py);
       }
     }
   }
