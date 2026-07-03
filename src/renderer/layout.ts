@@ -2475,6 +2475,40 @@ function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: Render
     }
   }
 
+  // Collapse blank vertical bands between disconnected logic sections. A fully-empty horizontal band
+  // (no node body, label, or wire — including verticals passing through) means the content above and
+  // below it are not connected by any wire, so pulling the lower section up cannot distort a wire or
+  // cause an overlap. Each such band wider than SECTION_GAP is reduced to SECTION_GAP, removing the
+  // wasted space while keeping sections visually separated. Uniform per-section shift, so relative
+  // geometry (and therefore every crossing/dogleg) is preserved.
+  {
+    const SECTION_GAP = 50;
+    const occ = new Set<number>();
+    const mark = (y0: number, y1: number) => { for (let y = Math.floor(Math.min(y0, y1) / GRID) * GRID; y <= Math.max(y0, y1) + 0.5; y += GRID) occ.add(y); };
+    for (const n of layoutNodes) mark(n.absY, n.absY + n.height);
+    for (const l of labels) mark(l.y, l.y + l.height);
+    for (const w of wires) for (let i = 0; i < w.points.length - 1; i++) mark(w.points[i].y, w.points[i + 1].y);
+    const ys = [...occ].sort((a, b) => a - b);
+    const shifts: { fromY: number; amount: number }[] = [];
+    for (let k = 1; k < ys.length; k++) {
+      const emptySpan = ys[k] - ys[k - 1] - GRID;                 // clear cells strictly between two occupied rows
+      if (emptySpan > SECTION_GAP) shifts.push({ fromY: ys[k] - 0.5, amount: emptySpan - SECTION_GAP });
+    }
+    if (shifts.length) {
+      const shiftFor = (y: number) => shifts.reduce((s, sh) => s + (y >= sh.fromY ? sh.amount : 0), 0);
+      for (const n of layoutNodes) {
+        const dy = shiftFor(n.absY);
+        if (!dy) continue;
+        n.absY -= dy;
+        for (const p of n.inputs) p.absY -= dy;
+        for (const p of n.outputs) p.absY -= dy;
+      }
+      for (const w of wires) for (const p of w.points) p.y -= shiftFor(p.y);
+      for (const j of mergedJunctions) j.y -= shiftFor(j.y);
+      for (const l of labels) { const dy = shiftFor(l.y); l.y -= dy; l.anchorY -= dy; }
+    }
+  }
+
   const maxX = Math.max(...layoutNodes.map(n => n.absX + n.width), ...wires.flatMap(w => w.points.map(p => p.x)), ...labels.map(l => l.x + l.width));
   const maxY = Math.max(...layoutNodes.map(n => n.absY + n.height), ...wires.flatMap(w => w.points.map(p => p.y)), ...labels.map(l => l.y + l.height));
 
