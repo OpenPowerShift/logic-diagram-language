@@ -1049,6 +1049,36 @@ function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: Render
     }
   }
 
+  // OPTION COLUMN_SPACING = ADAPTIVE: replace the fixed COL_SPACING pitch with a per-gap width sized
+  // to each column's content. The gap between column d-1 and d must hold column d's fan-in dogleg
+  // channels (nested at FANIN spacing), a gate-clearance turn at the gate, and a MIN_DOGLEG on the
+  // source side — so gap = GATE_CLEARANCE + MIN_DOGLEG + (maxInDegree-1)*FANIN + slack. In-degree is
+  // an upper bound on dogleg channels (straight inputs need none), so the estimate is conservative:
+  // it only ever narrows relative to the uniform pitch and never cramps a fan-in. Shift is uniform
+  // per column, so ports move with their node; runs before routing and label placement.
+  if (opts.columnSpacing === 'ADAPTIVE') {
+    const CLEAR = 20, FANIN = 15, SLACK = 30;
+    const colWidth: number[] = [], colX: number[] = [PAD_X];
+    for (let d = 0; d <= maxDepth; d++) {
+      let w = 0;
+      for (const n of layoutNodes) if (n.depth === d) w = Math.max(w, n.width);
+      colWidth[d] = w;
+    }
+    for (let d = 1; d <= maxDepth; d++) {
+      let indeg = 0;
+      for (const n of layoutNodes) if (n.depth === d && n.gateType !== 'INPUT' && n.gateType !== 'OUTPUT') indeg = Math.max(indeg, n.inputs.length);
+      const gap = Math.round((CLEAR + MIN_DOGLEG + Math.max(0, indeg - 1) * FANIN + SLACK) / GRID) * GRID;
+      colX[d] = Math.min(colX[d - 1] + colWidth[d - 1] + gap, PAD_X + d * colSpacing); // never wider than uniform
+    }
+    for (const n of layoutNodes) {
+      const dx = colX[n.depth] - n.absX;
+      if (dx === 0) continue;
+      n.absX += dx;
+      for (const p of n.inputs) p.absX += dx;
+      for (const p of n.outputs) p.absX += dx;
+    }
+  }
+
   for (const gateNode of layoutNodes) {
     if (gateNode.gateType === 'INPUT' || gateNode.gateType === 'OUTPUT') continue;
     const gateTop = gateNode.absY;

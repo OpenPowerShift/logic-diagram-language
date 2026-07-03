@@ -8,6 +8,9 @@ export type InputOrder = 'DECLARATION' | 'AUTO';
 // COMPACT_V tightens vertical (row) spacing, COMPACT_H tightens horizontal (column) spacing,
 // COMPACT does both. NORMAL is the default; SPACIOUS loosens vertical spacing.
 export type Compactness = 'COMPACT' | 'COMPACT_H' | 'COMPACT_V' | 'NORMAL' | 'SPACIOUS';
+// UNIFORM (default) = fixed column pitch. ADAPTIVE = each inter-column gap sized to what its gates
+// actually need, so simple columns pack tighter and the diagram is narrower. Opt-in, per diagram.
+export type ColumnSpacing = 'UNIFORM' | 'ADAPTIVE';
 
 export interface RenderOptions {
   inversion: InversionStyle;
@@ -19,6 +22,9 @@ export interface RenderOptions {
   // Optional explicit spacing factors [vertical, horizontal] (e.g. COMPACTNESS = 70,70 → both
   // axes at 70%). When set, these override the named `compactness` value.
   compactnessFactors?: [number, number];
+  // Column pitch mode. UNIFORM (default) keeps the fixed COL_SPACING pitch; ADAPTIVE sizes each
+  // inter-column gap to its content (OPTION COLUMN_SPACING = ADAPTIVE).
+  columnSpacing: ColumnSpacing;
   // Tier 4.10/11 — new options.
   // Stroke width for wires + gate bodies (px, default 2.5). Set via OPTION STROKE_WIDTH.
   strokeWidth?: number;
@@ -33,6 +39,7 @@ export const DEFAULT_OPTIONS: RenderOptions = {
   outputOrder: 'DECLARATION',
   inputOrder: 'AUTO',
   compactness: 'NORMAL',
+  columnSpacing: 'UNIFORM',
   hideJunctions: false,
 };
 
@@ -171,6 +178,8 @@ export function resolveOptions(optionDecls: OptionDecl[]): RenderOptions {
     } else if (name === 'HIDE_JUNCTIONS') {
       if (/^(true|1|yes|on)$/i.test(value)) opts.hideJunctions = true;
       else if (/^(false|0|no|off)$/i.test(value)) opts.hideJunctions = false;
+    } else if (name === 'COLUMN_SPACING' && (value === 'UNIFORM' || value === 'ADAPTIVE')) {
+      opts.columnSpacing = value;
     } else if (name === 'SIZE' || name === 'COMPACTNESS') {
       if (value === 'COMPACT' || value === 'COMPACT_H' || value === 'COMPACT_V' ||
           value === 'NORMAL' || value === 'SPACIOUS') {

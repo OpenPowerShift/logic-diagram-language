@@ -106,6 +106,16 @@ the last occurrence wins.
 | _factors_
 | Explicit spacing factors `vertical,horizontal` (e.g. `70,70` or `[60,60]`); a value > 3 is a percentage (70 → 0.70), otherwise a raw factor. A single value applies to both axes.
 | --
+
+| COLUMN_SPACING
+| UNIFORM
+| Fixed column pitch (default) — every inter-column gap is the same width.
+| UNIFORM
+
+| COLUMN_SPACING
+| ADAPTIVE
+| Size each inter-column gap to its content (gate widths + the fan-in channels that column needs), so simple columns pack tighter and the diagram is materially narrower. Never wider than UNIFORM, and validated so it introduces no dogleg, entrance violation, overlap or crossing.
+| --
 |===
 
 === Examples
