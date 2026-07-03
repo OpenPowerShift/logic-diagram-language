@@ -1633,9 +1633,10 @@ function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: Render
   // Gate-clearance helpers, shared by the channel track-assignment pass and the fan-in
   // nesting below. A vertical/horizontal run must stay GATE_CLEARANCE clear of every gate body.
   const GATE_CLEARANCE = 20;
-  function vGateClear(x: number, y0: number, y1: number): boolean {
+  function vGateClear(x: number, y0: number, y1: number, skipId?: string): boolean {
     const yMin = Math.min(y0, y1), yMax = Math.max(y0, y1);
     for (const o of allObstacles) {
+      if (o.id === skipId) continue;
       if (x > o.x - GATE_CLEARANCE && x < o.x + o.w + GATE_CLEARANCE &&
           yMax > o.y - 1 && yMin < o.y + o.h + 1) return false;
     }
@@ -1948,6 +1949,59 @@ function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: Render
     place(below, Math.round(aboveStep / 2 / GRID) * GRID);
   }
 
+  // Obstacle-aware output placement. An output whose port Y lands inside the vertical shadow of a gate
+  // its incoming wire must cross is forced to dodge that gate — a down-and-up / up-and-over detour
+  // that also lands on unrelated wires' lines (e.g. Shared Intermediates' B output detouring over the
+  // RISING block onto input C's straight line). Move such an output to the nearest Y clear of every
+  // gate shadow its wire crosses, and redraw the wire as one clean H–V–H. It is applied only when a
+  // clear position + route exists that is strictly simpler (2 bends vs the detour's >2) and validates
+  // through gate clearance, the separation contract, sibling-output spacing, a legal dogleg, and a
+  // no-new-crossing guard — otherwise fully reverted. So it can only ever simplify a forced detour and
+  // can never introduce a crossing, crowd, overlap, or sub-min dogleg. Running before the entrance
+  // pass frees any straight input the detour was blocking (the entrance pass then straightens it).
+  {
+    const outGates = layoutNodes.filter(n => n.gateType !== 'INPUT' && n.gateType !== 'OUTPUT');
+    const bendsOf = (pts: { x: number; y: number }[]) => {
+      let c = 0;
+      for (let i = 1; i < pts.length - 1; i++)
+        if ((Math.abs(pts[i - 1].y - pts[i].y) < 0.5) !== (Math.abs(pts[i].y - pts[i + 1].y) < 0.5)) c++;
+      return c;
+    };
+    for (const O of layoutNodes) {
+      if (O.gateType !== 'OUTPUT' || !O.inputs[0]) continue;
+      const w = wires.find(x => x.toId === O.id && !x.feedback);
+      if (!w || w.points.length < 4 || bendsOf(w.points) <= 2) continue;   // already a clean approach
+      const sx = w.points[0].x, sy = w.points[0].y, ox = O.inputs[0].absX, oy = O.inputs[0].absY;
+      const spanL = Math.min(sx, ox) + 1, spanR = Math.max(sx, ox) - 1;
+      const crossing = outGates.filter(g => g.id !== w.fromId && g.absX + g.width > spanL && g.absX < spanR);
+      const yClear = (ny: number) => crossing.every(g => ny <= g.absY - 1 || ny >= g.absY + g.height + 1);
+      if (yClear(oy)) continue;                                             // output not actually in a shadow
+      const sibClear = (ny: number) => layoutNodes.every(s => s === O || s.gateType !== 'OUTPUT' ||
+        s.absX !== O.absX || Math.abs((s.absY + s.height / 2) - ny) >= MIN_PORT_GAP - 0.5);
+      const before = nestCross();
+      let done = false;
+      for (let d = GRID; d <= 500 && !done; d += GRID) {                    // nearest clear Y first (above or below)
+        for (const ny of [oy - d, oy + d]) {
+          if (ny < 0 || !yClear(ny) || !sibClear(ny)) continue;
+          const jog = Math.abs(ny - sy);
+          if (jog >= 0.5 && jog < MIN_DOGLEG) continue;                     // would be a sub-min dogleg
+          for (let tapX = Math.round((sx + MIN_DOGLEG) / GRID) * GRID; tapX <= ox - GATE_ENTRANCE; tapX += GRID) {
+            const route = [{ x: sx, y: sy }, { x: tapX, y: sy }, { x: tapX, y: ny }, { x: ox, y: ny }]
+              .filter((p, i, a) => i === 0 || Math.abs(p.x - a[i - 1].x) >= 0.5 || Math.abs(p.y - a[i - 1].y) >= 0.5);
+            const skip = (o: LayoutWire) => o === w || o.fromId === w.fromId;
+            if (!vGateClear(tapX, sy, ny) || !hGateClear(sy, sx, tapX, w.fromId) ||
+                !hGateClear(ny, tapX, ox, w.toId) || !wireClear(route, skip)) continue;
+            const savedPts = w.points, savedOutY = O.absY, savedPortY = O.inputs[0].absY;
+            w.points = route; O.inputs[0].absY = ny; O.absY = ny - O.height / 2;
+            if (nestCross() > before) { w.points = savedPts; O.absY = savedOutY; O.inputs[0].absY = savedPortY; continue; }
+            done = true; break;
+          }
+          if (done) break;
+        }
+      }
+    }
+  }
+
   // Straighten gratuitous sub-MIN_DOGLEG jogs: a small vertical step between two horizontal runs
   // is collapsed when the far run can slide onto the near run's Y with the span clear of gate
   // bodies (the obstacle-aware placement lanes can leave such a jog where the route had room to
@@ -1966,7 +2020,7 @@ function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: Render
         if (Math.abs(p[k + 1].y - p[k + 2].y) > 0.5) continue;    // run B horizontal
         const yA = p[k].y;
         const spanClear = hGateClear(yA, p[k + 1].x, p[k + 2].x, w.toId) && hGateClear(yA, p[k + 1].x, p[k + 2].x, w.fromId);
-        const nextOk = vGateClear(p[k + 2].x, yA, p[k + 3].y);
+        const nextOk = vGateClear(p[k + 2].x, yA, p[k + 3].y, w.toId);   // skip the destination gate: a port approach is meant to be near it
         if (!spanClear || !nextOk) continue;
         p[k + 1].y = yA; p[k + 2].y = yA; // slide run B onto run A's Y
         w.points = p.filter((pt, i) => i === 0 || Math.abs(pt.x - p[i - 1].x) >= 0.5 || Math.abs(pt.y - p[i - 1].y) >= 0.5);

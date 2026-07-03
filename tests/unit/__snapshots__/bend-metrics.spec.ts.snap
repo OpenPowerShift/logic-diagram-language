@@ -233,11 +233,11 @@ exports[`Bend/crossing metrics > SEL Function Blocks 1`] = `
 
 exports[`Bend/crossing metrics > Shared Intermediates 1`] = `
 {
-  "H": 455,
-  "bends": 18,
-  "bent": 7,
-  "crossings": 4,
-  "straight": 5,
+  "H": 225,
+  "bends": 10,
+  "bent": 5,
+  "crossings": 2,
+  "straight": 7,
   "wires": 12,
 }
 `;

@@ -50,15 +50,10 @@ function expectedInputX(n: LayoutNode, port: { absX: number; absY: number; bubbl
 const BARS = /OPTION\s+GATE_INPUT_STYLE\s*=\s*BARS/i;
 
 // Known routing-stage exceptions, documented and auto-detected (an xfail that starts passing fails
-// the build, so we learn when it's resolved):
-// - 'Shared Intermediates::gate-entrance': compare_6 is the MIDDLE input to or_10, and its natural
-//   straight line (y=290) is occupied by the RISING->ALARM trunk, so it must jog. The only track that
-//   satisfies GATE_ENTRANCE forces its vertical to be crossed by a neighbouring input's approach —
-//   achieving the 20px entrance would add 2 crossings (4->6). The entrance pass correctly keeps the
-//   shorter (15px) approach because crossing-minimisation outranks entrance. This is a PLACEMENT
-//   over-constraint (the ALARM trunk sits on the middle port's line), not a routing gap; it clears if
-//   rising_12 is ever placed off y=290.
-const KNOWN_ROUTING_ISSUES = new Set<string>(['Shared Intermediates::gate-entrance']);
+// the build, so we learn when it's resolved). None currently: Shared Intermediates' gate-entrance
+// exception is resolved — obstacle-aware output placement + lane packing let its compact layout win,
+// where the B output no longer detours onto input C's line and every gate input clears GATE_ENTRANCE.
+const KNOWN_ROUTING_ISSUES = new Set<string>();
 const itRoute = (name: string, key: string) =>
   (KNOWN_ROUTING_ISSUES.has(`${name}::${key}`) ? it.fails : it);
 
