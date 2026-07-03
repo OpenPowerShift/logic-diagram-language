@@ -227,13 +227,26 @@ export class LdlViewer extends LitElement {
     cancelAnimationFrame(this.refitRaf);
   }
 
+  // Fit-to-view only the FIRST diagram (and on an explicit request — Fit button, example switch).
+  // For subsequent SVG updates (live edits) the current zoom & pan are KEPT, so the user watches the
+  // diagram update in place instead of it snapping back to a fit on every keystroke.
+  private fitOnNextSvg = true;
+  requestFit() { this.fitOnNextSvg = true; }
+
   updated(changed: Map<string, any>) {
     if (changed.has('theme')) {
       this.applyTheme();
     }
     if (changed.has('svg') && this.svg) {
-      // Auto-fit each new diagram once the SVG is in the DOM.
-      requestAnimationFrame(() => this.handleFit());
+      requestAnimationFrame(() => {
+        this.setContentSize();               // pin the (possibly resized) diagram box
+        if (this.fitOnNextSvg) {
+          this.fitOnNextSvg = false;
+          this.handleFit();                  // first diagram / explicit fit
+        } else {
+          this.updateTransform();            // live edit: keep the user's zoom & pan
+        }
+      });
     }
   }
 

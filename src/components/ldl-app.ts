@@ -345,6 +345,7 @@ export class LdlApp extends LitElement {
       this.sourceText = EXAMPLES[name];
       this.modified = false;
       this.saveState();
+      this.viewer()?.requestFit?.();   // a different diagram — fit it to view when it renders
       this.requestRender(this.sourceText);
     }
   }
