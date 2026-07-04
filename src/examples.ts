@@ -23,6 +23,29 @@ TRIP = TIMER(A, 0, 30cyc)
 ALARM = RISING(COMPARE(IA, IPICKUP))
 RESTART = FALLING(BLOCK)`,
 
+  'SR Latch (Q and NQ)': `// SR latch with both outputs: .Q (default) and .NQ (the inverted output, Q-bar).
+// Referencing SR#L1 twice reuses the SAME latch; DOMINANT=SET makes 'set' win
+// when both inputs are asserted (reset-dominant by default). Each output port
+// is drawn only when it is referenced.
+PERMIT  = SR#L1(START, STOP, DOMINANT=SET).Q
+BLOCKED = SR#L1(START, STOP).NQ
+L1.Name = "Enable Latch"`,
+
+  'Layout Options': `// Layout controls: ADAPTIVE column spacing packs each column to its content,
+// COMPACT_V tightens row spacing, and an expression may span multiple lines —
+// a continuation line simply begins with whitespace.
+OPTION COLUMN_SPACING = ADAPTIVE
+OPTION COMPACTNESS = COMPACT_V
+OPTION OUTPUT_ORDER = AUTO
+
+TRIP = PHASE AND ENABLE
+    OR (EARTH AND NOT BLOCK)
+    OR MANUAL
+
+PHASE.Name = "Phase OC"
+EARTH.Name = "Earth Fault"
+BLOCK.Name = "Harmonic Block"`,
+
   'Labelled Gates': `// Name a gate by assigning it to an intermediate, then label it — the
 // name/description appear at the gate's output and wires route around them.
 OPTION OUTPUT_ORDER = AUTO

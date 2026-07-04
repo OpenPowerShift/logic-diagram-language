@@ -1,0 +1,308 @@
+= LDL User Guide
+:toc: macro
+:toclevels: 3
+:sectnums:
+:sectlinks:
+
+_A practical guide to writing Logic Diagram Language (LDL) source. It covers the
+language as implemented by this renderer. For the full formal grammar and the
+rendering contract, see the link:../spec/spec.adoc[LDL Specification]._
+
+toc::[]
+
+== Introduction
+
+LDL is a small text language for describing logic/protection schematics. You write
+boolean equations; the renderer draws the gates, routes the wires, and lays the
+diagram out automatically. There are no coordinates to place by hand — the layout
+engine positions everything and minimises wire crossings for you.
+
+The quickest way to try it is the in-browser playground (`npm run dev`): type LDL on
+the left, see the SVG update live on the right. Pick any built-in example from the
+dropdown to see a feature in action — every construct below appears in one.
+
+A minimal document is a single assignment:
+
+[source]
+----
+OUT = A AND B
+----
+
+This draws two boundary inputs `A` and `B`, an AND gate, and a boundary output `OUT`.
+
+== Expressions
+
+An assignment `NAME = EXPRESSION` is the core statement. The left-hand side names a
+signal; the right-hand side is a boolean expression built from **identifiers** and the
+operators `AND`, `OR`, and `NOT`.
+
+[source]
+----
+TRIP = OVERCURRENT AND NOT BLOCK
+----
+
+=== Operator precedence
+
+From highest to lowest: `NOT` (unary), then `AND`, then `OR`. Use parentheses to
+override precedence.
+
+[source]
+----
+CBFPS = AB AND DC OR (NOT DC AND GF)
+// parses as:  (AB AND DC) OR ((NOT DC) AND GF)
+----
+
+Only `AND`, `OR` and `NOT` are available as operators. A NAND / NOR is written with an
+explicit `NOT` around the group:
+
+[source]
+----
+NAND_RESULT = NOT (A AND B)
+NOR_RESULT  = NOT (A OR B)
+----
+
+=== Multi-line expressions
+
+A long expression may be broken across lines. A continuation line simply begins with
+whitespace; the leading operator joins it to the expression above.
+
+[source]
+----
+TRIP = PHASE AND ENABLE
+    OR (EARTH AND NOT BLOCK)
+    OR MANUAL
+----
+
+=== Nested / double negation
+
+`NOT NOT X` cancels to `X`. An odd number of `NOT` s reduces to a single inversion.
+
+== Inputs, outputs and intermediate signals
+
+Any bare identifier that is never assigned becomes a **boundary input** on the left.
+Any assigned name that is *not referenced anywhere else* becomes a **boundary output**
+on the right.
+
+A name that *is* referenced inside another assignment is a **consumed intermediate**:
+its driving gate fans out to the consumers, and it is **not** drawn as an output.
+
+[source]
+----
+TRIP      = OVERCURRENT OR NOT EARTH_FAULT   // consumed below -> internal, not an output
+MAIN_TRIP = TRIP AND (MANUAL OR REMOTE)      // not consumed  -> drawn as an output
+----
+
+=== Forcing an intermediate to an output
+
+To draw a consumed intermediate as an output *as well* as feeding its consumers, set
+`.OUT = TRUE`:
+
+[source]
+----
+B.OUT = TRUE     // B now appears as an output and still fans out to its consumers
+----
+
+=== Feedback / seal-in
+
+A name that references *itself* is a feedback loop (a seal-in), not a consumer, so it is
+always drawn. The renderer routes the self-reference as a loop-back wire.
+
+[source]
+----
+BFT = BFI OR BFT AND ((CB52A AND CB52ABFY) OR (I1I2 AND INOM))
+----
+
+== Labels
+
+Every input, output and named gate can carry a `.Name` (primary label) and a
+`.Description` (smaller secondary line). When the *labels* layer is on, the `.Name`
+replaces the bare identifier on the diagram.
+
+[source]
+----
+I1.Name        = "Close Switch"
+I1.Description = "(BI 3.20)"
+O1.Name        = "Launch Command"
+----
+
+=== TeX math in labels
+
+`.Name` and `.Description` support inline TeX math between dollar signs, rendered with
+MathJax:
+
+[source]
+----
+I1.Name        = "$I_a$"
+I1.Description = "Phase A current"
+O1.Name        = "$I > I_{set}$"
+O2.Name        = "$\overline{A \cdot B}$"
+----
+
+Subscripts (`I_{set}`), superscripts (`I^2`), Greek (`\Delta`, `\omega`), operators
+(`\cdot`, `\geq`, `\leq`), and the overline/negation bar (`\overline{A}`) are supported.
+Plain text and math may be mixed: `"Phase $I_a$ + $I_b$"`.
+
+== Naming gates
+
+A gate can be labelled. There are two ways.
+
+**Pass-through intermediate** — name the gate by assigning it to an intermediate, then
+label that name. The label is drawn at the gate's output and wires route around it.
+
+[source]
+----
+PH   = O51 OR O50 OR NEGSEQ      // this OR gate is now called "PH"
+PH.Name        = "Phase OC"
+PH.Description = "51/50/46"
+TRIP = PH AND ENABLE             // PH is consumed, so it stays internal and labelled
+----
+
+**Direct gate id** — give the gate an instance id inline with `AND#ID(...)` /
+`OR#ID(...)`, then attach a name/description to the id. No pass-through needed.
+
+[source]
+----
+OC = OR#OC1(I51, I50, I46)
+OC1.Name        = "Overcurrent"
+OC1.Description = "51/50N"
+----
+
+== Function blocks
+
+Beyond plain gates, expressions may call *function-block primitives* modelled on SEL
+SELogic elements. Each returns a logic signal, so it nests and composes like any
+sub-expression.
+
+[cols="1m,3m,4"]
+|===
+| Block | Call | Meaning
+
+| Timer | `TIMER(in, pu, do)`
+| Pickup/dropout timer. `pu` delays the rising edge, `do` delays the falling edge.
+  Settings are positional or named (`PU=`, `DO=`); a bare number is cycles; `0` = no
+  delay. Units: `cyc`, `ms`, `s`, `m`.
+
+| SR latch | `SR(set, reset)`
+| Set/reset latch. `.Q` (default) is the output, `.NQ` the inverted output Q̄.
+  Reset-dominant unless `DOMINANT=SET`. Only referenced outputs are drawn.
+
+| Rising edge | `RISING(in)`
+| One-interval pulse on each 0→1 transition of `in`.
+
+| Falling edge | `FALLING(in)`
+| One-interval pulse on each 1→0 transition of `in`.
+
+| Comparator | `COMPARE(plus, minus)`
+| Asserts when the first (analog) input ≥ the second. Drawn as a comparator triangle.
+
+| Generic block | `FB#id(a, NAME=b, ...).PORT`
+| A user-defined box with whatever inputs/outputs you need. Bare or `NAME=`-labelled
+  arguments are input ports; each `.PORT` you reference is an output port.
+|===
+
+Blocks nest and chain freely, and a named intermediate threaded into a block taps the
+same source (a fan-out) rather than being duplicated:
+
+[source]
+----
+A    = SR(COMPARE(IA, IPICKUP), RESET)
+TRIP = TIMER(A, 0, 30cyc)          // the SR latch feeds the timer; A is not duplicated
+----
+
+=== Block instance ids and settings
+
+A block may carry an explicit instance id (`BLOCK#id`) so it can be named or reused. The
+id then takes a name/description like any object. Referencing the same id twice reuses
+one block (e.g. an SR latch drawn with both `.Q` and `.NQ`):
+
+[source]
+----
+PERMIT  = SR#L1(START, STOP, DOMINANT=SET).Q
+BLOCKED = SR#L1(START, STOP).NQ
+L1.Name = "Enable Latch"
+----
+
+For a generic `FB`, the instance is de-duplicated by id, so multiple outputs bind to one
+box:
+
+[source]
+----
+TRIP  = FB#PROT(PHASE=IA, EARTH=IN, EN=ENABLE).TRIP
+ALARM = FB#PROT.ALARM
+PROT.Name        = "Feeder Protection"
+PROT.Description = "SEL-751A"
+----
+
+== Options
+
+Document-level directives, written `OPTION NAME = VALUE`, control rendering. Set each at
+most once; place them before the logic. Combine freely.
+
+[cols="1m,2m,4"]
+|===
+| Option | Values | Effect
+
+| `INVERSION` | `GATES` (default), `BUBBLES`
+| Draw `NOT` as separate NOT gates, or as inversion bubbles on the downstream port.
+
+| `GATE_INPUT_STYLE` | `EXPAND` (default), `BARS`
+| Grow multi-input gates vertically, or keep them 2-input-sized with input bars.
+
+| `PORT_STYLE` | `CIRCLE` (default), `SQUARE`
+| Port marker shape.
+
+| `OUTPUT_ORDER` | `DECLARATION` (default), `AUTO`
+| Stack outputs in declared order, or reorder them by their driver to reduce crossings.
+
+| `INPUT_ORDER` | `AUTO` (default), `DECLARATION`
+| Reorder gate inputs to minimise crossings, or keep declared order.
+
+| `COMPACTNESS` | `NORMAL`, `COMPACT_V`, `COMPACT_H`, `COMPACT`, `SPACIOUS`, or factors
+| Spacing preset, or explicit `vertical,horizontal` factors (e.g. `70,70` or `[60,60]`).
+
+| `COLUMN_SPACING` | `UNIFORM` (default), `ADAPTIVE`
+| Fixed column pitch, or size each gap to its content for a narrower diagram.
+
+| `HIDE_JUNCTIONS` | `TRUE`, `FALSE`
+| Hide every junction (fan-out) dot.
+|===
+
+[source]
+----
+OPTION INVERSION = BUBBLES
+OPTION GATE_INPUT_STYLE = BARS
+OPTION COLUMN_SPACING = ADAPTIVE
+----
+
+== Styling
+
+Declare an object with an id and target it from a `STYLE` block of raw CSS. Every symbol
+also carries stable classes (`ldl-gate-and`, `ldl-port`, `ldl-wire`, …) for broad rules.
+
+[source]
+----
+STYLE
+  #G1 { stroke: #c0392b; stroke-width: 2; }
+  .ldl-gate-or { fill: #eef; }
+END STYLE
+
+AND#G1
+TRIP = A AND B
+----
+
+== Comments
+
+[source]
+----
+// line comment
+/* block comment,
+   which may /* nest */ */
+----
+
+== Not covered here
+
+The link:../spec/spec.adoc[specification] also describes constructs that are reserved or
+planned but **not yet implemented** by this renderer: the `NAND`/`NOR`/`XOR`/`XNOR`
+operators, `CONNECT` statements, custom `SYMBOL` definitions, `IMPORT`/`STYLESHEET`,
+hyperlinks (`.LINK`), and bidirectional ports. Use the equivalent working forms above
+(e.g. `NOT (A AND B)` for NAND).

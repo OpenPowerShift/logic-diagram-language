@@ -143,6 +143,17 @@ exports[`Bend/crossing metrics > Launch Interlock 1`] = `
 }
 `;
 
+exports[`Bend/crossing metrics > Layout Options 1`] = `
+{
+  "H": 315,
+  "bends": 6,
+  "bent": 3,
+  "crossings": 0,
+  "straight": 6,
+  "wires": 9,
+}
+`;
+
 exports[`Bend/crossing metrics > Mixed Logic 1`] = `
 {
   "H": 350,
@@ -228,6 +239,17 @@ exports[`Bend/crossing metrics > SEL Function Blocks 1`] = `
   "crossings": 0,
   "straight": 9,
   "wires": 10,
+}
+`;
+
+exports[`Bend/crossing metrics > SR Latch (Q and NQ) 1`] = `
+{
+  "H": 135,
+  "bends": 2,
+  "bent": 1,
+  "crossings": 0,
+  "straight": 3,
+  "wires": 4,
 }
 `;
 

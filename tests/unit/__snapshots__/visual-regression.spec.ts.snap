@@ -6568,6 +6568,443 @@ exports[`Visual regression (layout geometry) > Launch Interlock 1`] = `
 }
 `;
 
+exports[`Visual regression (layout geometry) > Layout Options 1`] = `
+{
+  "canvas": [
+    950,
+    315,
+  ],
+  "junctions": [],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        365,
+        255,
+        60,
+        60,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          365,
+          270,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          365,
+          300,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          425,
+          285,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        525,
+        85,
+        60,
+        50,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          525,
+          100,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          525,
+          115,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          585,
+          110,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        105,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "EARTH",
+      "name": "Earth Fault",
+      "outputs": [
+        [
+          270,
+          115,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        190,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "MANUAL",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          200,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        260,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "ENABLE",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          270,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        290,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "PHASE",
+      "name": "Phase OC",
+      "outputs": [
+        [
+          270,
+          300,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        60,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "BLOCK",
+      "name": "Harmonic Block",
+      "outputs": [
+        [
+          270,
+          70,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        365,
+        50,
+        65,
+        40,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          365,
+          70,
+          "in_0",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          430,
+          70,
+          "out",
+          0,
+        ],
+      ],
+      "type": "NOT",
+    },
+    {
+      "block": null,
+      "box": [
+        695,
+        170,
+        75,
+        60,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          703,
+          185,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          703,
+          215,
+          "in_2",
+          null,
+          0,
+        ],
+        [
+          705,
+          200,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          770,
+          200,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        850,
+        190,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          850,
+          200,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "TRIP",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          115,
+        ],
+        [
+          525,
+          115,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          200,
+        ],
+        [
+          705,
+          200,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          270,
+        ],
+        [
+          365,
+          270,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          300,
+        ],
+        [
+          365,
+          300,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          70,
+        ],
+        [
+          365,
+          70,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          425,
+          285,
+        ],
+        [
+          675,
+          285,
+        ],
+        [
+          675,
+          215,
+        ],
+        [
+          703,
+          215,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          430,
+          70,
+        ],
+        [
+          480,
+          70,
+        ],
+        [
+          480,
+          100,
+        ],
+        [
+          525,
+          100,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          585,
+          110,
+        ],
+        [
+          675,
+          110,
+        ],
+        [
+          675,
+          185,
+        ],
+        [
+          703,
+          185,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          770,
+          200,
+        ],
+        [
+          850,
+          200,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
 exports[`Visual regression (layout geometry) > Mixed Logic 1`] = `
 {
   "canvas": [
@@ -10648,6 +11085,214 @@ exports[`Visual regression (layout geometry) > SEL Function Blocks 1`] = `
         [
           950,
           275,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > SR Latch (Q and NQ) 1`] = `
+{
+  "canvas": [
+    790,
+    135,
+  ],
+  "junctions": [],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        170,
+        55,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "START",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          65,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        85,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "STOP",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          95,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        115,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          125,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "BLOCKED",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        60,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          70,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "PERMIT",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": "SR",
+      "box": [
+        430,
+        50,
+        60,
+        60,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          65,
+          "S",
+          null,
+          0,
+        ],
+        [
+          430,
+          95,
+          "R",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": "Enable Latch",
+      "outputs": [
+        [
+          490,
+          70,
+          "Q",
+          0,
+        ],
+        [
+          490,
+          95,
+          "NQ",
+          0,
+        ],
+      ],
+      "type": "SR",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          65,
+        ],
+        [
+          430,
+          65,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          95,
+        ],
+        [
+          430,
+          95,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          490,
+          70,
+        ],
+        [
+          690,
+          70,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          490,
+          95,
+        ],
+        [
+          590,
+          95,
+        ],
+        [
+          590,
+          125,
+        ],
+        [
+          690,
+          125,
         ],
       ],
     },
