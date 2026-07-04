@@ -348,15 +348,17 @@ O2 = I3 OR I4 OR NOT I5`,
   'Styled by ID': `// Reveal IDs in the toolbar to see the SVG id on each gate, block and port.
 //
 // A gate/block group carries its instance id: AND#G1 -> id "G1", FB#P -> id "P".
-// The gate body is a <path>, so "#G1 path" fills it; "#P" strokes the block group.
+// The gate body is a <path> and the block body a <rect>, each carrying its OWN fill
+// and stroke, so target the shape, not the group: "#G1 path" styles the gate body and
+// "#P rect" styles the block body. Setting fill/stroke on the group ("#G1" / "#P") does
+// not reach the body — the shape's own attribute wins — it only reaches inheriting
+// children such as the block's text.
 // Every wire carries data-from / data-to with its net endpoints, so
 // '.ldl-wire[data-to="TRIP"]' colours the wire feeding the TRIP output.
 //
 // What each rule in the STYLE block below targets:
-//   #G1 path                   -> the AND gate's body <path> (fill). "#G1" alone sets
-//                                 fill on the <g>, which the body's own fill overrides,
-//                                 so target the <path>.
-//   #P                         -> the block's <g> group (stroke inherits to the body).
+//   #G1 path                   -> the AND gate's body <path> (fill).
+//   #P rect                    -> the block's body <rect> (fill + stroke).
 //   .ldl-wire[data-to="TRIP"]  -> the signal wire whose destination net is TRIP.
 //   .ldl-wire[data-to="ALARM"] -> the signal wire whose destination net is ALARM.
 // Note: a bare "#TRIP" matches only the output node's short id-stub, NOT the wire that
@@ -376,7 +378,7 @@ P.Description = "SEL-751A"
 
 STYLE
   #G1 path { fill: #ff003333; }
-  #P { stroke: #1b5e20; }
+  #P rect { fill: #e8f5e9; stroke: #1b5e20; }
   .ldl-wire[data-to="TRIP"] { stroke: #c62828; stroke-width: 4; }
   .ldl-wire[data-to="ALARM"] { stroke: #ef6c00; }
 END STYLE`,
