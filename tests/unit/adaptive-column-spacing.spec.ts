@@ -26,7 +26,9 @@ const isGate = (l: LayoutResult, id: string) => {
 
 describe('COLUMN_SPACING = ADAPTIVE is safe and narrower', () => {
   for (const [name, src] of Object.entries(EXAMPLES)) {
-    if (/GATE_INPUT_STYLE\s*=\s*BARS/i.test(src)) continue; // BARS routing out of scope (as elsewhere)
+    // BARS routing is out of scope (as elsewhere). Check the parsed option, not the raw
+    // source, so an example that merely *mentions* BARS in a comment is still tested.
+    if (resolveOptions(parse(src).diagram.options).gateInputStyle === 'BARS') continue;
     describe(name, () => {
       const a = build(src, true);
       const u = build(src, false);

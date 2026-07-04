@@ -1,5 +1,8 @@
 export const EXAMPLES: Record<string, string> = {
-  'Breaker Failure (SEL-751A)': `// Breaker failure logic with feedback seal-in
+  'Breaker Failure (SEL-751A)': `// Feedback seal-in: BFT appears inside its OWN definition, so rather than
+// becoming a second input it is drawn as a loop-back wire (a latch holding
+// itself in). Labels use inline TeX ($...$). OUTPUT_ORDER / INPUT_ORDER = AUTO
+// reorder ports to minimise crossings (INPUT_ORDER is AUTO by default anyway).
 OPTION OUTPUT_ORDER = AUTO
 OPTION INPUT_ORDER = AUTO
 
@@ -16,7 +19,11 @@ INOM.Name = "$\\mathrm{0.02 \\cdot I_{NOM}}$"
 
 // SEL-751A Instruction Manual Figure 4.55 Breaker Failure Logic`,
 
-  'SEL Function Blocks': `// SEL-style timer, SR latch, comparator and edge triggers
+  'SEL Function Blocks': `// SEL-style function blocks compose like any sub-expression:
+//   TIMER(in, pu, do) - pickup/dropout delays. A bare number is cycles; ms/s/m
+//                       also work, or name them PU=/DO=. 0 = no delay.
+//   SR(set, reset).Q  - set/reset latch (.NQ for Q-bar; DOMINANT=SET, see "SR Latch").
+//   COMPARE(+, -)     - analog comparator.  RISING/FALLING(in) - edge one-shots.
 OPTION OUTPUT_ORDER = AUTO
 A = SR(COMPARE(IA, IPICKUP), RESET)
 TRIP = TIMER(A, 0, 30cyc)
@@ -31,9 +38,10 @@ PERMIT  = SR#L1(START, STOP, DOMINANT=SET).Q
 BLOCKED = SR#L1(START, STOP).NQ
 L1.Name = "Enable Latch"`,
 
-  'Layout Options': `// Layout controls: ADAPTIVE column spacing packs each column to its content,
-// COMPACT_V tightens row spacing, and an expression may span multiple lines —
-// a continuation line simply begins with whitespace.
+  'Layout Options': `// Layout controls: ADAPTIVE column spacing packs each column to its content
+// (default UNIFORM), COMPACT_V tightens row spacing (also COMPACT_H, COMPACT,
+// SPACIOUS, or explicit factors like [70,70]), and an expression may span
+// multiple lines — a continuation line simply begins with whitespace.
 OPTION COLUMN_SPACING = ADAPTIVE
 OPTION COMPACTNESS = COMPACT_V
 OPTION OUTPUT_ORDER = AUTO
@@ -46,8 +54,9 @@ PHASE.Name = "Phase OC"
 EARTH.Name = "Earth Fault"
 BLOCK.Name = "Harmonic Block"`,
 
-  'Labelled Gates': `// Name a gate by assigning it to an intermediate, then label it — the
+  'Labelled Gates': `// Name a gate by assigning it to an intermediate, then label that name — the
 // name/description appear at the gate's output and wires route around them.
+// (For the same result without the pass-through name, see "Named Gates".)
 OPTION OUTPUT_ORDER = AUTO
 PH  = O51 OR O50 OR NEGSEQ
 EF  = E51N OR E50N
@@ -63,7 +72,10 @@ HS.Description = "50-2"
 SUP.Name = "Supervised"
 SUP.Description = "harmonic block"`,
 
-  'Complex Protection (SEL)': `// SEL scheme exercising every block type with gate logic
+  'Complex Protection (SEL)': `// Every block type, nested and mixed with gates. A block may take an instance
+// id (TIMER#TD, COMPARE#C50) so it can carry a .Name/.Description, and blocks
+// nest freely — here a COMPARE feeds an SR feeds a TIMER. Bare cycle numbers
+// (2cyc, 12cyc) are positional PU/DO settings.
 OPTION OUTPUT_ORDER = AUTO
 
 OC_TRIP = TIMER#TD(SR#TL(COMPARE#C50(IA, IPICKUP) AND NOT BLOCK, RESET), 2cyc, 0)
@@ -92,7 +104,10 @@ A.Name = "Trip Permit"
 A.Description = "Seal-in"
 B.OUT = TRUE`,
 
-  'Generic Block (FB)': `// Generic user block: instantiate once, bind multiple outputs via bare port assignment
+  'Generic Block (FB)': `// A generic user block (FB): a box with whatever ports you need, for a function
+// whose internals aren't drawn. Call arguments are input ports (NAME=expr labels
+// them); each .PORT you reference is an output port. Reusing one #id (FB#PROT)
+// binds several outputs to a SINGLE box.
 OPTION OUTPUT_ORDER = AUTO
 TRIP  = FB#PROT(PHASE=IA, EARTH=IN, EN=ENABLE).TRIP
 ALARM = FB#PROT.ALARM
@@ -112,32 +127,48 @@ O1 = AND#GEN(A, B)
 GEN.Name = "Combo Gate"
 GEN.Description = "stage 1"`,
 
-  'Simple AND Gate': `// Simple AND gate
+  'Simple AND Gate': `// The smallest diagram: one assignment. Bare identifiers that are never
+// assigned (A, B) become boundary inputs on the left; the assigned name (OUT)
+// becomes the output on the right. The operators are AND, OR and NOT.
 OUT = A AND B`,
 
-  'Simple OR Gate': `// Simple OR gate
+  'Simple OR Gate': `// An OR gate. Its ">=1" glyph is the IEC 60617 symbol for OR (AND shows "&",
+// NOT a triangle). Combine AND / OR / NOT to build any boolean expression.
 OUT = A OR B`,
 
-  'NOT Gate': `// NOT gate
+  'NOT Gate': `// A NOT gate (inverter), drawn as a triangle with a bubble. With
+// OPTION INVERSION = BUBBLES the inversion is drawn as just a bubble on the
+// downstream port instead of a separate gate (see "Inversion Bubbles").
 OUT = NOT A`,
 
-  'Combined Logic (CBFPS)': `// Protection logic for CBFPS
+  'Combined Logic (CBFPS)': `// Operator precedence is NOT > AND > OR, so this parses as
+// (AB AND DC) OR ((NOT DC) AND GF). Add parentheses to override precedence.
 CBFPS = AB AND DC OR (NOT DC AND GF)`,
 
-  'Trip Logic': `// Trip Logic: TRIP is a consumed intermediate (not shown); MAIN_TRIP is the output
+  'Trip Logic': `// TRIP is used by MAIN_TRIP, so it is a consumed intermediate — drawn as an
+// internal gate, not a boundary output. Add "TRIP.OUT = TRUE" to also expose it
+// as an output (see "Shared Intermediates").
 TRIP = OVERCURRENT OR (NOT EARTH_FAULT)
 MAIN_TRIP = TRIP AND (MANUAL_TRIP OR REMOTE_TRIP)`,
 
-  'Three-Input AND': `// Three inputs into an AND gate
+  'Three-Input AND': `// A multi-input gate. By default (GATE_INPUT_STYLE = EXPAND) the gate grows
+// vertically to fit every input; GATE_INPUT_STYLE = BARS keeps it 2-input-sized
+// and taps the extra inputs onto vertical bars instead (see "Input Bars").
 OUT = A AND B AND C`,
 
-  'Triple OR': `// Three inputs into an OR gate
+  'Triple OR': `// Three inputs into one OR gate. INPUT_ORDER = AUTO (the default) may reorder
+// a gate's inputs to reduce wire crossings; INPUT_ORDER = DECLARATION keeps the
+// order as written.
 ALARM = TEMP OR PRESSURE OR FLOW`,
 
-  'Nested NOT': `// Double negation
+  'Nested NOT': `// Double negation cancels: NOT NOT A = A, so no inverter is drawn. An odd
+// number of NOTs reduces to a single inversion — try adding one more NOT.
 OUT = NOT NOT A`,
 
-  'Complex Protection': `// Complex protection scheme
+  'Complex Protection': `// TRIP_1 and TRIP_2 are referenced by MAIN_TRIP, so they are consumed
+// intermediates: drawn as internal gates that fan out, not as boundary outputs.
+// Only MAIN_TRIP (referenced by nothing) becomes an output. OUTPUT_ORDER = AUTO
+// stacks outputs by their driver to reduce crossings (default: DECLARATION order).
 OPTION OUTPUT_ORDER = AUTO
 TRIP_1 = OVERCURRENT_A OR OVERCURRENT_B
 TRIP_2 = EARTH_FAULT AND NOT BLOCK
@@ -185,7 +216,9 @@ O1 = (I1 AND I2) AND (I3 AND I4 AND NOT I5) AND ((I6 AND I7 AND I8) OR (I9 AND I
 O1.Name = "Launch Command"
 O1.Description = "(BO 3.2)"`,
 
-  'Inversion Bubbles': `// Inversion Bubbles: NOT rendered as bubbles on gate inputs/outputs
+  'Inversion Bubbles': `// INVERSION = BUBBLES draws every NOT as a small bubble on the downstream
+// input/output port instead of a separate NOT gate (the default is
+// INVERSION = GATES). O4 shows double-inversion cancellation (NOT NOT I3 = I3).
 OPTION INVERSION = BUBBLES
 
 I1.Name = "Start Permitted"
@@ -209,7 +242,9 @@ O3.Description = "(BO 1.3)"
 O4.Name = "Pass-Through"
 O4.Description = "(BO 1.4)"`,
 
-  'Input Bars': `// Input Bars: multi-input gates stay at 2-input size
+  'Input Bars': `// GATE_INPUT_STYLE = BARS keeps a multi-input gate at its base 2-input size and
+// taps the extra inputs onto vertical bars. The default, EXPAND, grows the gate
+// vertically instead (compare "Three-Input AND").
 OPTION GATE_INPUT_STYLE = BARS
 
 I1.Name = "Start"
@@ -221,7 +256,8 @@ I5.Name = "Supervision"
 O1 = I1 AND I2 AND I3 AND I4 AND I5
 O1.Name = "Output"`,
 
-  'Square Ports': `// Square port markers
+  'Square Ports': `// PORT_STYLE = SQUARE draws port markers as small squares; the default is
+// CIRCLE. (Other rendering options: INVERSION, GATE_INPUT_STYLE, LABEL_STYLE.)
 OPTION PORT_STYLE = SQUARE
 
 A.Name = "Signal A"
@@ -229,7 +265,9 @@ B.Name = "Signal B"
 O1 = A AND B
 O1.Name = "Result"`,
 
-  'Combined Options': `// Combined options: bubbles + bars + square ports
+  'Combined Options': `// Options combine freely. Here three at once — bubbles for NOT, bars for the
+// multi-input gate, and square port markers — each overriding its own default
+// (GATES / EXPAND / CIRCLE). Options must precede the logic they affect.
 OPTION INVERSION = BUBBLES
 OPTION GATE_INPUT_STYLE = BARS
 OPTION PORT_STYLE = SQUARE
@@ -245,7 +283,9 @@ O1 = (I1 AND NOT I2) AND (I3 AND I4 AND I5 AND I6)
 O1.Name = "Master Trip"
 O1.Description = "(BO 1.1)"`,
 
-  'Overcurrent Protection': `// Overcurrent protection with math labels
+  'Overcurrent Protection': `// Inline TeX math in labels: wrap it in $...$ (e.g. $I_a$, $I_{set}$). Plain
+// text and math may be mixed, and a literal dollar is written \\$. I1 feeds both
+// outputs — a name used more than once is one shared input that fans out.
 OPTION OUTPUT_ORDER = AUTO
 I1.Name = "$I_a$"
 I1.Description = "Phase A current"
@@ -268,7 +308,9 @@ O2.Description = "Residual current"
 O1 = I1 AND I4
 O2 = I1 OR I2 OR I3`,
 
-  'Differential Protection': `// Differential protection: $I_{diff} = I_{in} - I_{out}$
+  'Differential Protection': `// More TeX-labelled I/O — subscripts ($I_{in}$), inequalities ($>$) and mixed
+// text/math. I3 (Block) is used by both outputs, so it fans out to each.
+// Differential protection: $I_{diff} = I_{in} - I_{out}$
 
 I1.Name = "$I_{in}$"
 I1.Description = "CT primary current"
@@ -288,7 +330,9 @@ O2.Description = "$I_0 > I_{0\\_set}$"
 O1 = (I1 AND NOT I2) AND NOT I3
 O2 = NOT I3`,
 
-  'Boolean Algebra': `// Boolean algebra with math notation
+  'Boolean Algebra': `// The four basic functions. There is no NAND operator — write it as
+// NOT (A AND B), as O4 does. The overline in the labels is TeX
+// ($\\overline{A \\cdot B}$), not a language construct.
 OPTION OUTPUT_ORDER = AUTO
 
 A.Name = "$A$"
@@ -317,7 +361,9 @@ O2 = A OR B
 O3 = NOT A
 O4 = NOT (A AND B)`,
 
-  'Motor Control Circuit': `// Motor starting circuit with math notation
+  'Motor Control Circuit': `// A motor starter: TeX-labelled I/O plus INVERSION = BUBBLES for the NOT
+// inputs. Note the OPTION line can sit anywhere before the expressions that use
+// it (here it follows the label declarations).
 
 I1.Name = "Start PB"
 I1.Description = "$NO\\ contact$"
