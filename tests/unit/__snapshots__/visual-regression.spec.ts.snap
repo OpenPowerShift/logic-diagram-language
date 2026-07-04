@@ -1907,7 +1907,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
           0,
         ],
       ],
-      "label": null,
+      "label": "C50",
       "name": "50P1",
       "outputs": [
         [
@@ -1944,7 +1944,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
           0,
         ],
       ],
-      "label": null,
+      "label": "C87",
       "name": "87",
       "outputs": [
         [
@@ -2450,7 +2450,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
           0,
         ],
       ],
-      "label": null,
+      "label": "TL",
       "name": "Trip Latch",
       "outputs": [
         [
@@ -2480,7 +2480,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
           0,
         ],
       ],
-      "label": null,
+      "label": "TD",
       "name": "62T",
       "outputs": [
         [
@@ -2510,7 +2510,7 @@ exports[`Visual regression (layout geometry) > Complex Protection (SEL) 1`] = `
           0,
         ],
       ],
-      "label": null,
+      "label": "BFT",
       "name": "62BF",
       "outputs": [
         [
@@ -3691,7 +3691,7 @@ exports[`Visual regression (layout geometry) > Generic Block (FB) 1`] = `
           0,
         ],
       ],
-      "label": null,
+      "label": "PROT",
       "name": "Feeder Protection",
       "outputs": [
         [
@@ -8143,7 +8143,7 @@ exports[`Visual regression (layout geometry) > Named Gates 1`] = `
         60,
         60,
       ],
-      "desc": null,
+      "desc": "stage 1",
       "inputs": [
         [
           430,
@@ -8160,8 +8160,8 @@ exports[`Visual regression (layout geometry) > Named Gates 1`] = `
           0,
         ],
       ],
-      "label": null,
-      "name": null,
+      "label": "GEN",
+      "name": "Combo Gate",
       "outputs": [
         [
           490,
@@ -8180,7 +8180,7 @@ exports[`Visual regression (layout geometry) > Named Gates 1`] = `
         60,
         50,
       ],
-      "desc": null,
+      "desc": "permissive",
       "inputs": [
         [
           690,
@@ -8197,8 +8197,8 @@ exports[`Visual regression (layout geometry) > Named Gates 1`] = `
           0,
         ],
       ],
-      "label": null,
-      "name": null,
+      "label": "TRIP1",
+      "name": "Trip AND",
       "outputs": [
         [
           750,
@@ -8379,7 +8379,7 @@ exports[`Visual regression (layout geometry) > Named Gates 1`] = `
         75,
         90,
       ],
-      "desc": null,
+      "desc": "51/50N",
       "inputs": [
         [
           436,
@@ -8403,8 +8403,8 @@ exports[`Visual regression (layout geometry) > Named Gates 1`] = `
           0,
         ],
       ],
-      "label": null,
-      "name": null,
+      "label": "OC1",
+      "name": "Overcurrent",
       "outputs": [
         [
           505,
@@ -11216,7 +11216,7 @@ exports[`Visual regression (layout geometry) > SR Latch (Q and NQ) 1`] = `
           0,
         ],
       ],
-      "label": null,
+      "label": "L1",
       "name": "Enable Latch",
       "outputs": [
         [
@@ -12391,8 +12391,8 @@ exports[`Visual regression (layout geometry) > Styled by ID 1`] = `
           0,
         ],
       ],
-      "label": null,
-      "name": null,
+      "label": "G1",
+      "name": "Trip AND",
       "outputs": [
         [
           765,
@@ -12435,7 +12435,7 @@ exports[`Visual regression (layout geometry) > Styled by ID 1`] = `
           0,
         ],
       ],
-      "label": null,
+      "label": "P",
       "name": "Feeder Protection",
       "outputs": [
         [

@@ -402,6 +402,13 @@ function renderNodeIds(node: LayoutNode, showIds: boolean, ids: string[], theme:
       ids.push(`<text class="ldl-id" x="${port.absX - PORT_SIZE / 2 - 3}" y="${port.absY + 3}" text-anchor="end" fill="${theme.idFill}" font-size="10" font-family="sans-serif" font-weight="600">${esc(node.label ?? '')}</text>`);
     }
   } else {
+    // The gate/block's own instance id, centred above the body — this is the handle a STYLE
+    // `#ID` selector targets (e.g. AND#G1 -> "G1"), so revealing IDs must show it. A gate's name
+    // label sits at absY-7; stack the id above it so both stay legible when both layers show. A
+    // block's name is drawn inside the body, so its id can sit directly above.
+    const cx = node.absX + node.width / 2;
+    const idY = (!node.blockType && node.name) ? node.absY - 19 : node.absY - 7;
+    ids.push(`<text class="ldl-id" x="${cx}" y="${idY}" text-anchor="middle" fill="${theme.idFill}" font-size="10" font-family="sans-serif" font-weight="600">${esc(svgObjectId(node))}</text>`);
     for (const p of node.inputs) {
       ids.push(`<text class="ldl-id" x="${p.absX - PORT_SIZE / 2 - 3}" y="${p.absY + 3}" text-anchor="end" fill="${theme.idFill}" font-size="10" font-family="sans-serif" font-weight="600">${esc(p.name)}</text>`);
     }

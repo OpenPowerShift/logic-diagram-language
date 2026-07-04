@@ -47,16 +47,19 @@ export function flattenGate(node: LogicNode): LogicNode {
   if (node.gateType === 'AND' || node.gateType === 'OR') {
     const merged: LogicNode[] = [];
     for (const input of flatInputs) {
-      if (input.kind === 'gate' && input.gateType === node.gateType) {
+      // Merge associative same-type chains, but never absorb a child gate that carries an
+      // explicit instance id (AND#ID) — that is a distinct, named gate and must stay its own
+      // node so its .Name/.Description meta resolves.
+      if (input.kind === 'gate' && input.gateType === node.gateType && input.id === undefined) {
         merged.push(...input.inputs);
       } else {
         merged.push(input);
       }
     }
-    return { kind: 'gate', gateType: node.gateType, inputs: merged } as GateNode;
+    return { kind: 'gate', gateType: node.gateType, id: node.id, inputs: merged } as GateNode;
   }
 
-  return { kind: 'gate', gateType: node.gateType, inputs: flatInputs } as GateNode;
+  return { kind: 'gate', gateType: node.gateType, id: node.id, inputs: flatInputs } as GateNode;
 }
 
 // Build the flattened logic graph from the parsed diagram: resolve every assignment into shared
@@ -250,7 +253,7 @@ export function buildGraph(
         id = uid(node.blockType.toLowerCase());
         nodes.set(id, {
           id, kind: 'gate', gateType: node.blockType, blockType: node.blockType,
-          params: node.params, name: meta?.name, description: meta?.description,
+          label: node.id, params: node.params, name: meta?.name, description: meta?.description,
           depth, inputIds, inputPorts, inputLabels: node.inputLabels, usedPorts: new Set<string>(),
         });
         blockMap.set(key, id);

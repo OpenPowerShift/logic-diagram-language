@@ -345,11 +345,22 @@ OPTION INVERSION = BUBBLES
 O1 = I1 AND NOT I2 AND NOT I3 AND NOT I4
 O2 = I3 OR I4 OR NOT I5`,
 
-  'Styled by ID': `// Reveal IDs in the toolbar, then click any element. Its SVG id (gate, input,
-// output, wire, dot) is revealed so it can be styled or scripted.
+  'Styled by ID': `// Reveal IDs in the toolbar to see the SVG id on each gate, block and port.
 //
-// The STYLE block targets specific #ID groups emitted in the SVG output.
-// AND#G1 -> SVG id "G1"; FB#P -> SVG id "P"; TRIP/O1 -> SVG ids "TRIP"/"O1".
+// A gate/block group carries its instance id: AND#G1 -> id "G1", FB#P -> id "P".
+// The gate body is a <path>, so "#G1 path" fills it; "#P" strokes the block group.
+// Every wire carries data-from / data-to with its net endpoints, so
+// '.ldl-wire[data-to="TRIP"]' colours the wire feeding the TRIP output.
+//
+// What each rule in the STYLE block below targets:
+//   #G1 path                   -> the AND gate's body <path> (fill). "#G1" alone sets
+//                                 fill on the <g>, which the body's own fill overrides,
+//                                 so target the <path>.
+//   #P                         -> the block's <g> group (stroke inherits to the body).
+//   .ldl-wire[data-to="TRIP"]  -> the signal wire whose destination net is TRIP.
+//   .ldl-wire[data-to="ALARM"] -> the signal wire whose destination net is ALARM.
+// Note: a bare "#TRIP" matches only the output node's short id-stub, NOT the wire that
+// feeds it — colour the wire itself via its data-to net.
 //
 // Toggle the Dots toolbar button to hide junction tie-points (item 11).
 // Use the PNG dropdown for selectable-DPI raster export (item 13).
@@ -364,10 +375,10 @@ P.Name = "Feeder Protection"
 P.Description = "SEL-751A"
 
 STYLE
-  #G1 .ldl-fill { fill: #fff3cd; }
-  #P  { stroke: #1b5e20; }
-  #TRIP { stroke: #c62828; stroke-width: 4; }
-  #ALARM { stroke: #ef6c00; }
+  #G1 path { fill: #ff003333; }
+  #P { stroke: #1b5e20; }
+  .ldl-wire[data-to="TRIP"] { stroke: #c62828; stroke-width: 4; }
+  .ldl-wire[data-to="ALARM"] { stroke: #ef6c00; }
 END STYLE`,
 
   'Hidden Dots': `// OPTION HIDE_JUNCTIONS hides every junction dot on the diagram (the toolbar
