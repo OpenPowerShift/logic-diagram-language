@@ -1901,6 +1901,21 @@ function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: Render
       }
     return c;
   };
+  // Interior crossings of ONE wire against all other cross-net wires (same rule as nestCross). When a
+  // reshape moves a single wire and nothing else, its own crossing count is the exact whole-diagram
+  // delta — so this O(N) check replaces the O(N^2) nestCross() inside per-wire move searches.
+  const wireCross = (self: LayoutWire) => {
+    if (self.feedback) return 0;
+    let c = 0;
+    for (const o of wires) {
+      if (o === self || o.fromId === self.fromId || o.feedback) continue;
+      for (let s = 0; s < self.points.length - 1; s++)
+        for (let t = 0; t < o.points.length - 1; t++)
+          if (nestHit(self.points[s], self.points[s + 1], o.points[t], o.points[t + 1]) ||
+              nestHit(o.points[t], o.points[t + 1], self.points[s], self.points[s + 1])) c++;
+    }
+    return c;
+  };
   for (const gate of layoutNodes) {
     if (gate.gateType === 'INPUT' || gate.gateType === 'OUTPUT') continue;
     const fanWires = wires.filter(w => w.toId === gate.id && Math.abs(w.points[0].y - lastPt(w).y) >= 1);
@@ -2056,6 +2071,62 @@ function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: Render
           if (done) break;
         }
       }
+    }
+  }
+
+  // Un-wrap a single-consumer INPUT that wraps a block to reach its gate port (mirror of the output
+  // placement above). A free input — exactly one consumer — feeds one port of a gate, but a sibling
+  // block that also feeds that gate (an SR seal-in latch / sub-OR) sits in the horizontal span between
+  // them, occupying the input's straight-line Y. The A* router is then forced up-and-over (or through)
+  // that block, landing its wire across the block's own I/O wires (e.g. CTR3 → PSV03, wrapped over the
+  // seal-in SR, crossing SR.Q→OR and OR→SR). Move the input's SOURCE Y to the near outer edge of that
+  // shadow so a clean gate-clear H–V–H enters the fixed port from the correct side. Because only this
+  // one wire moves, its own crossing count (wireCross, O(N)) is the exact whole-diagram delta; the move
+  // is kept only if that STRICTLY drops and the route validates (gate clearance, separation contract,
+  // sibling-input spacing, legal dogleg), reverted otherwise. So it can only ever remove a wrap
+  // crossing and never introduces a crossing, crowd, overlap, or sub-min dogleg.
+  {
+    const fanout = new Map<string, number>();
+    for (const w of wires) if (!w.feedback) fanout.set(w.fromId, (fanout.get(w.fromId) ?? 0) + 1);
+    for (const S of layoutNodes) {
+      if (S.gateType !== 'INPUT' || !S.outputs[0]) continue;
+      if ((fanout.get(S.id) ?? 0) !== 1) continue;                          // single-consumer input only
+      const w = wires.find(x => x.fromId === S.id && !x.feedback);
+      if (!w || w.points.length < 4) continue;                             // a straight/one-bend input is already clean
+      const before = wireCross(w);
+      if (before === 0) continue;                                          // only act on an input wire that crosses
+      const dest = nodeMap.get(w.toId);
+      if (!dest || dest.gateType === 'INPUT' || dest.gateType === 'OUTPUT') continue;
+      const sx = w.points[0].x, port = lastPt(w), px = port.x, py = port.y;
+      const sibClear = (sy: number) => layoutNodes.every(s => s === S || s.gateType !== 'INPUT' ||
+        s.absX !== S.absX || Math.abs((s.absY + s.height / 2) - sy) >= MIN_PORT_GAP - 0.5);
+      const savedPts = w.points, savedSY = S.absY, savedOutY = S.outputs[0].absY;
+      // Search source Ys nearest the port outward; keep the FEWEST-crossing clean route (a partial
+      // un-wrap that still clips a sibling wire, e.g. lands on the block's other input, is not the goal —
+      // the fully-clear position just past that wire is). Only touch `w`, so wireCross is the exact delta.
+      let best: { pts: { x: number; y: number }[]; sy: number; cross: number } | null = null;
+      let done = false;
+      for (let d = GRID; d <= 500 && !done; d += GRID) {                    // source Y nearest the port first, above or below
+        for (const sy of [py - d, py + d]) {
+          if (sy < 0 || !sibClear(sy)) continue;
+          const jog = Math.abs(sy - py);
+          if (jog >= 0.5 && jog < MIN_DOGLEG) continue;                     // would be a sub-min dogleg
+          for (let tapX = Math.round((px - GATE_ENTRANCE) / GRID) * GRID; tapX > sx + MIN_DOGLEG; tapX -= GRID) {
+            const route = [{ x: sx, y: sy }, { x: tapX, y: sy }, { x: tapX, y: py }, { x: px, y: py }]
+              .filter((p, i, a) => i === 0 || Math.abs(p.x - a[i - 1].x) >= 0.5 || Math.abs(p.y - a[i - 1].y) >= 0.5);
+            const skip = (o: LayoutWire) => o === w || o.fromId === w.fromId;
+            if (!vGateClear(tapX, sy, py) || !hGateClear(sy, sx, tapX, w.fromId) ||
+                !hGateClear(py, tapX, px, w.toId) || !wireClear(route, skip)) continue;
+            w.points = route;
+            const c = wireCross(w);
+            w.points = savedPts;
+            if (c < (best?.cross ?? before)) best = { pts: route, sy, cross: c };
+            if (c === 0) { done = true; break; }                            // fully clean — take it (nearest wins)
+          }
+          if (done) break;
+        }
+      }
+      if (best && best.cross < before) { w.points = best.pts; S.outputs[0].absY = best.sy; S.absY = best.sy - S.height / 2; }
     }
   }
 

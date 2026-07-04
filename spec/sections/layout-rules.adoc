@@ -123,8 +123,8 @@ this order:
   cleanup, a protected minimum gap between adjacent gate bodies, and output placement.
 . **Wire routing** (obstacle-aware A* fan-out), then the reshaping passes: channel-track assignment,
   multi-input fan-in channels (<<fan-in-channels>>), obstacle-aware output placement
-  (<<output-placement>>), sub-`MIN_DOGLEG` straightening, feedback routing, shared fan-out trunk
-  merge, and the gate-entrance guarantee (<<gate-entrance>>).
+  (<<output-placement>>) and input un-wrap (<<input-unwrap>>), sub-`MIN_DOGLEG` straightening,
+  feedback routing, shared fan-out trunk merge, and the gate-entrance guarantee (<<gate-entrance>>).
 . **Junction detection**, a final uniform vertical re-normalisation (which shifts every node, wire,
   junction AND label together so labels never drift from the gates they annotate), and a
   **blank-band collapse**: any fully-empty horizontal band between two disconnected logic sections
@@ -361,6 +361,23 @@ and route exist that are strictly simpler (2 bends versus the detour's more) and
 clearance, the wire-separation contract, sibling-output spacing, a legal dogleg, and a no-new-crossing
 guard; otherwise it is reverted. So it can only ever simplify a forced detour and never introduces a
 crossing, crowd, overlap, or sub-`MIN_DOGLEG` dogleg.
+
+[#input-unwrap]
+==== Obstacle-Aware Input Un-Wrap
+
+The mirror of output placement, on the source side. A single-consumer input feeds one port of a gate,
+but a sibling block that also feeds that gate — an SR seal-in latch or a sub-`OR` — can sit in the
+horizontal span between them, occupying the input's straight-line Y. The router is then forced to wrap
+that input up-and-over (or through) the block, landing its wire across the block's own I/O (e.g. a
+cross-trip input into a trip `OR`, wrapped over the seal-in `SR`, crossing both the latch's `Q`-out and
+its set/reset-in). When this happens the renderer moves the input's *source* Y to the near outer edge of
+that shadow and redraws the wire as one clean H–V–H entering the fixed port from the correct side. It
+searches source Ys outward from the port and keeps the fewest-crossing fully-clear route — a partial
+un-wrap that merely lands on the block's other input wire is not the target. Because only that one wire
+moves, its own crossing count is the exact whole-diagram delta, so the move is kept only when it
+strictly reduces crossings and validates through gate clearance, the wire-separation contract,
+sibling-input spacing, and a legal dogleg; otherwise it is reverted. So it can only ever remove a wrap
+crossing and never introduces a crossing, crowd, overlap, or sub-`MIN_DOGLEG` dogleg.
 
 [#fan-out-dots]
 ==== Fan-Out Junction Dots
