@@ -124,41 +124,42 @@ MAIN_TRIP = TRIP_1 AND TRIP_2`,
 RESULT = (A AND B) OR (C AND NOT D)
 OUTPUT = RESULT AND (ENABLE OR FORCE)`,
 
-  'Interlocking Q01 Close': `// Interlocking Example for Collector Feeder Q01 (Close)
+  'Launch Interlock': `// Launch interlock for Pad 39A: all safety permissives, no hold,
+// AND either the automatic sequence OR a manual firing enable ignition
 
-I1.Name = "CBQ 00 Open"
-I1.Description = "(BI 3.1)"
+I1.Name = "Pad Cleared"
+I1.Description = "(LP 3.1)"
 
-I2.Name = "BB Not Earthed"
-I2.Description = "(BI 3.24)"
+I2.Name = "Umbilicals Retracted"
+I2.Description = "(LP 3.24)"
 
-I3.Name = "D/S Q01 Open"
-I3.Description = "(BI 3.3)"
+I3.Name = "Tanks Pressurised"
+I3.Description = "(LP 3.3)"
 
-I4.Name = "E/S Q05 Open"
-I4.Description = "(BI 3.5)"
+I4.Name = "Guidance Aligned"
+I4.Description = "(GNC 3.5)"
 
-I5.Name = "KF1 Release"
-I5.Description = "(BI 3.15)"
+I5.Name = "Hold Fired"
+I5.Description = "(RSO 3.15)"
 
-I6.Name = "In Remote"
-I6.Description = "(BI 3.11)"
+I6.Name = "Auto Sequence"
+I6.Description = "(SEQ 3.11)"
 
-I7.Name = "SCADA ON"
-I7.Description = "(BI 3.23)"
+I7.Name = "Range Safety Armed"
+I7.Description = "(RSO 3.23)"
 
-I8.Name = "DNP Close Command"
-I8.Description = "(via RTU)"
+I8.Name = "GO from LCC"
+I8.Description = "(via LCC)"
 
-I9.Name = "In Local"
-I9.Description = "(BI 3.12)"
+I9.Name = "Manual Enable"
+I9.Description = "(LCC 3.12)"
 
-I10.Name = "Close Switch"
-I10.Description = "(BI 3.20)"
+I10.Name = "Fire Button"
+I10.Description = "(LCC 3.20)"
 
 O1 = (I1 AND I2) AND (I3 AND I4 AND NOT I5) AND ((I6 AND I7 AND I8) OR (I9 AND I10))
 
-O1.Name = "Output"
+O1.Name = "Launch Command"
 O1.Description = "(BO 3.2)"`,
 
   'Inversion Bubbles': `// Inversion Bubbles: NOT rendered as bubbles on gate inputs/outputs
@@ -355,62 +356,63 @@ A = A1 OR A2 OR A3
 B = B1 AND B2 AND B3
 O = A AND B AND C`,
 
-  'Electrical Trip Matrix': `// Real-world trip matrix: a large (18-input) OR gathers every electrical
-// trip, an SR latch seals it in, and the result fans out to LEDs, ICMS,
-// oscillography and circuit-breaker trips. Exercises large fan-in and
-// reconvergence (PSV01 drives several outputs and the TRS OR; TRS drives more).
+  'Reactor Scram Matrix': `// Real-world scram matrix: a large (18-input) OR gathers every reactor
+// protection trip, an SR latch seals it in, and the result fans out to
+// annunciators, the plant computer, transient records and rod-drive trips.
+// Exercises large fan-in and reconvergence (SCR01 drives several outputs and
+// the RTS OR; RTS drives more).
 OPTION OUTPUT_ORDER = AUTO
 
-E24U2T1.Name = "TRF OVERFLUX"
-EWT.Name = "WINDING TEMP (IN301)"
-E50TP2.Name = "TRF INSTANT. OC (50TP2)"
-EPSV17.Name = "TRF INSTANT.N OC (PSV17)"
-E51T01.Name = "TRF IDMT OC (51T01)"
-E51T02.Name = "TRF IDMT OC (51T02)"
-E593P1T.Name = "BUSBAR E/F Stage 1 (594P1T)"
-E593P2T.Name = "BUSBAR E/F Stage 2 (593P1T)"
-EBUCH.Name = "BUCHHOLZ (IN307)"
-ETP.Name = "TANK PRESSURE"
-EREFF2.Name = "RESTRICTED EF (REFF2)"
-E87Z2.Name = "TRF DIFF (87Z2)"
-E87Q2.Name = "TRF NEG. SEQ. DIFF (87Q2)"
-EIN202.Name = "LOSS OF GT COOLING (IN202)"
-EPLQ_X_IT.Name = "PLQ_X INTERTRIP (IN408)"
-EPLQ_X_CBF.Name = "PLQ_X CBF (IN407)"
-EGCB_CBF.Name = "GCB CBF (FBFS)"
-SWA_CON_MON.Name = "6.6kV SWA DC CONTROL MONITOR (PSV20)"
-SWB_CON_MON.Name = "6.6kV SWB DC CONTROL MONITOR (PSV20)"
-CTR.Name = "From Cross-Trip 1 Received (IN203)"
+E24U2T1.Name = "NEUTRON FLUX HIGH"
+EWT.Name = "CORE OUTLET TEMP HIGH (RT301)"
+E50TP2.Name = "RCS PRESSURE HIGH (PT502)"
+EPSV17.Name = "RCS PRESSURE LOW (PT517)"
+E51T01.Name = "SG-1 LEVEL LOW (LT101)"
+E51T02.Name = "SG-2 LEVEL LOW (LT102)"
+E593P1T.Name = "CONTAINMENT PRESS HI-1 (PT591)"
+E593P2T.Name = "CONTAINMENT PRESS HI-2 (PT592)"
+EBUCH.Name = "RCP UNDERSPEED (ST307)"
+ETP.Name = "STEAM LINE PRESSURE"
+EREFF2.Name = "REACTOR COOLANT FLOW LOW (FT2)"
+E87Z2.Name = "PRESSURISER LEVEL HIGH (LT2)"
+E87Q2.Name = "FEED/STEAM MISMATCH (FQ2)"
+EIN202.Name = "LOSS OF COOLANT FLOW (IN202)"
+EPLQ_X_IT.Name = "MANUAL SCRAM A (IN408)"
+EPLQ_X_CBF.Name = "MANUAL SCRAM B (IN407)"
+EGCB_CBF.Name = "TURBINE TRIP (TTFS)"
+SWA_CON_MON.Name = "DIV A DC BUS MONITOR (PSV20)"
+SWB_CON_MON.Name = "DIV B DC BUS MONITOR (PSV20)"
+CTR.Name = "From Div II Scram (IN203)"
 
 TR01 = E24U2T1 OR EWT OR E50TP2 OR EPSV17 OR E51T01 OR E51T02 OR (E593P1T OR E593P2T) OR EBUCH OR ETP OR EREFF2 OR E87Z2 OR E87Q2 OR EIN202 OR EPLQ_X_IT OR EPLQ_X_CBF OR EGCB_CBF OR SWA_CON_MON OR SWB_CON_MON
-TR01.Name = "ELEC TRIP 1"
+TR01.Name = "REACTOR SCRAM"
 
 PSV01 = SR(TR01, ULTR01).Q OR CTR
 TRS = PSV01 OR TRIP3 OR TRIP5
 
 LED_01 = PSV01
 LED_01.Out = True
-LED_01.Name = "TO LED_01"
+LED_01.Name = "TO SCRAM LED"
 
 ICMS_PSV01 = PSV01
 ICMS_PSV01.Out = True
-ICMS_PSV01.Name = "Electrical Trip 1 [TO LCD] & [TO ICMS]"
+ICMS_PSV01.Name = "Reactor Scram [TO SPDS] & [TO PPC]"
 
 OCT = PSV01
 OCT.Out = True
-OCT.Name = "To Oscillography Cross-Trigger (OUT204)"
+OCT.Name = "To Transient Recorder (OUT204)"
 
 SWA_CB_TRIP_1 = PSV01
-SWA_CB_TRIP_1.Name = "TO 6.6 kV A CB Trip 1"
+SWA_CB_TRIP_1.Name = "TO DIV A ROD DRIVE TRIP"
 
 SWB_CB_TRIP_1 = PSV01
-SWB_CB_TRIP_1.Name = "TO 6.6 kV B CB Trip 1"
+SWB_CB_TRIP_1.Name = "TO DIV B ROD DRIVE TRIP"
 
 GCB_TRIP_1 = TRS
-GCB_TRIP_1.Name = "TO GCB Trip 1 (OUT401)"
+GCB_TRIP_1.Name = "TO REACTOR TRIP BKR (OUT401)"
 
 GCB_CBF = TRS
-GCB_CBF.Name = "TO GCB CBF"`,
+GCB_CBF.Name = "TO SCRAM BKR FAIL"`,
 };
 
 export const EXAMPLE_NAMES = Object.keys(EXAMPLES);

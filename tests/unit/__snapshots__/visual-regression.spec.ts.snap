@@ -3650,1513 +3650,6 @@ exports[`Visual regression (layout geometry) > Differential Protection 1`] = `
 }
 `;
 
-exports[`Visual regression (layout geometry) > Electrical Trip Matrix 1`] = `
-{
-  "canvas": [
-    1570,
-    960,
-  ],
-  "junctions": [
-    [
-      1190,
-      320,
-    ],
-    [
-      1240,
-      320,
-    ],
-    [
-      1240,
-      360,
-    ],
-    [
-      1240,
-      400,
-    ],
-    [
-      1240,
-      440,
-    ],
-    [
-      1380,
-      870,
-    ],
-  ],
-  "labels": [
-    [
-      510,
-      355,
-      85,
-      20,
-      "ELEC TRIP 1",
-      null,
-    ],
-  ],
-  "nodes": [
-    {
-      "block": null,
-      "box": [
-        170,
-        100,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "E24U2T1",
-      "name": "TRF OVERFLUX",
-      "outputs": [
-        [
-          270,
-          110,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        130,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "E50TP2",
-      "name": "TRF INSTANT. OC (50TP2)",
-      "outputs": [
-        [
-          270,
-          140,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        160,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "E51T01",
-      "name": "TRF IDMT OC (51T01)",
-      "outputs": [
-        [
-          270,
-          170,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        190,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "E51T02",
-      "name": "TRF IDMT OC (51T02)",
-      "outputs": [
-        [
-          270,
-          200,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        220,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "E87Q2",
-      "name": "TRF NEG. SEQ. DIFF (87Q2)",
-      "outputs": [
-        [
-          270,
-          230,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        250,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "E87Z2",
-      "name": "TRF DIFF (87Z2)",
-      "outputs": [
-        [
-          270,
-          260,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        280,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "E593P1T",
-      "name": "BUSBAR E/F Stage 1 (594P1T)",
-      "outputs": [
-        [
-          270,
-          290,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        310,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "E593P2T",
-      "name": "BUSBAR E/F Stage 2 (593P1T)",
-      "outputs": [
-        [
-          270,
-          320,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        340,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "EBUCH",
-      "name": "BUCHHOLZ (IN307)",
-      "outputs": [
-        [
-          270,
-          350,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        370,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "EGCB_CBF",
-      "name": "GCB CBF (FBFS)",
-      "outputs": [
-        [
-          270,
-          380,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        400,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "EIN202",
-      "name": "LOSS OF GT COOLING (IN202)",
-      "outputs": [
-        [
-          270,
-          410,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        430,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "EPLQ_X_CBF",
-      "name": "PLQ_X CBF (IN407)",
-      "outputs": [
-        [
-          270,
-          440,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        460,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "EPLQ_X_IT",
-      "name": "PLQ_X INTERTRIP (IN408)",
-      "outputs": [
-        [
-          270,
-          470,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        490,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "EPSV17",
-      "name": "TRF INSTANT.N OC (PSV17)",
-      "outputs": [
-        [
-          270,
-          500,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        50,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "CTR",
-      "name": "From Cross-Trip 1 Received (IN203)",
-      "outputs": [
-        [
-          270,
-          60,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        520,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "EREFF2",
-      "name": "RESTRICTED EF (REFF2)",
-      "outputs": [
-        [
-          270,
-          530,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        550,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "ETP",
-      "name": "TANK PRESSURE",
-      "outputs": [
-        [
-          270,
-          560,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        580,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "EWT",
-      "name": "WINDING TEMP (IN301)",
-      "outputs": [
-        [
-          270,
-          590,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        610,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "SWA_CON_MON",
-      "name": "6.6kV SWA DC CONTROL MONITOR (PSV20)",
-      "outputs": [
-        [
-          270,
-          620,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        640,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "SWB_CON_MON",
-      "name": "6.6kV SWB DC CONTROL MONITOR (PSV20)",
-      "outputs": [
-        [
-          270,
-          650,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        780,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "ULTR01",
-      "name": null,
-      "outputs": [
-        [
-          270,
-          790,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        860,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "TRIP3",
-      "name": null,
-      "outputs": [
-        [
-          270,
-          870,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        940,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "TRIP5",
-      "name": null,
-      "outputs": [
-        [
-          270,
-          950,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        1210,
-        840,
-        75,
-        60,
-      ],
-      "desc": null,
-      "inputs": [
-        [
-          1218,
-          855,
-          "in_0",
-          null,
-          0,
-        ],
-        [
-          1218,
-          885,
-          "in_2",
-          null,
-          0,
-        ],
-        [
-          1220,
-          870,
-          "in_1",
-          null,
-          0,
-        ],
-      ],
-      "label": null,
-      "name": null,
-      "outputs": [
-        [
-          1285,
-          870,
-          "out",
-          0,
-        ],
-      ],
-      "type": "OR",
-    },
-    {
-      "block": null,
-      "box": [
-        430,
-        95,
-        75,
-        570,
-      ],
-      "desc": null,
-      "inputs": [
-        [
-          431,
-          110,
-          "in_0",
-          null,
-          0,
-        ],
-        [
-          431,
-          650,
-          "in_18",
-          null,
-          0,
-        ],
-        [
-          433,
-          140,
-          "in_1",
-          null,
-          0,
-        ],
-        [
-          433,
-          620,
-          "in_17",
-          null,
-          0,
-        ],
-        [
-          435,
-          170,
-          "in_2",
-          null,
-          0,
-        ],
-        [
-          435,
-          590,
-          "in_16",
-          null,
-          0,
-        ],
-        [
-          436,
-          200,
-          "in_3",
-          null,
-          0,
-        ],
-        [
-          436,
-          560,
-          "in_15",
-          null,
-          0,
-        ],
-        [
-          437,
-          230,
-          "in_4",
-          null,
-          0,
-        ],
-        [
-          437,
-          530,
-          "in_14",
-          null,
-          0,
-        ],
-        [
-          438,
-          260,
-          "in_5",
-          null,
-          0,
-        ],
-        [
-          438,
-          500,
-          "in_13",
-          null,
-          0,
-        ],
-        [
-          439,
-          290,
-          "in_6",
-          null,
-          0,
-        ],
-        [
-          439,
-          470,
-          "in_12",
-          null,
-          0,
-        ],
-        [
-          440,
-          320,
-          "in_7",
-          null,
-          0,
-        ],
-        [
-          440,
-          350,
-          "in_8",
-          null,
-          0,
-        ],
-        [
-          440,
-          380,
-          "in_9",
-          null,
-          0,
-        ],
-        [
-          440,
-          410,
-          "in_10",
-          null,
-          0,
-        ],
-        [
-          440,
-          440,
-          "in_11",
-          null,
-          0,
-        ],
-      ],
-      "label": null,
-      "name": null,
-      "outputs": [
-        [
-          505,
-          380,
-          "out",
-          0,
-        ],
-      ],
-      "type": "OR",
-    },
-    {
-      "block": null,
-      "box": [
-        950,
-        295,
-        60,
-        50,
-      ],
-      "desc": null,
-      "inputs": [
-        [
-          958,
-          310,
-          "in_0",
-          null,
-          0,
-        ],
-        [
-          960,
-          325,
-          "in_1",
-          null,
-          0,
-        ],
-      ],
-      "label": null,
-      "name": null,
-      "outputs": [
-        [
-          1010,
-          320,
-          "out",
-          0,
-        ],
-      ],
-      "type": "OR",
-    },
-    {
-      "block": null,
-      "box": [
-        1470,
-        310,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [
-        [
-          1470,
-          320,
-          "in",
-          null,
-          0,
-        ],
-      ],
-      "label": "LED_01",
-      "name": "TO LED_01",
-      "outputs": [],
-      "type": "OUTPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        1470,
-        350,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [
-        [
-          1470,
-          360,
-          "in",
-          null,
-          0,
-        ],
-      ],
-      "label": "ICMS_PSV01",
-      "name": "Electrical Trip 1 [TO LCD] & [TO ICMS]",
-      "outputs": [],
-      "type": "OUTPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        1470,
-        390,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [
-        [
-          1470,
-          400,
-          "in",
-          null,
-          0,
-        ],
-      ],
-      "label": "OCT",
-      "name": "To Oscillography Cross-Trigger (OUT204)",
-      "outputs": [],
-      "type": "OUTPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        1470,
-        430,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [
-        [
-          1470,
-          440,
-          "in",
-          null,
-          0,
-        ],
-      ],
-      "label": "SWA_CB_TRIP_1",
-      "name": "TO 6.6 kV A CB Trip 1",
-      "outputs": [],
-      "type": "OUTPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        1470,
-        470,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [
-        [
-          1470,
-          480,
-          "in",
-          null,
-          0,
-        ],
-      ],
-      "label": "SWB_CB_TRIP_1",
-      "name": "TO 6.6 kV B CB Trip 1",
-      "outputs": [],
-      "type": "OUTPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        1470,
-        860,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [
-        [
-          1470,
-          870,
-          "in",
-          null,
-          0,
-        ],
-      ],
-      "label": "GCB_TRIP_1",
-      "name": "TO GCB Trip 1 (OUT401)",
-      "outputs": [],
-      "type": "OUTPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        1470,
-        900,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [
-        [
-          1470,
-          910,
-          "in",
-          null,
-          0,
-        ],
-      ],
-      "label": "GCB_CBF",
-      "name": "TO GCB CBF",
-      "outputs": [],
-      "type": "OUTPUT",
-    },
-    {
-      "block": "SR",
-      "box": [
-        690,
-        560,
-        60,
-        50,
-      ],
-      "desc": null,
-      "inputs": [
-        [
-          690,
-          575,
-          "S",
-          null,
-          0,
-        ],
-        [
-          690,
-          590,
-          "R",
-          null,
-          0,
-        ],
-      ],
-      "label": null,
-      "name": null,
-      "outputs": [
-        [
-          750,
-          585,
-          "Q",
-          0,
-        ],
-      ],
-      "type": "SR",
-    },
-  ],
-  "wires": [
-    {
-      "feedback": 0,
-      "points": [
-        [
-          1010,
-          320,
-        ],
-        [
-          1190,
-          320,
-        ],
-        [
-          1190,
-          855,
-        ],
-        [
-          1218,
-          855,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          1010,
-          320,
-        ],
-        [
-          1240,
-          320,
-        ],
-        [
-          1240,
-          360,
-        ],
-        [
-          1470,
-          360,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          1010,
-          320,
-        ],
-        [
-          1240,
-          320,
-        ],
-        [
-          1240,
-          400,
-        ],
-        [
-          1470,
-          400,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          1010,
-          320,
-        ],
-        [
-          1240,
-          320,
-        ],
-        [
-          1240,
-          440,
-        ],
-        [
-          1470,
-          440,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          1010,
-          320,
-        ],
-        [
-          1240,
-          320,
-        ],
-        [
-          1240,
-          480,
-        ],
-        [
-          1470,
-          480,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          1010,
-          320,
-        ],
-        [
-          1470,
-          320,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          1285,
-          870,
-        ],
-        [
-          1380,
-          870,
-        ],
-        [
-          1380,
-          910,
-        ],
-        [
-          1470,
-          910,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          1285,
-          870,
-        ],
-        [
-          1470,
-          870,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          110,
-        ],
-        [
-          431,
-          110,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          140,
-        ],
-        [
-          433,
-          140,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          170,
-        ],
-        [
-          435,
-          170,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          200,
-        ],
-        [
-          436,
-          200,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          230,
-        ],
-        [
-          437,
-          230,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          260,
-        ],
-        [
-          438,
-          260,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          290,
-        ],
-        [
-          439,
-          290,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          320,
-        ],
-        [
-          440,
-          320,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          350,
-        ],
-        [
-          440,
-          350,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          380,
-        ],
-        [
-          440,
-          380,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          410,
-        ],
-        [
-          440,
-          410,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          440,
-        ],
-        [
-          440,
-          440,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          470,
-        ],
-        [
-          439,
-          470,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          500,
-        ],
-        [
-          438,
-          500,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          530,
-        ],
-        [
-          437,
-          530,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          560,
-        ],
-        [
-          436,
-          560,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          590,
-        ],
-        [
-          435,
-          590,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          60,
-        ],
-        [
-          930,
-          60,
-        ],
-        [
-          930,
-          310,
-        ],
-        [
-          958,
-          310,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          620,
-        ],
-        [
-          433,
-          620,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          650,
-        ],
-        [
-          431,
-          650,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          790,
-        ],
-        [
-          670,
-          790,
-        ],
-        [
-          670,
-          590,
-        ],
-        [
-          690,
-          590,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          870,
-        ],
-        [
-          1220,
-          870,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          950,
-        ],
-        [
-          1190,
-          950,
-        ],
-        [
-          1190,
-          885,
-        ],
-        [
-          1218,
-          885,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          505,
-          380,
-        ],
-        [
-          670,
-          380,
-        ],
-        [
-          670,
-          575,
-        ],
-        [
-          690,
-          575,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          750,
-          585,
-        ],
-        [
-          930,
-          585,
-        ],
-        [
-          930,
-          325,
-        ],
-        [
-          960,
-          325,
-        ],
-      ],
-    },
-  ],
-}
-`;
-
 exports[`Visual regression (layout geometry) > Generic Block (FB) 1`] = `
 {
   "canvas": [
@@ -6220,728 +4713,6 @@ exports[`Visual regression (layout geometry) > Input Bars 1`] = `
         [
           690,
           160,
-        ],
-      ],
-    },
-  ],
-}
-`;
-
-exports[`Visual regression (layout geometry) > Interlocking Q01 Close 1`] = `
-{
-  "canvas": [
-    1310,
-    655,
-  ],
-  "junctions": [],
-  "labels": [],
-  "nodes": [
-    {
-      "block": null,
-      "box": [
-        430,
-        425,
-        75,
-        90,
-      ],
-      "desc": null,
-      "inputs": [
-        [
-          430,
-          440,
-          "in_0",
-          null,
-          0,
-        ],
-        [
-          430,
-          470,
-          "in_1",
-          null,
-          0,
-        ],
-        [
-          430,
-          500,
-          "in_2",
-          null,
-          0,
-        ],
-      ],
-      "label": null,
-      "name": null,
-      "outputs": [
-        [
-          505,
-          470,
-          "out",
-          0,
-        ],
-      ],
-      "type": "AND",
-    },
-    {
-      "block": null,
-      "box": [
-        430,
-        595,
-        60,
-        60,
-      ],
-      "desc": null,
-      "inputs": [
-        [
-          430,
-          610,
-          "in_0",
-          null,
-          0,
-        ],
-        [
-          430,
-          640,
-          "in_1",
-          null,
-          0,
-        ],
-      ],
-      "label": null,
-      "name": null,
-      "outputs": [
-        [
-          490,
-          625,
-          "out",
-          0,
-        ],
-      ],
-      "type": "AND",
-    },
-    {
-      "block": null,
-      "box": [
-        950,
-        165,
-        75,
-        110,
-      ],
-      "desc": null,
-      "inputs": [
-        [
-          950,
-          180,
-          "in_0",
-          null,
-          0,
-        ],
-        [
-          950,
-          195,
-          "in_1",
-          null,
-          0,
-        ],
-        [
-          950,
-          210,
-          "in_2",
-          null,
-          0,
-        ],
-        [
-          950,
-          225,
-          "in_3",
-          null,
-          0,
-        ],
-        [
-          950,
-          240,
-          "in_4",
-          null,
-          0,
-        ],
-        [
-          950,
-          255,
-          "in_5",
-          null,
-          0,
-        ],
-      ],
-      "label": null,
-      "name": null,
-      "outputs": [
-        [
-          1025,
-          220,
-          "out",
-          0,
-        ],
-      ],
-      "type": "AND",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        130,
-        100,
-        30,
-      ],
-      "desc": "(BI 3.3)",
-      "inputs": [],
-      "label": "I3",
-      "name": "D/S Q01 Open",
-      "outputs": [
-        [
-          270,
-          145,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        165,
-        100,
-        30,
-      ],
-      "desc": "(BI 3.1)",
-      "inputs": [],
-      "label": "I1",
-      "name": "CBQ 00 Open",
-      "outputs": [
-        [
-          270,
-          180,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        210,
-        100,
-        30,
-      ],
-      "desc": "(BI 3.5)",
-      "inputs": [],
-      "label": "I4",
-      "name": "E/S Q05 Open",
-      "outputs": [
-        [
-          270,
-          225,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        310,
-        100,
-        30,
-      ],
-      "desc": "(BI 3.15)",
-      "inputs": [],
-      "label": "I5",
-      "name": "KF1 Release",
-      "outputs": [
-        [
-          270,
-          325,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        425,
-        100,
-        30,
-      ],
-      "desc": "(BI 3.11)",
-      "inputs": [],
-      "label": "I6",
-      "name": "In Remote",
-      "outputs": [
-        [
-          270,
-          440,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        455,
-        100,
-        30,
-      ],
-      "desc": "(BI 3.23)",
-      "inputs": [],
-      "label": "I7",
-      "name": "SCADA ON",
-      "outputs": [
-        [
-          270,
-          470,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        485,
-        100,
-        30,
-      ],
-      "desc": "(via RTU)",
-      "inputs": [],
-      "label": "I8",
-      "name": "DNP Close Command",
-      "outputs": [
-        [
-          270,
-          500,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        50,
-        100,
-        30,
-      ],
-      "desc": "(BI 3.24)",
-      "inputs": [],
-      "label": "I2",
-      "name": "BB Not Earthed",
-      "outputs": [
-        [
-          270,
-          65,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        595,
-        100,
-        30,
-      ],
-      "desc": "(BI 3.12)",
-      "inputs": [],
-      "label": "I9",
-      "name": "In Local",
-      "outputs": [
-        [
-          270,
-          610,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        625,
-        100,
-        30,
-      ],
-      "desc": "(BI 3.20)",
-      "inputs": [],
-      "label": "I10",
-      "name": "Close Switch",
-      "outputs": [
-        [
-          270,
-          640,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        430,
-        305,
-        65,
-        40,
-      ],
-      "desc": null,
-      "inputs": [
-        [
-          430,
-          325,
-          "in_0",
-          null,
-          0,
-        ],
-      ],
-      "label": null,
-      "name": null,
-      "outputs": [
-        [
-          495,
-          325,
-          "out",
-          0,
-        ],
-      ],
-      "type": "NOT",
-    },
-    {
-      "block": null,
-      "box": [
-        690,
-        520,
-        60,
-        50,
-      ],
-      "desc": null,
-      "inputs": [
-        [
-          698,
-          535,
-          "in_0",
-          null,
-          0,
-        ],
-        [
-          700,
-          550,
-          "in_1",
-          null,
-          0,
-        ],
-      ],
-      "label": null,
-      "name": null,
-      "outputs": [
-        [
-          750,
-          545,
-          "out",
-          0,
-        ],
-      ],
-      "type": "OR",
-    },
-    {
-      "block": null,
-      "box": [
-        1210,
-        205,
-        100,
-        30,
-      ],
-      "desc": "(BO 3.2)",
-      "inputs": [
-        [
-          1210,
-          220,
-          "in",
-          null,
-          0,
-        ],
-      ],
-      "label": "O1",
-      "name": "Output",
-      "outputs": [],
-      "type": "OUTPUT",
-    },
-  ],
-  "wires": [
-    {
-      "feedback": 0,
-      "points": [
-        [
-          1025,
-          220,
-        ],
-        [
-          1210,
-          220,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          145,
-        ],
-        [
-          915,
-          145,
-        ],
-        [
-          915,
-          195,
-        ],
-        [
-          950,
-          195,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          180,
-        ],
-        [
-          900,
-          180,
-        ],
-        [
-          900,
-          210,
-        ],
-        [
-          950,
-          210,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          225,
-        ],
-        [
-          950,
-          225,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          325,
-        ],
-        [
-          430,
-          325,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          440,
-        ],
-        [
-          430,
-          440,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          470,
-        ],
-        [
-          430,
-          470,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          500,
-        ],
-        [
-          430,
-          500,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          610,
-        ],
-        [
-          430,
-          610,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          640,
-        ],
-        [
-          430,
-          640,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          65,
-        ],
-        [
-          930,
-          65,
-        ],
-        [
-          930,
-          180,
-        ],
-        [
-          950,
-          180,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          490,
-          625,
-        ],
-        [
-          670,
-          625,
-        ],
-        [
-          670,
-          550,
-        ],
-        [
-          700,
-          550,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          495,
-          325,
-        ],
-        [
-          905,
-          325,
-        ],
-        [
-          905,
-          240,
-        ],
-        [
-          950,
-          240,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          505,
-          470,
-        ],
-        [
-          670,
-          470,
-        ],
-        [
-          670,
-          535,
-        ],
-        [
-          698,
-          535,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          750,
-          545,
-        ],
-        [
-          920,
-          545,
-        ],
-        [
-          920,
-          255,
-        ],
-        [
-          950,
-          255,
         ],
       ],
     },
@@ -8068,6 +5839,728 @@ exports[`Visual regression (layout geometry) > Labelled Gates 1`] = `
         [
           958,
           245,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > Launch Interlock 1`] = `
+{
+  "canvas": [
+    1310,
+    655,
+  ],
+  "junctions": [],
+  "labels": [],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        430,
+        425,
+        75,
+        90,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          440,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          430,
+          470,
+          "in_1",
+          null,
+          0,
+        ],
+        [
+          430,
+          500,
+          "in_2",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          505,
+          470,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        595,
+        60,
+        60,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          610,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          430,
+          640,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          490,
+          625,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        950,
+        165,
+        75,
+        110,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          950,
+          180,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          950,
+          195,
+          "in_1",
+          null,
+          0,
+        ],
+        [
+          950,
+          210,
+          "in_2",
+          null,
+          0,
+        ],
+        [
+          950,
+          225,
+          "in_3",
+          null,
+          0,
+        ],
+        [
+          950,
+          240,
+          "in_4",
+          null,
+          0,
+        ],
+        [
+          950,
+          255,
+          "in_5",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          1025,
+          220,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        130,
+        100,
+        30,
+      ],
+      "desc": "(LP 3.3)",
+      "inputs": [],
+      "label": "I3",
+      "name": "Tanks Pressurised",
+      "outputs": [
+        [
+          270,
+          145,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        165,
+        100,
+        30,
+      ],
+      "desc": "(LP 3.1)",
+      "inputs": [],
+      "label": "I1",
+      "name": "Pad Cleared",
+      "outputs": [
+        [
+          270,
+          180,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        210,
+        100,
+        30,
+      ],
+      "desc": "(GNC 3.5)",
+      "inputs": [],
+      "label": "I4",
+      "name": "Guidance Aligned",
+      "outputs": [
+        [
+          270,
+          225,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        310,
+        100,
+        30,
+      ],
+      "desc": "(RSO 3.15)",
+      "inputs": [],
+      "label": "I5",
+      "name": "Hold Fired",
+      "outputs": [
+        [
+          270,
+          325,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        425,
+        100,
+        30,
+      ],
+      "desc": "(SEQ 3.11)",
+      "inputs": [],
+      "label": "I6",
+      "name": "Auto Sequence",
+      "outputs": [
+        [
+          270,
+          440,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        455,
+        100,
+        30,
+      ],
+      "desc": "(RSO 3.23)",
+      "inputs": [],
+      "label": "I7",
+      "name": "Range Safety Armed",
+      "outputs": [
+        [
+          270,
+          470,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        485,
+        100,
+        30,
+      ],
+      "desc": "(via LCC)",
+      "inputs": [],
+      "label": "I8",
+      "name": "GO from LCC",
+      "outputs": [
+        [
+          270,
+          500,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        50,
+        100,
+        30,
+      ],
+      "desc": "(LP 3.24)",
+      "inputs": [],
+      "label": "I2",
+      "name": "Umbilicals Retracted",
+      "outputs": [
+        [
+          270,
+          65,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        595,
+        100,
+        30,
+      ],
+      "desc": "(LCC 3.12)",
+      "inputs": [],
+      "label": "I9",
+      "name": "Manual Enable",
+      "outputs": [
+        [
+          270,
+          610,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        625,
+        100,
+        30,
+      ],
+      "desc": "(LCC 3.20)",
+      "inputs": [],
+      "label": "I10",
+      "name": "Fire Button",
+      "outputs": [
+        [
+          270,
+          640,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        305,
+        65,
+        40,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          430,
+          325,
+          "in_0",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          495,
+          325,
+          "out",
+          0,
+        ],
+      ],
+      "type": "NOT",
+    },
+    {
+      "block": null,
+      "box": [
+        690,
+        520,
+        60,
+        50,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          698,
+          535,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          700,
+          550,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          750,
+          545,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        1210,
+        205,
+        100,
+        30,
+      ],
+      "desc": "(BO 3.2)",
+      "inputs": [
+        [
+          1210,
+          220,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "O1",
+      "name": "Launch Command",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          1025,
+          220,
+        ],
+        [
+          1210,
+          220,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          145,
+        ],
+        [
+          915,
+          145,
+        ],
+        [
+          915,
+          195,
+        ],
+        [
+          950,
+          195,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          180,
+        ],
+        [
+          900,
+          180,
+        ],
+        [
+          900,
+          210,
+        ],
+        [
+          950,
+          210,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          225,
+        ],
+        [
+          950,
+          225,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          325,
+        ],
+        [
+          430,
+          325,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          440,
+        ],
+        [
+          430,
+          440,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          470,
+        ],
+        [
+          430,
+          470,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          500,
+        ],
+        [
+          430,
+          500,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          610,
+        ],
+        [
+          430,
+          610,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          640,
+        ],
+        [
+          430,
+          640,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          65,
+        ],
+        [
+          930,
+          65,
+        ],
+        [
+          930,
+          180,
+        ],
+        [
+          950,
+          180,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          490,
+          625,
+        ],
+        [
+          670,
+          625,
+        ],
+        [
+          670,
+          550,
+        ],
+        [
+          700,
+          550,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          495,
+          325,
+        ],
+        [
+          905,
+          325,
+        ],
+        [
+          905,
+          240,
+        ],
+        [
+          950,
+          240,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          505,
+          470,
+        ],
+        [
+          670,
+          470,
+        ],
+        [
+          670,
+          535,
+        ],
+        [
+          698,
+          535,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          750,
+          545,
+        ],
+        [
+          920,
+          545,
+        ],
+        [
+          920,
+          255,
+        ],
+        [
+          950,
+          255,
         ],
       ],
     },
@@ -10169,6 +8662,1513 @@ exports[`Visual regression (layout geometry) > Overcurrent Protection 1`] = `
         [
           690,
           95,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Visual regression (layout geometry) > Reactor Scram Matrix 1`] = `
+{
+  "canvas": [
+    1570,
+    960,
+  ],
+  "junctions": [
+    [
+      1190,
+      320,
+    ],
+    [
+      1240,
+      320,
+    ],
+    [
+      1240,
+      360,
+    ],
+    [
+      1240,
+      400,
+    ],
+    [
+      1240,
+      440,
+    ],
+    [
+      1380,
+      870,
+    ],
+  ],
+  "labels": [
+    [
+      510,
+      355,
+      95,
+      20,
+      "REACTOR SCRAM",
+      null,
+    ],
+  ],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        170,
+        100,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "E24U2T1",
+      "name": "NEUTRON FLUX HIGH",
+      "outputs": [
+        [
+          270,
+          110,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        130,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "E50TP2",
+      "name": "RCS PRESSURE HIGH (PT502)",
+      "outputs": [
+        [
+          270,
+          140,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        160,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "E51T01",
+      "name": "SG-1 LEVEL LOW (LT101)",
+      "outputs": [
+        [
+          270,
+          170,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        190,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "E51T02",
+      "name": "SG-2 LEVEL LOW (LT102)",
+      "outputs": [
+        [
+          270,
+          200,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        220,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "E87Q2",
+      "name": "FEED/STEAM MISMATCH (FQ2)",
+      "outputs": [
+        [
+          270,
+          230,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        250,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "E87Z2",
+      "name": "PRESSURISER LEVEL HIGH (LT2)",
+      "outputs": [
+        [
+          270,
+          260,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        280,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "E593P1T",
+      "name": "CONTAINMENT PRESS HI-1 (PT591)",
+      "outputs": [
+        [
+          270,
+          290,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        310,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "E593P2T",
+      "name": "CONTAINMENT PRESS HI-2 (PT592)",
+      "outputs": [
+        [
+          270,
+          320,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        340,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "EBUCH",
+      "name": "RCP UNDERSPEED (ST307)",
+      "outputs": [
+        [
+          270,
+          350,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        370,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "EGCB_CBF",
+      "name": "TURBINE TRIP (TTFS)",
+      "outputs": [
+        [
+          270,
+          380,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        400,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "EIN202",
+      "name": "LOSS OF COOLANT FLOW (IN202)",
+      "outputs": [
+        [
+          270,
+          410,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        430,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "EPLQ_X_CBF",
+      "name": "MANUAL SCRAM B (IN407)",
+      "outputs": [
+        [
+          270,
+          440,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        460,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "EPLQ_X_IT",
+      "name": "MANUAL SCRAM A (IN408)",
+      "outputs": [
+        [
+          270,
+          470,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        490,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "EPSV17",
+      "name": "RCS PRESSURE LOW (PT517)",
+      "outputs": [
+        [
+          270,
+          500,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        50,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "CTR",
+      "name": "From Div II Scram (IN203)",
+      "outputs": [
+        [
+          270,
+          60,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        520,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "EREFF2",
+      "name": "REACTOR COOLANT FLOW LOW (FT2)",
+      "outputs": [
+        [
+          270,
+          530,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        550,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "ETP",
+      "name": "STEAM LINE PRESSURE",
+      "outputs": [
+        [
+          270,
+          560,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        580,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "EWT",
+      "name": "CORE OUTLET TEMP HIGH (RT301)",
+      "outputs": [
+        [
+          270,
+          590,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        610,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "SWA_CON_MON",
+      "name": "DIV A DC BUS MONITOR (PSV20)",
+      "outputs": [
+        [
+          270,
+          620,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        640,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "SWB_CON_MON",
+      "name": "DIV B DC BUS MONITOR (PSV20)",
+      "outputs": [
+        [
+          270,
+          650,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        780,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "ULTR01",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          790,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        860,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "TRIP3",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          870,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        940,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "TRIP5",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          950,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        1210,
+        840,
+        75,
+        60,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1218,
+          855,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          1218,
+          885,
+          "in_2",
+          null,
+          0,
+        ],
+        [
+          1220,
+          870,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          1285,
+          870,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        430,
+        95,
+        75,
+        570,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          431,
+          110,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          431,
+          650,
+          "in_18",
+          null,
+          0,
+        ],
+        [
+          433,
+          140,
+          "in_1",
+          null,
+          0,
+        ],
+        [
+          433,
+          620,
+          "in_17",
+          null,
+          0,
+        ],
+        [
+          435,
+          170,
+          "in_2",
+          null,
+          0,
+        ],
+        [
+          435,
+          590,
+          "in_16",
+          null,
+          0,
+        ],
+        [
+          436,
+          200,
+          "in_3",
+          null,
+          0,
+        ],
+        [
+          436,
+          560,
+          "in_15",
+          null,
+          0,
+        ],
+        [
+          437,
+          230,
+          "in_4",
+          null,
+          0,
+        ],
+        [
+          437,
+          530,
+          "in_14",
+          null,
+          0,
+        ],
+        [
+          438,
+          260,
+          "in_5",
+          null,
+          0,
+        ],
+        [
+          438,
+          500,
+          "in_13",
+          null,
+          0,
+        ],
+        [
+          439,
+          290,
+          "in_6",
+          null,
+          0,
+        ],
+        [
+          439,
+          470,
+          "in_12",
+          null,
+          0,
+        ],
+        [
+          440,
+          320,
+          "in_7",
+          null,
+          0,
+        ],
+        [
+          440,
+          350,
+          "in_8",
+          null,
+          0,
+        ],
+        [
+          440,
+          380,
+          "in_9",
+          null,
+          0,
+        ],
+        [
+          440,
+          410,
+          "in_10",
+          null,
+          0,
+        ],
+        [
+          440,
+          440,
+          "in_11",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          505,
+          380,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        950,
+        295,
+        60,
+        50,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          958,
+          310,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          960,
+          325,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          1010,
+          320,
+          "out",
+          0,
+        ],
+      ],
+      "type": "OR",
+    },
+    {
+      "block": null,
+      "box": [
+        1470,
+        310,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1470,
+          320,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "LED_01",
+      "name": "TO SCRAM LED",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        1470,
+        350,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1470,
+          360,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "ICMS_PSV01",
+      "name": "Reactor Scram [TO SPDS] & [TO PPC]",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        1470,
+        390,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1470,
+          400,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "OCT",
+      "name": "To Transient Recorder (OUT204)",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        1470,
+        430,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1470,
+          440,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "SWA_CB_TRIP_1",
+      "name": "TO DIV A ROD DRIVE TRIP",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        1470,
+        470,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1470,
+          480,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "SWB_CB_TRIP_1",
+      "name": "TO DIV B ROD DRIVE TRIP",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        1470,
+        860,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1470,
+          870,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "GCB_TRIP_1",
+      "name": "TO REACTOR TRIP BKR (OUT401)",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        1470,
+        900,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          1470,
+          910,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "GCB_CBF",
+      "name": "TO SCRAM BKR FAIL",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": "SR",
+      "box": [
+        690,
+        560,
+        60,
+        50,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          690,
+          575,
+          "S",
+          null,
+          0,
+        ],
+        [
+          690,
+          590,
+          "R",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          750,
+          585,
+          "Q",
+          0,
+        ],
+      ],
+      "type": "SR",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          1010,
+          320,
+        ],
+        [
+          1190,
+          320,
+        ],
+        [
+          1190,
+          855,
+        ],
+        [
+          1218,
+          855,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          1010,
+          320,
+        ],
+        [
+          1240,
+          320,
+        ],
+        [
+          1240,
+          360,
+        ],
+        [
+          1470,
+          360,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          1010,
+          320,
+        ],
+        [
+          1240,
+          320,
+        ],
+        [
+          1240,
+          400,
+        ],
+        [
+          1470,
+          400,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          1010,
+          320,
+        ],
+        [
+          1240,
+          320,
+        ],
+        [
+          1240,
+          440,
+        ],
+        [
+          1470,
+          440,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          1010,
+          320,
+        ],
+        [
+          1240,
+          320,
+        ],
+        [
+          1240,
+          480,
+        ],
+        [
+          1470,
+          480,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          1010,
+          320,
+        ],
+        [
+          1470,
+          320,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          1285,
+          870,
+        ],
+        [
+          1380,
+          870,
+        ],
+        [
+          1380,
+          910,
+        ],
+        [
+          1470,
+          910,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          1285,
+          870,
+        ],
+        [
+          1470,
+          870,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          110,
+        ],
+        [
+          431,
+          110,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          140,
+        ],
+        [
+          433,
+          140,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          170,
+        ],
+        [
+          435,
+          170,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          200,
+        ],
+        [
+          436,
+          200,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          230,
+        ],
+        [
+          437,
+          230,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          260,
+        ],
+        [
+          438,
+          260,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          290,
+        ],
+        [
+          439,
+          290,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          320,
+        ],
+        [
+          440,
+          320,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          350,
+        ],
+        [
+          440,
+          350,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          380,
+        ],
+        [
+          440,
+          380,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          410,
+        ],
+        [
+          440,
+          410,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          440,
+        ],
+        [
+          440,
+          440,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          470,
+        ],
+        [
+          439,
+          470,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          500,
+        ],
+        [
+          438,
+          500,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          530,
+        ],
+        [
+          437,
+          530,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          560,
+        ],
+        [
+          436,
+          560,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          590,
+        ],
+        [
+          435,
+          590,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          60,
+        ],
+        [
+          930,
+          60,
+        ],
+        [
+          930,
+          310,
+        ],
+        [
+          958,
+          310,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          620,
+        ],
+        [
+          433,
+          620,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          650,
+        ],
+        [
+          431,
+          650,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          790,
+        ],
+        [
+          670,
+          790,
+        ],
+        [
+          670,
+          590,
+        ],
+        [
+          690,
+          590,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          870,
+        ],
+        [
+          1220,
+          870,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          950,
+        ],
+        [
+          1190,
+          950,
+        ],
+        [
+          1190,
+          885,
+        ],
+        [
+          1218,
+          885,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          505,
+          380,
+        ],
+        [
+          670,
+          380,
+        ],
+        [
+          670,
+          575,
+        ],
+        [
+          690,
+          575,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          750,
+          585,
+        ],
+        [
+          930,
+          585,
+        ],
+        [
+          930,
+          325,
+        ],
+        [
+          960,
+          325,
         ],
       ],
     },

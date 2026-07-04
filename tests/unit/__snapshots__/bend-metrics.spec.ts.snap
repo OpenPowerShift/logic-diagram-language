@@ -77,17 +77,6 @@ exports[`Bend/crossing metrics > Differential Protection 1`] = `
 }
 `;
 
-exports[`Bend/crossing metrics > Electrical Trip Matrix 1`] = `
-{
-  "H": 960,
-  "bends": 22,
-  "bent": 11,
-  "crossings": 0,
-  "straight": 22,
-  "wires": 33,
-}
-`;
-
 exports[`Bend/crossing metrics > Generic Block (FB) 1`] = `
 {
   "H": 190,
@@ -121,17 +110,6 @@ exports[`Bend/crossing metrics > Input Bars 1`] = `
 }
 `;
 
-exports[`Bend/crossing metrics > Interlocking Q01 Close 1`] = `
-{
-  "H": 655,
-  "bends": 14,
-  "bent": 7,
-  "crossings": 0,
-  "straight": 8,
-  "wires": 15,
-}
-`;
-
 exports[`Bend/crossing metrics > Inversion Bubbles 1`] = `
 {
   "H": 300,
@@ -151,6 +129,17 @@ exports[`Bend/crossing metrics > Labelled Gates 1`] = `
   "crossings": 0,
   "straight": 10,
   "wires": 14,
+}
+`;
+
+exports[`Bend/crossing metrics > Launch Interlock 1`] = `
+{
+  "H": 655,
+  "bends": 14,
+  "bent": 7,
+  "crossings": 0,
+  "straight": 8,
+  "wires": 15,
 }
 `;
 
@@ -217,6 +206,17 @@ exports[`Bend/crossing metrics > Overcurrent Protection 1`] = `
   "crossings": 0,
   "straight": 6,
   "wires": 7,
+}
+`;
+
+exports[`Bend/crossing metrics > Reactor Scram Matrix 1`] = `
+{
+  "H": 960,
+  "bends": 22,
+  "bent": 11,
+  "crossings": 0,
+  "straight": 22,
+  "wires": 33,
 }
 `;
 
