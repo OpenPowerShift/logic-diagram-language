@@ -46,7 +46,7 @@ describe('SVG Renderer', () => {
 O1 = I1 AND I2`;
     const result = parse(source);
     expect(result.errors).toHaveLength(0);
-    const svg = renderDiagram(result.diagram, true);
+    const svg = renderDiagram(result.diagram);
     expect(svg).toContain('ldl-name');
     expect(svg).toContain('Test Input');
   });
@@ -56,7 +56,7 @@ O1 = I1 AND I2`;
 O1 = I1 AND I2`;
     const result = parse(source);
     expect(result.errors).toHaveLength(0);
-    const svg = renderDiagram(result.diagram, true);
+    const svg = renderDiagram(result.diagram);
     expect(svg).toContain('ldl-description');
     expect(svg).toContain('(BI 3.1)');
   });
@@ -64,7 +64,7 @@ O1 = I1 AND I2`;
   it('includes label visibility classes', () => {
     const result = parse('OUT = A AND B');
     expect(result.errors).toHaveLength(0);
-    const svg = renderDiagram(result.diagram, true);
+    const svg = renderDiagram(result.diagram);
     expect(svg).toContain('ldl-show-labels');
   });
 
@@ -85,7 +85,7 @@ describe('SVG wire-node linkage', () => {
   for (const [name, src] of Object.entries(EXAMPLES)) {
     it(`${name}: wires reference valid SVG node ids`, () => {
       const r = parse(src);
-      const svg = renderDiagram(r.diagram, true, false, resolveOptions(r.diagram.options));
+      const svg = renderDiagram(r.diagram, resolveOptions(r.diagram.options));
       const nodeIds = new Set([...svg.matchAll(/<g class="ldl-symbol[^"]*" id="([^"]+)" /g)].map(m => m[1]));
       const froms = [...svg.matchAll(/data-from="([^"]+)"/g)].map(m => m[1]);
       const tos = [...svg.matchAll(/data-to="([^"]+)"/g)].map(m => m[1]);

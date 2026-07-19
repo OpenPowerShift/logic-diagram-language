@@ -45,8 +45,6 @@ if (errors.length) throw new Error(errors[0].message);
 
 const svg = renderDiagram(
   diagram,
-  true,                             // showLabels
-  false,                            // showIds
   resolveOptions(diagram.options),  // options (merges OPTION lines over the defaults)
 );
 // `svg` is a complete <svg>…</svg> string — write it to a file or inject into the DOM.
@@ -58,8 +56,6 @@ const svg = renderDiagram(
 ----
 function renderDiagram(
   diagram: Diagram,
-  showLabels?: boolean,       // default true  — draw .Name / .Description labels
-  showIds?: boolean,          // default false — draw bare identifiers (I1, AND#G1, …)
   options?: RenderOptions,    // default DEFAULT_OPTIONS
   diagramTheme?: DiagramTheme // default LIGHT_DIAGRAM
 ): string
@@ -68,6 +64,9 @@ function renderDiagram(
 - `diagram` comes from `parse()` (`result.diagram`); it carries its own `portMeta`.
 - `options` is a fully-resolved `RenderOptions`; build it with `resolveOptions(diagram.options)` so a
   diagram's own `OPTION` lines are honoured, then override fields as needed.
+- The label/id toggles live on `options`: `showLabels` (default `true`, draws `.Name`/`.Description`
+  labels) and `showIds` (default `false`, draws bare identifiers like `I1`, `AND#G1`). They are view
+  toggles, so they are not authored via `OPTION` lines — set them in code: `{ ...options, showIds: true }`.
 - Pass `DARK_DIAGRAM` (or a custom `DiagramTheme`) for a dark render.
 
 Node example writing a file:
@@ -78,8 +77,7 @@ import { writeFileSync } from 'node:fs';
 import { parse, renderDiagram, resolveOptions } from '@openpowershift/logic-diagram-language';
 
 const { diagram } = parse(source);
-writeFileSync('diagram.svg', renderDiagram(diagram, true, false,
-  resolveOptions(diagram.options)));
+writeFileSync('diagram.svg', renderDiagram(diagram, resolveOptions(diagram.options)));
 ----
 
 == Rendering to PNG (browser)
@@ -89,7 +87,7 @@ writeFileSync('diagram.svg', renderDiagram(diagram, true, false,
 import { parse, renderDiagram, resolveOptions, svgToPngBlob } from '@openpowershift/logic-diagram-language';
 
 const { diagram } = parse(source);
-const svg = renderDiagram(diagram, true, false, resolveOptions(diagram.options));
+const svg = renderDiagram(diagram, resolveOptions(diagram.options));
 
 const pngBlob = await svgToPngBlob(svg, 2);   // 2× the diagram's intrinsic pixel size
 // e.g. download it:

@@ -11,7 +11,7 @@ describe('render examples to SVG', () => {
     for (const [name, src] of Object.entries(EXAMPLES)) {
       const r = parse(src);
       const opts = resolveOptions(r.diagram.options);
-      const svg = renderDiagram(r.diagram, true, false, opts);
+      const svg = renderDiagram(r.diagram, opts);
       const fn = name.replace(/[^a-z0-9]/gi, '_');
       writeFileSync(`/tmp/ldl-render/${fn}.svg`, svg);
       console.log('wrote', fn);

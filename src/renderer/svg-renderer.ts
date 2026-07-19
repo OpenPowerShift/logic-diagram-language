@@ -20,9 +20,10 @@ function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-export function renderDiagram(diagram: Diagram, showLabels: boolean = true, showIds: boolean = false, options?: RenderOptions, diagramTheme?: DiagramTheme): string {
+export function renderDiagram(diagram: Diagram, options?: RenderOptions, diagramTheme?: DiagramTheme): string {
   const opts = options ?? DEFAULT_OPTIONS;
   const theme = diagramTheme ?? LIGHT_DIAGRAM;
+  const showLabels = opts.showLabels, showIds = opts.showIds;
   const layout = layoutDiagram(diagram, opts);
 
   // Style payload: user STYLE blocks (parser already stored them as StyleDecl[]). Concatenated

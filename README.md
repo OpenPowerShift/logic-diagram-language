@@ -58,12 +58,8 @@ import {
 } from "@openpowershift/logic-diagram-language";
 
 const { diagram } = parse("O1 = I1 AND NOT I2");
-const svg = renderDiagram(
-  diagram,
-  true,
-  false,
-  resolveOptions(diagram.options),
-); // → a complete <svg>…</svg> string
+const svg = renderDiagram(diagram, resolveOptions(diagram.options));
+// → a complete <svg>…</svg> string
 ```
 
 SVG rendering is isomorphic (Node + browser). In the browser, `svgToPngBlob(svg)` and

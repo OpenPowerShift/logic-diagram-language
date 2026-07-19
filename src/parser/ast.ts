@@ -28,6 +28,10 @@ export interface RenderOptions {
   // Blank margin (px) around the diagram content in the rendered/exported SVG. Default 8.
   // Set via OPTION MARGIN = <px>.
   margin: number;
+  // Draw the .Name/.Description port labels (showLabels) and bare identifiers (showIds). View
+  // toggles, set programmatically by the app; not authored via OPTION lines.
+  showLabels: boolean;
+  showIds: boolean;
   // Draw a thin leader line from each consumed-intermediate net label to the wire it names, so the
   // label reads unambiguously even when it is placed in nearby clear space rather than on the net.
   // Set via OPTION WIRE_LABEL_LEADER = TRUE | FALSE. Default TRUE.
@@ -51,6 +55,8 @@ export const DEFAULT_OPTIONS: RenderOptions = {
   compactness: 'NORMAL',
   columnSpacing: 'ADAPTIVE',
   margin: 8,
+  showLabels: true,
+  showIds: false,
   wireLabelLeader: true,
   hideJunctions: false,
 };
