@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.2.0](https://github.com/OpenPowerShift/logic-diagram-language/compare/v0.1.0...v0.2.0) (2026-07-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* fold showLabels/showIds into RenderOptions — renderDiagram(diagram, options?, theme?)
+* drop redundant portMeta param — renderDiagram(diagram, …) reads diagram.portMeta
+
+### Bug Fixes
+
+* net-label leaders orphaned and labels overlapping wires ([fd26cac](https://github.com/OpenPowerShift/logic-diagram-language/commit/fd26cac9b4df101956e90aa8cc407f647fb1069c))
+* playground build broken by sideEffects; library builds to lib/ ([6caac84](https://github.com/OpenPowerShift/logic-diagram-language/commit/6caac849bd964e3cb0faae2e4233ce559f755a39))
+
+
+### Code Refactoring
+
+* drop redundant portMeta param — renderDiagram(diagram, …) reads diagram.portMeta ([6d1dc70](https://github.com/OpenPowerShift/logic-diagram-language/commit/6d1dc7008851c5d1b4bcf3d7ab485d7bebc5a3ed))
+* fold showLabels/showIds into RenderOptions — renderDiagram(diagram, options?, theme?) ([5ab7a1c](https://github.com/OpenPowerShift/logic-diagram-language/commit/5ab7a1c87ca1d6bb5b29b41b81440c87cb1471ff))
+
 ## 0.1.0 (2026-07-19)
 
 
