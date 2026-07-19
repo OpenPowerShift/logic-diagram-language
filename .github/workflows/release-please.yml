@@ -7,7 +7,6 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  id-token: write
 
 jobs:
   # Maintains a "release PR" that rolls up Conventional-Commit changes, bumps the version, and updates
@@ -43,5 +42,8 @@ jobs:
           cache: npm
       - run: npm install -g npm@latest # trusted publishing needs npm >= 11.5.1
       - run: npm ci
+      - run: |
+          echo "ACTIONS_ID_TOKEN_REQUEST_URL=${ACTIONS_ID_TOKEN_REQUEST_URL:+set}"
+          echo "ACTIONS_ID_TOKEN_REQUEST_TOKEN=${ACTIONS_ID_TOKEN_REQUEST_TOKEN:+set}"
       # `npm publish` runs `prepublishOnly` (build:lib) to produce dist/, then publishes with OIDC.
       - run: npm publish
