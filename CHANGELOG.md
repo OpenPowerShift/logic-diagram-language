@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/OpenPowerShift/logic-diagram-language/compare/v0.2.0...v0.2.1) (2026-07-19)
+
+
+### Bug Fixes
+
+* enable OIDC publishing. ([1cd0942](https://github.com/OpenPowerShift/logic-diagram-language/commit/1cd0942ff9792330fb2a5a02f891ae1b17f0780d))
+
 ## [0.2.0](https://github.com/OpenPowerShift/logic-diagram-language/compare/v0.1.0...v0.2.0) (2026-07-19)
 
 
