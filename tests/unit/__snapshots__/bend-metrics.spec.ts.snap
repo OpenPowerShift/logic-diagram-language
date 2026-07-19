@@ -123,7 +123,7 @@ exports[`Bend/crossing metrics > Inversion Bubbles 1`] = `
 
 exports[`Bend/crossing metrics > Labelled Gates 1`] = `
 {
-  "H": 560,
+  "H": 565,
   "bends": 8,
   "bent": 4,
   "crossings": 0,
