@@ -7,6 +7,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  id-token: write
 
 jobs:
   # Maintains a "release PR" that rolls up Conventional-Commit changes, bumps the version, and updates
