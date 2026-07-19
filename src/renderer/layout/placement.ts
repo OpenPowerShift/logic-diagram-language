@@ -22,6 +22,10 @@ export function assignCoordinates(
   rowSpacing: number,
   laneTight = false,
 ): Map<string, number> {
+  // assignCoordinates: solve every node's vertical centre by iterated barycentre. Three steps:
+  //   (1) build heights + per-column order (feedback edges excluded, they are output sinks);
+  //   (2) target each node at the mean of the Ys that draw its edges straight;
+  //   (3) place each column at its constrained L2 optimum (weighted PAVA), iterating to convergence.
   // Feedback edges (input is an output node looped back) are excluded from placement: the
   // back-edge would otherwise drag a gate toward the far-right output it feeds.
   const isFeedback = (inputId: string) => nodes.get(inputId)?.kind === 'output';
@@ -201,6 +205,21 @@ export function placeNodes(
 ): { nodes: Map<string, FlatNode>; intermediateLabels: IntermediateLabel[]; layoutNodes: LayoutNode[]; nodeMap: Map<string, LayoutNode> } {
   const { nodes, intermediateLabels } = buildGraph(diagram, opts, uid);
 
+  // ─────────────────────────────────────────────────────────────────────────────────────────────
+  // NODE PLACEMENT PIPELINE. Assigns every node/port its final X,Y before routing. Stages run in
+  // source order below; the four author-marked `// ── Phase:` banners are the load-bearing ones:
+  //   · per-gate port spacing            — widen ports for adjacent labelled inputs
+  //   · fixed-port block binding + input-row ordering (INPUT/OUTPUT_ORDER = AUTO barycentre reorder)
+  //   · obstacle-aware dummy decomposition — split long edges into lanes, median-align, restore
+  //   · adaptive column spacing (COLUMN_SPACING) + output-port positioning (recenterOutputs)
+  //   · Phase "gate placement"           — size + stack multi-input gates by port count
+  //   · gate/output collision resolution + feedback input ports + grid snap
+  //   · Phase "dogleg cleanup"           — erase surviving sub-MIN_DOGLEG jogs
+  //   · Phase "input placement" · Phase "output placement" — snap I/O nodes onto their rows
+  //   · same-column block separation · OR-curve input taps (+ inversion bubbles)
+  // Y targets come from assignCoordinates() (above). Keeping this list short is the goal — every
+  // new stage is another line here.
+  // ─────────────────────────────────────────────────────────────────────────────────────────────
   // Per-gate first-class port spacing. A multi-input AND/OR fed by a labelled INPUT spaces its
   // ports at a label-safe gap so those inputs can be placed directly on its ports (in
   // assignCoordinates) without their labels colliding — the gate is then sized by port count, not

@@ -18,6 +18,28 @@ export function routeWires(
   intermediateLabels: IntermediateLabel[],
   opts: RenderOptions,
 ): { wires: LayoutWire[]; junctions: LayoutJunction[]; labels: LayoutLabel[] } {
+  // ─────────────────────────────────────────────────────────────────────────────────────────────
+  // ROUTING PIPELINE. Setup builds the wires; then a fixed ordered sequence of PASSES reshapes them,
+  // each validating its moves through the shared separation contract + gate clearance below. In order:
+  //   Setup   net-label obstacles · fan-out groups · A* fan-out routing · shared contract helpers
+  //   Pass 1  Channel track assignment      — spread single-turn verticals onto distinct channel tracks
+  //   Pass 2  Nested fan-in channels         — straight nested H–V–H into congested multi-input gates
+  //   Pass 3  Obstacle-aware output placement— move a shadowed output off a detour / gate-crossing
+  //   Pass 4  Single-consumer input un-wrap  — un-wrap an input that A* wrapped over a sibling block
+  //   Pass 5  Straighten sub-dogleg jogs     — collapse gratuitous < MIN_DOGLEG steps when gate-clear
+  //   Pass 6  Feedback loop-back routing     — A* loop-back for output→gate seal-in edges
+  //   Pass 7  Shared fan-out trunk merge     — snap near-coincident same-source verticals to one trunk
+  //   Pass 8  Gate-entrance contract         — GUARANTEE every gate-input wire's >= GATE_ENTRANCE approach
+  //   Pass 9  Output snap to approach-Y      — move a sink output onto its wire's arrival Y (drop jog)
+  //   Pass 10 Block-output straighten        — co-locate an FB port with the output it feeds directly
+  //   Pass 11 Junction-dot marking           — dot every true branch (>=3 directions) of each net
+  //   Pass 12 Grid-snap wire vertices        — snap interior vertices (endpoints stay glued to ports)
+  //   Pass 13 Merge near-duplicate junctions — collapse dots within MERGE_DIST into one
+  //   Pass 14 Net-label placement            — place consumed-intermediate labels on final geometry
+  //   Pass 15 Vertical re-normalise          — shift all content so the top sits at PAD_Y
+  //   Pass 16 Section collapse               — squeeze empty bands between disconnected sections
+  // Adding a pass here means adding a step to THIS list; the goal is to keep the list short.
+  // ─────────────────────────────────────────────────────────────────────────────────────────────
   const wires: LayoutWire[] = [];
   const junctions: LayoutJunction[] = [];
   const junctionSet = new Set<string>();
@@ -190,6 +212,7 @@ export function routeWires(
     return true;
   };
 
+  // ═══ PASS 1 · Channel track assignment ══════════════════════════════════════════════════════════
   // ── Channel track assignment ────────────────────────────────────────────────
   // Every wire that turns once (H–V–H) carries a single vertical segment living in the
   // inter-column channel between its two horizontal runs. Verticals that overlap in Y must
@@ -343,6 +366,7 @@ export function routeWires(
   }
   for (const m of movables) { m.w.points[m.vi].x = curX.get(m)!; m.w.points[m.vi + 1].x = curX.get(m)!; }
 
+  // ═══ PASS 2 · Nested fan-in channels ══════════════════════════════════════════════════════════
   // Nested fan-in channels: when several wires dogleg into the same gate, give each its own
   // vertical channel just left of the gate, evenly spaced (FANIN_SPACING) and nested so they
   // neither cross nor crowd. Inputs arriving from above and from below are nested
@@ -481,6 +505,7 @@ export function routeWires(
     place(below, Math.round(aboveStep / 2 / GRID) * GRID);
   }
 
+  // ═══ PASS 3 · Obstacle-aware output placement ══════════════════════════════════════════════════════
   // Obstacle-aware output placement. An output whose port Y lands inside the vertical shadow of a gate
   // its incoming wire must cross is forced either to detour around that gate (a down-and-up /
   // up-and-over that lands on unrelated wires' lines) OR to drive straight THROUGH the gate body (a
@@ -547,6 +572,7 @@ export function routeWires(
     }
   }
 
+  // ═══ PASS 4 · Single-consumer input un-wrap ════════════════════════════════════════════════════════
   // Un-wrap a single-consumer INPUT that wraps a block to reach its gate port (mirror of the output
   // placement above). A free input — exactly one consumer — feeds one port of a gate, but a sibling
   // block that also feeds that gate (an SR seal-in latch / sub-OR) sits in the horizontal span between
@@ -603,6 +629,7 @@ export function routeWires(
     }
   }
 
+  // ═══ PASS 5 · Straighten sub-dogleg jogs ══════════════════════════════════════════════════════════
   // Straighten gratuitous sub-MIN_DOGLEG jogs: a small vertical step between two horizontal runs
   // is collapsed when the far run can slide onto the near run's Y with the span clear of gate
   // bodies (the obstacle-aware placement lanes can leave such a jog where the route had room to
@@ -631,6 +658,7 @@ export function routeWires(
     }
   }
 
+  // ═══ PASS 6 · Feedback loop-back routing ══════════════════════════════════════════════════════════
   // Feedback (loop-back) wires. A source that is an output node feeds back into the logic
   // (e.g. a seal-in latch `Q = SET OR (Q AND NOT RESET)`). It cannot flow left-to-right, so it
   // is routed by the obstacle-aware A* router from the output's signal line back to the
@@ -694,6 +722,7 @@ export function routeWires(
     }
   }
 
+  // ═══ PASS 7 · Shared fan-out trunk merge ══════════════════════════════════════════════════════════
   // Shared fan-out trunk: when one source feeds several destinations and two of its wires
   // turn vertically at nearly the same X, snap them to a single shared channel. Same-source
   // overlap is intentional (it reads as one trunk) and it collapses the near-duplicate
@@ -766,6 +795,7 @@ export function routeWires(
     }
   }
 
+  // ═══ PASS 8 · Gate-entrance contract ══════════════════════════════════════════════════════════
   // ── Gate-entrance contract (single guarantee) ────────────────────────────────────────────────
   // Every wire entering a gate input port MUST arrive with a horizontal approach of at least
   // GATE_ENTRANCE, so its final turn sits clear of the gate body/curve and the wire visibly enters
@@ -934,6 +964,7 @@ export function routeWires(
     }
   }
 
+  // ═══ PASS 9 · Output snap to approach-Y ══════════════════════════════════════════════════════════
   // Snap an output to its incoming wire's approach Y. A wire that had to clear a gate body
   // (vertical clearance) can arrive a few px off its output port, leaving a small terminal
   // jog. Since an output is a sink, just move it to where the wire arrives — eliminating the
@@ -964,6 +995,7 @@ export function routeWires(
       Math.abs(pt.x - p[idx - 1].x) >= 0.5 || Math.abs(pt.y - p[idx - 1].y) >= 0.5);
   }
 
+  // ═══ PASS 10 · Block-output straighten ══════════════════════════════════════════════════════════
   // Final straightening for a block output port that feeds a single output node directly (no
   // gate between them, e.g. a generic FB): co-locate the port and the node and draw one straight
   // segment, so multi-output blocks never leave a residual jog after the earlier snap passes.
@@ -982,6 +1014,7 @@ export function routeWires(
     w.points = [{ x: sp.absX, y }, { x: dst.inputs[0].absX, y }];
   }
 
+  // ═══ PASS 11 · Junction-dot marking ══════════════════════════════════════════════════════════
   // Junction dots mark where a NET actually branches — a point where its wires' segments leave in
   // three or more distinct directions (a T or a cross). A point where two same-source wires merely
   // bend together (only two directions, e.g. a shared trunk turning a corner) is NOT a branch and
@@ -1019,6 +1052,7 @@ export function routeWires(
     }
   }
 
+  // ═══ PASS 12 · Grid-snap wire vertices ══════════════════════════════════════════════════════════
   // Node and port positions were already grid-snapped before routing. Snap only the
   // interior wire vertices to the grid here, leaving each wire's first/last point exact
   // so endpoints stay glued to their ports (notably OR inputs that tap the curve off-grid).
@@ -1033,6 +1067,7 @@ export function routeWires(
     j.y = Math.round(j.y / GRID) * GRID;
   }
 
+  // ═══ PASS 13 · Merge near-duplicate junctions ══════════════════════════════════════════════════════
   // Merge near-duplicate junction dots (e.g. two fan-out branches that peel off within a
   // few px of each other) so a split reads as one clean dot rather than a smudge.
   const MERGE_DIST = 8;
@@ -1043,8 +1078,10 @@ export function routeWires(
     }
   }
 
+  // ═══ PASS 14 · Net-label placement ══════════════════════════════════════════════════════════
   placeNetLabels(labels, wires, layoutNodes, mergedJunctions, opts);
 
+  // ═══ PASS 15 · Vertical re-normalise ══════════════════════════════════════════════════════════
   // Re-normalise vertical position: the alignment/collision passes can drift content downward
   // from the assigned coordinates, leaving empty space at the top. Shift everything uniformly
   // (preserving every relative position and wire shape) so the topmost content sits at PAD_Y.
@@ -1066,6 +1103,7 @@ export function routeWires(
     }
   }
 
+  // ═══ PASS 16 · Section collapse ══════════════════════════════════════════════════════════
   // Collapse blank vertical bands between disconnected logic sections. A fully-empty horizontal band
   // (no node body, label, or wire — including verticals passing through) means the content above and
   // below it are not connected by any wire, so pulling the lower section up cannot distort a wire or
