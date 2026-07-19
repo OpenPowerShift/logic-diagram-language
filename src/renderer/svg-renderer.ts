@@ -102,7 +102,10 @@ export function renderDiagram(diagram: Diagram, portMeta?: PortMeta[], showLabel
     minY = Math.min(minY, lbl.y); maxY = Math.max(maxY, lbl.y + lbl.height);
   }
 
-  const pad = 30;
+  // Tight margin around the content bounds (labels are already included in min/maxX/Y above), so the
+  // exported/rendered diagram has only a thin border rather than a wide empty frame. Configurable
+  // via OPTION MARGIN = <px>; defaults to 8.
+  const pad = opts.margin ?? 8;
   const svgW = (maxX - minX) + pad * 2;
   const svgH = (maxY - minY) + pad * 2;
   const tx = pad - minX;
@@ -394,12 +397,15 @@ function renderNodeIds(node: LayoutNode, showIds: boolean, ids: string[], theme:
   if (node.gateType === 'INPUT') {
     const port = node.outputs[0];
     if (port) {
-      ids.push(`<text class="ldl-id" x="${port.absX + PORT_SIZE / 2 + 3}" y="${port.absY + 3}" text-anchor="start" fill="${theme.idFill}" font-size="10" font-family="sans-serif" font-weight="600">${esc(node.label ?? '')}</text>`);
+      // Above-left of the port (over the label column, not the wire stub) — stacks above the
+      // .Name label when labels are also shown, and is the sole id source for inputs.
+      ids.push(`<text class="ldl-id" x="${port.absX - 16}" y="${port.absY - PORT_SIZE / 2 - 4}" text-anchor="end" fill="${theme.idFill}" font-size="10" font-family="sans-serif" font-weight="600">${esc(node.label ?? '')}</text>`);
     }
   } else if (node.gateType === 'OUTPUT') {
     const port = node.inputs[0];
     if (port) {
-      ids.push(`<text class="ldl-id" x="${port.absX - PORT_SIZE / 2 - 3}" y="${port.absY + 3}" text-anchor="end" fill="${theme.idFill}" font-size="10" font-family="sans-serif" font-weight="600">${esc(node.label ?? '')}</text>`);
+      // Above-right of the port, mirroring the input placement.
+      ids.push(`<text class="ldl-id" x="${port.absX + 16}" y="${port.absY - PORT_SIZE / 2 - 4}" text-anchor="start" fill="${theme.idFill}" font-size="10" font-family="sans-serif" font-weight="600">${esc(node.label ?? '')}</text>`);
     }
   } else {
     // The gate/block's own instance id, centred above the body — this is the handle a STYLE
@@ -586,7 +592,8 @@ function renderInputMathLabel(absX: number, absY: number, label: string, theme: 
     parts.push(renderMixedLabelContent(descSegments, textX, descY, 'end', 9, theme.descFill, true));
   }
 
-  parts.push(`<text class="ldl-id" x="${textX}" y="${absY - PORT_SIZE / 2 - 4}" text-anchor="end" fill="${theme.idFill}" font-size="10" font-family="sans-serif" font-weight="600">${esc(label)}</text>`);
+  // Id text is emitted by renderNodeIds (gated on showIds); omitting it here avoids the CSS-hidden
+  // id leaking into non-browser SVG viewers.
 
   return parts.join('\n');
 }
@@ -608,7 +615,7 @@ function renderOutputMathLabel(absX: number, absY: number, label: string, theme:
     parts.push(renderMixedLabelContent(descSegments, textX, descY, 'start', 9, theme.descFill, true));
   }
 
-  parts.push(`<text class="ldl-id" x="${textX}" y="${absY - PORT_SIZE / 2 - 4}" text-anchor="start" fill="${theme.idFill}" font-size="10" font-family="sans-serif" font-weight="600">${esc(label)}</text>`);
+  // Id text is emitted by renderNodeIds (gated on showIds); see note in renderInputMathLabel.
 
   return parts.join('\n');
 }

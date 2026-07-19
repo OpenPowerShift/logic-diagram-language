@@ -58,13 +58,13 @@ the last occurrence wins.
 | --
 
 | OUTPUT_ORDER
-| DECLARATION
-| Output ports are stacked top-to-bottom in the order the outputs are declared (O1, O2, …), each aligned to its source where possible
-| DECLARATION
-
-| OUTPUT_ORDER
 | AUTO
 | Output ports are reordered vertically by the position of the gate that drives them, so output wires fan out without crossing (the barycentre method already used for inputs)
+| AUTO
+
+| OUTPUT_ORDER
+| DECLARATION
+| Output ports are stacked top-to-bottom in the order the outputs are declared (O1, O2, …), each aligned to its source where possible
 | --
 
 | INPUT_ORDER
@@ -108,14 +108,19 @@ the last occurrence wins.
 | --
 
 | COLUMN_SPACING
-| UNIFORM
-| Fixed column pitch (default) — every inter-column gap is the same width.
-| UNIFORM
-
-| COLUMN_SPACING
 | ADAPTIVE
 | Size each inter-column gap to its content (gate widths + the fan-in channels that column needs), so simple columns pack tighter and the diagram is materially narrower. Never wider than UNIFORM, and validated so it introduces no dogleg, entrance violation, overlap or crossing.
+| ADAPTIVE
+
+| COLUMN_SPACING
+| UNIFORM
+| Fixed column pitch — every inter-column gap is the same width.
 | --
+
+| MARGIN
+| _integer px_
+| Blank border (in pixels) drawn around the diagram content in the rendered/exported SVG. Labels are already inside the content bounds, so this is a pure outer frame.
+| 8
 |===
 
 === Examples

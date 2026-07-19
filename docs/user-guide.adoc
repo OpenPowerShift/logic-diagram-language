@@ -251,8 +251,8 @@ most once; place them before the logic. Combine freely.
 | `PORT_STYLE` | `CIRCLE` (default), `SQUARE`
 | Port marker shape.
 
-| `OUTPUT_ORDER` | `DECLARATION` (default), `AUTO`
-| Stack outputs in declared order, or reorder them by their driver to reduce crossings.
+| `OUTPUT_ORDER` | `AUTO` (default), `DECLARATION`
+| Reorder outputs by their driver to reduce crossings, or keep them in declared order.
 
 | `INPUT_ORDER` | `AUTO` (default), `DECLARATION`
 | Reorder gate inputs to minimise crossings, or keep declared order.
@@ -260,12 +260,18 @@ most once; place them before the logic. Combine freely.
 | `COMPACTNESS` | `NORMAL`, `COMPACT_V`, `COMPACT_H`, `COMPACT`, `SPACIOUS`, or factors
 | Spacing preset, or explicit `vertical,horizontal` factors (e.g. `70,70` or `[60,60]`).
 
-| `COLUMN_SPACING` | `UNIFORM` (default), `ADAPTIVE`
-| Fixed column pitch, or size each gap to its content for a narrower diagram.
+| `COLUMN_SPACING` | `ADAPTIVE` (default), `UNIFORM`
+| Size each column gap to its content for a narrower diagram, or use a fixed column pitch.
+
+| `MARGIN` | integer px (default `8`)
+| Blank border around the diagram content in the rendered/exported SVG.
 
 | `HIDE_JUNCTIONS` | `TRUE`, `FALSE`
 | Hide every junction (fan-out) dot.
 |===
+
+NOTE: `INPUT_ORDER`, `OUTPUT_ORDER` and `COLUMN_SPACING` default to the crossing-minimising /
+content-sized behaviour. Set them to `DECLARATION` / `UNIFORM` on a diagram to opt back out.
 
 [source]
 ----

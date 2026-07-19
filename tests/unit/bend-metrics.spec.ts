@@ -47,7 +47,9 @@ describe('Bend/crossing metrics', () => {
 // one-directional guarantee.)
 const CROSSING_CEILING: Record<string, number> = {
   'Shared Intermediates': 4,      // COMPARE fan-out + SR seal-in reconvergence
-  'Inversion Bubbles': 4,         // dense multi-output fan-out
+  'Inversion Bubbles': 5,         // dense multi-output fan-out; +1 vs old baseline is the accepted
+                                  // cost of the OUTPUT_ORDER = AUTO default (a clean crossing, not an
+                                  // overlap — the topological in↔in swap now renders as a crossover)
   'Boolean Algebra': 1,
   'Motor Control Circuit': 1,
 };

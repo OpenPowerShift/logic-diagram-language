@@ -377,11 +377,16 @@ export function buildGraph(
           const sourceId = node.inputIds[inputIdx];
           const sourceNode = nodes.get(sourceId);
 
-          if (sourceNode && sourceNode.kind === 'gate' && sourceNode.gateType !== 'NOT') {
-            // Source is a gate: output-side bubble on the source gate
+          if (sourceNode && sourceNode.kind === 'gate' && !sourceNode.blockType && sourceNode.gateType !== 'NOT') {
+            // Source is a plain logic gate (AND/OR/…): absorb the inversion as an output-side
+            // bubble on that gate (the conventional NAND/NOR rendering).
             sourceNode.bubbledOutput = true;
           } else {
-            // Source is an input port or output node: input-side bubble on this node
+            // Source is an input port, an output node, or a FUNCTION BLOCK (TIMER/SR/RISING/…).
+            // A block carries named I/O ports and is not drawn with an output bubble, so the
+            // inversion belongs on THIS consumer's input port (a bubble on the gate input),
+            // not on the block's output — otherwise the NOT renders nowhere. See `NOT WIN`
+            // feeding an AND: the bubble sits on the AND's timer input.
             if (!node.invertedInputs) node.invertedInputs = new Set();
             node.invertedInputs.add(inputIdx);
           }

@@ -81,7 +81,9 @@ export function renderInputPortLabel(absX: number, absY: number, label: string, 
   if (description) {
     parts.push(`<text class="ldl-label ldl-description" x="${textX}" y="${descY}" text-anchor="end" fill="${theme.descFill}" font-size="9" font-family="sans-serif">${esc(description)}</text>`);
   }
-  parts.push(`<text class="ldl-id" x="${absX - labelGap}" y="${absY - PORT_SIZE / 2 - 4}" text-anchor="end" fill="${theme.idFill}" font-size="10" font-family="sans-serif" font-weight="600">${esc(label)}</text>`);
+  // The id text is emitted separately by renderNodeIds (svg-renderer), gated on showIds, so it is
+  // omitted from the SVG entirely when IDs are off — a CSS-hidden id leaks into non-browser SVG
+  // viewers, which was the bug. `label` is retained above as the displayName fallback.
 
   return parts.join('\n');
 }
@@ -98,7 +100,8 @@ export function renderOutputPortLabel(absX: number, absY: number, label: string,
   if (description) {
     parts.push(`<text class="ldl-label ldl-description" x="${textX}" y="${descY}" text-anchor="start" fill="${theme.descFill}" font-size="9" font-family="sans-serif">${esc(description)}</text>`);
   }
-  parts.push(`<text class="ldl-id" x="${absX + labelGap}" y="${absY - PORT_SIZE / 2 - 4}" text-anchor="start" fill="${theme.idFill}" font-size="10" font-family="sans-serif" font-weight="600">${esc(label)}</text>`);
+  // The id text is emitted separately by renderNodeIds (svg-renderer), gated on showIds — see note
+  // in renderInputPortLabel.
 
   return parts.join('\n');
 }

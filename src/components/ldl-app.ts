@@ -243,6 +243,8 @@ export class LdlApp extends LitElement {
     ? window.matchMedia(LdlApp.NARROW_MQ).matches : false;
   @state() private mobileView: 'code' | 'diagram' = 'diagram';
   @state() private zoomPct = 100; // published by the viewer; shown in the toolbar
+  @state() private lastPngScale = 2; // remembered PNG export scale; reused by "Copy PNG"
+  @state() private copiedPng = false; // brief "Copied" confirmation on the Copy PNG button
 
   private unsubscribeTheme: (() => void) | null = null;
   private narrowMq: MediaQueryList | null = null;
@@ -400,11 +402,21 @@ export class LdlApp extends LitElement {
   private handleDownloadSvg() {
     if (!this.svg) return;
     const printSvg = this.getPrintSvg();
-    const blob = new Blob([printSvg], { type: 'image/svg+xml' });
+    this.downloadBlob(new Blob([printSvg], { type: 'image/svg+xml' }), 'diagram.svg');
+  }
+
+  // Download the LDL source itself so a diagram authored in the editor can be saved to a file.
+  private handleDownloadLdl() {
+    if (!this.sourceText) return;
+    const base = this.currentExample.replace(/[^a-z0-9]+/gi, '-').toLowerCase() || 'diagram';
+    this.downloadBlob(new Blob([this.sourceText], { type: 'text/plain;charset=utf-8' }), `${base}.ldl`);
+  }
+
+  private downloadBlob(blob: Blob, filename: string) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'diagram.svg';
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -445,19 +457,20 @@ export class LdlApp extends LitElement {
   }
 
   // PNG DPI selector in the toolbar. Reads the chosen scale and resets the select so PNG can be
-  // picked again (it has no persistent value).
+  // picked again (it has no persistent value). Remembers the scale so "Copy PNG" reuses it.
   private handlePngScaleChange(e: Event) {
     const sel = e.target as HTMLSelectElement;
     const scale = parseInt(sel.value || '2', 10);
     sel.selectedIndex = 0;
+    this.lastPngScale = scale;
     if (this.svg) this.handleExportPng(scale);
   }
 
-  // Tier 4.13: PNG export at a user-selected DPI (1x, 2x, 3x, 4x). Reuses the same SVG-to-canvas
-  // pipeline as the PDF export but skips the jsPDF step and writes the PNG directly.
-  private handleExportPng(scale: number) {
+  // Rasterise the current diagram to a PNG Blob at the given scale. Shared by the PNG export
+  // (download) and the "Copy PNG" (clipboard) paths — one SVG→canvas pipeline, two sinks.
+  private renderPngBlob(scale: number): Promise<Blob | null> {
     const printSvg = this.getPrintSvg();
-    if (!printSvg) return;
+    if (!printSvg) return Promise.resolve(null);
     const parser = new DOMParser();
     const doc = parser.parseFromString(printSvg, 'image/svg+xml');
     const svgEl = doc.documentElement;
@@ -474,22 +487,35 @@ export class LdlApp extends LitElement {
 
     const svgData = new XMLSerializer().serializeToString(svgEl);
     const imgSrc = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
-    const img = new Image();
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob((blob) => {
-        if (!blob) return;
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `diagram@${scale}x.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }, 'image/png');
-    };
-    img.src = imgSrc;
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => resolve(blob), 'image/png');
+      };
+      img.onerror = () => resolve(null);
+      img.src = imgSrc;
+    });
+  }
+
+  // Tier 4.13: PNG export at a user-selected DPI (1x, 2x, 3x, 4x).
+  private async handleExportPng(scale: number) {
+    this.lastPngScale = scale;
+    const blob = await this.renderPngBlob(scale);
+    if (blob) this.downloadBlob(blob, `diagram@${scale}x.png`);
+  }
+
+  // Copy the PNG to the clipboard at the last-used export scale (default 2x). Falls back silently
+  // where the async Clipboard image API is unavailable (older/insecure-context browsers).
+  private async handleCopyPng() {
+    if (!this.svg) return;
+    try {
+      const blob = await this.renderPngBlob(this.lastPngScale);
+      if (!blob) return;
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      this.copiedPng = true;
+      setTimeout(() => { this.copiedPng = false; }, 1200);
+    } catch { /* clipboard image write unsupported/denied — no-op */ }
   }
 
   // Toolbar toggles override the diagram-source options for the live preview. The "live" options
@@ -587,6 +613,7 @@ export class LdlApp extends LitElement {
             <button class=${this.showIds ? 'active' : ''} @click=${this.handleToggleIds} title="Show / hide bare identifier labels">IDs</button>
             <button class=${this.hideJunctions ? 'active' : ''} @click=${this.handleToggleDots} title="Show / hide junction dots">Dots</button>
             <span class="sep"></span>
+            <button @click=${this.handleDownloadLdl} title="Download the LDL source (.ldl)">LDL</button>
             <button ?disabled=${!this.svg} @click=${this.handleDownloadSvg} title="Export SVG (vector)">SVG</button>
             <button ?disabled=${!this.svg} @click=${this.handleExportPdf} title="Export PDF">PDF</button>
             <select class="png-scale" ?disabled=${!this.svg} title="Export PNG at selected scale" @change=${this.handlePngScaleChange}>
@@ -596,6 +623,7 @@ export class LdlApp extends LitElement {
               <option value="3">PNG 3x</option>
               <option value="4">PNG 4x</option>
             </select>
+            <button ?disabled=${!this.svg} @click=${this.handleCopyPng} title="Copy PNG to clipboard at the last-used scale (default 2x)">${this.copiedPng ? 'Copied ✓' : 'Copy PNG'}</button>
           </div>
         </div>
       </div>

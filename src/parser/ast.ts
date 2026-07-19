@@ -25,6 +25,9 @@ export interface RenderOptions {
   // Column pitch mode. UNIFORM (default) keeps the fixed COL_SPACING pitch; ADAPTIVE sizes each
   // inter-column gap to its content (OPTION COLUMN_SPACING = ADAPTIVE).
   columnSpacing: ColumnSpacing;
+  // Blank margin (px) around the diagram content in the rendered/exported SVG. Default 8.
+  // Set via OPTION MARGIN = <px>.
+  margin: number;
   // Tier 4.10/11 — new options.
   // Stroke width for wires + gate bodies (px, default 2.5). Set via OPTION STROKE_WIDTH.
   strokeWidth?: number;
@@ -36,10 +39,14 @@ export const DEFAULT_OPTIONS: RenderOptions = {
   inversion: 'GATES',
   portStyle: 'CIRCLE',
   gateInputStyle: 'EXPAND',
-  outputOrder: 'DECLARATION',
+  // AUTO input/output ordering and ADAPTIVE column spacing are the defaults: they minimise wire
+  // crossings and pack columns to their content (narrower diagrams) with no downside on the corpus.
+  // Set the DECLARATION / UNIFORM values explicitly per diagram to opt back out.
+  outputOrder: 'AUTO',
   inputOrder: 'AUTO',
   compactness: 'NORMAL',
-  columnSpacing: 'UNIFORM',
+  columnSpacing: 'ADAPTIVE',
+  margin: 8,
   hideJunctions: false,
 };
 
@@ -172,6 +179,9 @@ export function resolveOptions(optionDecls: OptionDecl[]): RenderOptions {
       opts.outputOrder = value;
     } else if (name === 'INPUT_ORDER' && (value === 'DECLARATION' || value === 'AUTO')) {
       opts.inputOrder = value;
+    } else if (name === 'MARGIN') {
+      const m = parseFloat(decl.value);
+      if (!isNaN(m) && m >= 0) opts.margin = m;
     } else if (name === 'STROKE_WIDTH') {
       const w = parseFloat(decl.value);
       if (!isNaN(w) && w > 0) opts.strokeWidth = w;

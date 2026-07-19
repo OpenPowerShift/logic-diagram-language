@@ -396,7 +396,34 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
   };
   const cr = (l: LayoutResult) => findWireCrossings(l.wires, l.junctions).length;
   const bends = (l: LayoutResult) => l.wires.reduce((s, w) => s + Math.max(0, w.points.length - 2), 0);
-  const score = (l: LayoutResult): number[] => [subMinDoglegs(l), cr(l), bends(l), l.height];
+  // Cross-net COINCIDENT parallel overlap: two different nets' same-orientation segments sharing an
+  // axis line (co-linear) and overlapping along it — i.e. drawn on top of each other. This is the
+  // wire-separation contract's worst failure (worse than a crossing): the routing passes refuse to
+  // trade it for a crossing, so when a placement/ordering leaves two nets genuinely contending for
+  // one channel an overlap can survive a single layout. Scoring it as the TOP-priority term makes
+  // the candidate selection reject any ordering/strategy that overlaps in favour of one that doesn't
+  // — so no single pass's all-or-nothing fallback can leak an overlap into the chosen layout when a
+  // clean candidate exists. Backed by the invariants.spec "no cross-net overlapping parallel" test.
+  const overlaps = (l: LayoutResult): number => {
+    interface S { p: number; a0: number; a1: number; from: string; }
+    const V: S[] = [], H: S[] = [];
+    for (const w of l.wires) {
+      if (w.feedback) continue;
+      for (let i = 0; i < w.points.length - 1; i++) {
+        const a = w.points[i], b = w.points[i + 1];
+        if (Math.abs(a.x - b.x) < 0.5 && Math.abs(a.y - b.y) >= 0.5) V.push({ p: a.x, a0: Math.min(a.y, b.y), a1: Math.max(a.y, b.y), from: w.fromId });
+        else if (Math.abs(a.y - b.y) < 0.5 && Math.abs(a.x - b.x) >= 0.5) H.push({ p: a.y, a0: Math.min(a.x, b.x), a1: Math.max(a.x, b.x), from: w.fromId });
+      }
+    }
+    let c = 0;
+    for (const set of [V, H]) for (let i = 0; i < set.length; i++) for (let j = i + 1; j < set.length; j++) {
+      const a = set[i], b = set[j];
+      if (a.from === b.from || Math.abs(a.p - b.p) >= 0.5) continue;   // different net, same axis line
+      if (Math.min(a.a1, b.a1) - Math.max(a.a0, b.a0) >= GRID) c++;    // co-linear overlap (matches the invariant)
+    }
+    return c;
+  };
+  const score = (l: LayoutResult): number[] => [overlaps(l), subMinDoglegs(l), cr(l), bends(l), l.height];
   const better = (l: LayoutResult, b: LayoutResult) => {
     const sl = score(l), sb = score(b);
     for (let i = 0; i < sl.length; i++) if (sl[i] !== sb[i]) return sl[i] < sb[i];
@@ -406,7 +433,9 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
   let best = layoutOnce(diagram, portMeta, options, 'heuristic', false);
   const consider = (l: LayoutResult) => { if (better(l, best)) best = l; };
   consider(layoutOnce(diagram, portMeta, options, 'heuristic', true));   // lane-tight variant (collapses voids)
-  if (cr(best) > 0) {                                             // only reach for crossmin if not already clean
+  // Reach for the crossmin candidates when the current best is not already clean — either it still
+  // has crossings, or (rarer) it carries a cross-net overlap a different ordering may avoid.
+  if (cr(best) > 0 || overlaps(best) > 0) {
     consider(layoutOnce(diagram, portMeta, options, 'crossmin', false));
     consider(layoutOnce(diagram, portMeta, options, 'crossmin', true));
   }
@@ -2239,9 +2268,38 @@ function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: Render
     // The relocated branch (vertical at sharedX + its peel-off horizontal) must satisfy the shared
     // separation contract. Same-source wires are skipped — the whole point is that they merge into
     // one trunk. Crossovers with other nets are fine; only sub-MIN parallel crowding is rejected.
+    // segCrowds/wireClear DELIBERATELY ignore exact-collinear overlap (deferring to the "overlap
+    // check elsewhere" — the no-parallel-overlap invariant), so this pass must ALSO reject a move
+    // that lands a segment exactly on a CROSS-NET parallel run (overlap >= GRID) — otherwise snapping
+    // a branch to the gate-most X can drop it right on top of another net's channel. Its sibling
+    // passes (fan-in nesting, the entrance pass) carry this same collinear guard; without it the
+    // trunk merge can silently undo the track pass's overlap-avoiding placement.
+    const collinearHitsOtherNet = (pts: { x: number; y: number }[], selfFrom: string) => {
+      for (let i = 0; i < pts.length - 1; i++) {
+        const a = pts[i], b = pts[i + 1];
+        const horiz = Math.abs(a.y - b.y) < 0.5;
+        if (!horiz && Math.abs(a.x - b.x) >= 0.5) continue;   // only axis-aligned segments
+        const perp = horiz ? a.y : a.x;
+        const s0 = horiz ? Math.min(a.x, b.x) : Math.min(a.y, b.y);
+        const s1 = horiz ? Math.max(a.x, b.x) : Math.max(a.y, b.y);
+        for (const w of wires) {
+          if (w.fromId === selfFrom) continue;               // same source shares the trunk (intentional)
+          for (let j = 0; j < w.points.length - 1; j++) {
+            const c = w.points[j], d = w.points[j + 1];
+            const oHoriz = Math.abs(c.y - d.y) < 0.5;
+            if (oHoriz !== horiz || (!oHoriz && Math.abs(c.x - d.x) >= 0.5) || (oHoriz && Math.abs(c.x - d.x) < 0.5)) continue;
+            if (Math.abs((oHoriz ? c.y : c.x) - perp) >= 0.5) continue;   // not collinear
+            const o0 = oHoriz ? Math.min(c.x, d.x) : Math.min(c.y, d.y);
+            const o1 = oHoriz ? Math.max(c.x, d.x) : Math.max(c.y, d.y);
+            if (Math.min(s1, o1) - Math.max(s0, o0) >= GRID) return true; // collinear overlap
+          }
+        }
+      }
+      return false;
+    };
     const moveClear = (self: LayoutWire, sharedX: number) => {
       const moved = [self.points[0], { x: sharedX, y: self.points[1].y }, { x: sharedX, y: self.points[2].y }, self.points[3]];
-      return wireClear(moved, o => o.fromId === self.fromId);
+      return wireClear(moved, o => o.fromId === self.fromId) && !collinearHitsOtherNet(moved, self.fromId);
     };
     for (const group of bySource.values()) {
       if (group.length < 2) continue;

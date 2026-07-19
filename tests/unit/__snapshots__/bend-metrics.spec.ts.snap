@@ -112,11 +112,11 @@ exports[`Bend/crossing metrics > Input Bars 1`] = `
 
 exports[`Bend/crossing metrics > Inversion Bubbles 1`] = `
 {
-  "H": 300,
-  "bends": 12,
-  "bent": 6,
-  "crossings": 4,
-  "straight": 3,
+  "H": 280,
+  "bends": 18,
+  "bent": 8,
+  "crossings": 5,
+  "straight": 1,
   "wires": 9,
 }
 `;
