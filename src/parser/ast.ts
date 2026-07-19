@@ -28,6 +28,10 @@ export interface RenderOptions {
   // Blank margin (px) around the diagram content in the rendered/exported SVG. Default 8.
   // Set via OPTION MARGIN = <px>.
   margin: number;
+  // Draw a thin leader line from each consumed-intermediate net label to the wire it names, so the
+  // label reads unambiguously even when it is placed in nearby clear space rather than on the net.
+  // Set via OPTION WIRE_LABEL_LEADER = TRUE | FALSE. Default TRUE.
+  wireLabelLeader: boolean;
   // Tier 4.10/11 — new options.
   // Stroke width for wires + gate bodies (px, default 2.5). Set via OPTION STROKE_WIDTH.
   strokeWidth?: number;
@@ -47,6 +51,7 @@ export const DEFAULT_OPTIONS: RenderOptions = {
   compactness: 'NORMAL',
   columnSpacing: 'ADAPTIVE',
   margin: 8,
+  wireLabelLeader: true,
   hideJunctions: false,
 };
 
@@ -182,6 +187,9 @@ export function resolveOptions(optionDecls: OptionDecl[]): RenderOptions {
     } else if (name === 'MARGIN') {
       const m = parseFloat(decl.value);
       if (!isNaN(m) && m >= 0) opts.margin = m;
+    } else if (name === 'WIRE_LABEL_LEADER') {
+      if (/^(true|1|yes|on)$/i.test(value)) opts.wireLabelLeader = true;
+      else if (/^(false|0|no|off)$/i.test(value)) opts.wireLabelLeader = false;
     } else if (name === 'STROKE_WIDTH') {
       const w = parseFloat(decl.value);
       if (!isNaN(w) && w > 0) opts.strokeWidth = w;

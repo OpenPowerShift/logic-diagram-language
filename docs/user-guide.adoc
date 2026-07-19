@@ -266,6 +266,10 @@ most once; place them before the logic. Combine freely.
 | `MARGIN` | integer px (default `8`)
 | Blank border around the diagram content in the rendered/exported SVG.
 
+| `WIRE_LABEL_LEADER` | `TRUE` (default), `FALSE`
+| Draw a dashed leader line from each consumed-intermediate net label to the wire it names, so the
+  label reads unambiguously even when placed in nearby clear space.
+
 | `HIDE_JUNCTIONS` | `TRUE`, `FALSE`
 | Hide every junction (fan-out) dot.
 |===

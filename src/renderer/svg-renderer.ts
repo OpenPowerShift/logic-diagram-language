@@ -68,6 +68,17 @@ export function renderDiagram(diagram: Diagram, portMeta?: PortMeta[], showLabel
     const cx = lbl.x + lbl.width / 2;
     let ty = lbl.y + 11;
     svgLabels.push(`<g class="ldl-net-label" id="netlabel_${li}">`);
+    // Optional leader line from the label to the wire it names (OPTION WIRE_LABEL_LEADER). Drawn only
+    // when the label sits clear of its net (a real gap), from the box edge nearest the wire to the
+    // wire point. Makes the label→net association explicit wherever the label had to be placed.
+    if (opts.wireLabelLeader && lbl.leaderX !== undefined && lbl.leaderY !== undefined) {
+      const ex = Math.max(lbl.x, Math.min(lbl.x + lbl.width, lbl.leaderX));   // box edge nearest the wire
+      const ey = Math.max(lbl.y, Math.min(lbl.y + lbl.height, lbl.leaderY));
+      if (Math.hypot(lbl.leaderX - ex, lbl.leaderY - ey) > 6) {
+        svgLabels.push(`<line class="ldl-leader" x1="${ex}" y1="${ey}" x2="${lbl.leaderX}" y2="${lbl.leaderY}" stroke="${theme.descFill}" stroke-width="1" stroke-dasharray="3 2"/>`);
+        svgLabels.push(`<circle class="ldl-leader-dot" cx="${lbl.leaderX}" cy="${lbl.leaderY}" r="2" fill="${theme.descFill}"/>`);
+      }
+    }
     if (lbl.name) {
       svgLabels.push(`<text class="ldl-label ldl-name" x="${cx}" y="${ty}" text-anchor="middle" fill="${theme.nameFill}" font-size="11" font-family="sans-serif" font-weight="600">${esc(lbl.name)}</text>`);
       ty += 12;

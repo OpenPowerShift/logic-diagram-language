@@ -54,6 +54,9 @@ export interface LayoutLabel {
   height: number;
   anchorX: number;  // the driver output point the label annotates
   anchorY: number;
+  driverId: string; // the node whose output net this label names (its fan-out wires)
+  leaderX?: number; // nearest point ON the net wire (for an optional leader line to the label)
+  leaderY?: number;
   name?: string;
   description?: string;
 }
@@ -423,7 +426,31 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     }
     return c;
   };
-  const score = (l: LayoutResult): number[] => [overlaps(l), subMinDoglegs(l), cr(l), bends(l), l.height];
+  // Cross-net gate/block BODY intrusion: a wire segment (not entering that node) running through or
+  // along a non-endpoint gate/block body. Uses the FULL body rect (no inset), so it also catches a
+  // wire grazing the body's edge — a straight pass-through drawn along a block's border reads as part
+  // of the block outline. A* can pick such a graze when it is the fewest-crossing route (the body
+  // graze is not itself a crossing), so scoring it lets the candidate selection prefer a layout that
+  // routes clear of the body when one exists. Ranked just below overlaps (both are "a wire drawn on
+  // top of something it must stay clear of").
+  const bodyIntrusions = (l: LayoutResult): number => {
+    const gates = l.nodes.filter(n => n.gateType !== 'INPUT' && n.gateType !== 'OUTPUT');
+    let c = 0;
+    for (const w of l.wires) {
+      if (w.feedback) continue;
+      for (let i = 0; i < w.points.length - 1; i++) {
+        const a = w.points[i], b = w.points[i + 1];
+        const xm = Math.min(a.x, b.x), xM = Math.max(a.x, b.x), ym = Math.min(a.y, b.y), yM = Math.max(a.y, b.y);
+        for (const g of gates) {
+          if (g.id === w.fromId || g.id === w.toId) continue;   // legitimately enters this node
+          // Real overlap with the body rect, edges included (so an on-edge graze counts).
+          if (xM > g.absX + 0.5 && g.absX + g.width > xm + 0.5 && yM > g.absY - 0.5 && g.absY + g.height > ym - 0.5) c++;
+        }
+      }
+    }
+    return c;
+  };
+  const score = (l: LayoutResult): number[] => [overlaps(l), bodyIntrusions(l), subMinDoglegs(l), cr(l), bends(l), l.height];
   const better = (l: LayoutResult, b: LayoutResult) => {
     const sl = score(l), sb = score(b);
     for (let i = 0; i < sl.length; i++) if (sl[i] !== sb[i]) return sl[i] < sb[i];
@@ -433,9 +460,10 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
   let best = layoutOnce(diagram, portMeta, options, 'heuristic', false);
   const consider = (l: LayoutResult) => { if (better(l, best)) best = l; };
   consider(layoutOnce(diagram, portMeta, options, 'heuristic', true));   // lane-tight variant (collapses voids)
-  // Reach for the crossmin candidates when the current best is not already clean — either it still
-  // has crossings, or (rarer) it carries a cross-net overlap a different ordering may avoid.
-  if (cr(best) > 0 || overlaps(best) > 0) {
+  // Reach for the crossmin candidates when the current best is not already clean — it still has
+  // crossings, or (rarer) carries a cross-net overlap or a gate-body intrusion a different ordering
+  // may avoid.
+  if (cr(best) > 0 || overlaps(best) > 0 || bodyIntrusions(best) > 0) {
     consider(layoutOnce(diagram, portMeta, options, 'crossmin', false));
     consider(layoutOnce(diagram, portMeta, options, 'crossmin', true));
   }
@@ -1559,6 +1587,34 @@ function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: Render
     }
   }
 
+  // Keep same-column block bodies from touching. The FB encompass pass above grows each block's box
+  // symmetrically around its ports, which can consume the vertical gap `sep()` reserved between two
+  // adjacent blocks (their grown boxes meet — 50P1/50Q1 stacked body-to-body). This runs BEFORE
+  // routing, so pushing a block (and its ports) down to restore a clean gap simply lets its wires
+  // route to the new position — no wire is disturbed. Only blocks that actually overlap move, and
+  // only downward, so a column without the problem is untouched.
+  {
+    const MIN_BLOCK_GAP = 20;
+    const byCol = new Map<number, LayoutNode[]>();
+    for (const n of layoutNodes) if (n.blockType) {
+      const a = byCol.get(n.absX); if (a) a.push(n); else byCol.set(n.absX, [n]);
+    }
+    for (const col of byCol.values()) {
+      if (col.length < 2) continue;
+      col.sort((a, b) => a.absY - b.absY);
+      for (let i = 1; i < col.length; i++) {
+        const prev = col[i - 1], cur = col[i];
+        const need = prev.absY + prev.height + MIN_BLOCK_GAP;
+        if (cur.absY < need) {
+          const dy = Math.ceil((need - cur.absY) / GRID) * GRID;
+          cur.absY += dy;
+          for (const p of cur.inputs) p.absY += dy;
+          for (const p of cur.outputs) p.absY += dy;
+        }
+      }
+    }
+  }
+
   // OR gate input ports tap the concave left curve. Done as a final pass so it uses
   // the gate's final height and each port's final (aligned) Y. The bbox, output port
   // and port Y positions stay on the grid; only the input-port X follows the curve.
@@ -1602,7 +1658,7 @@ function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: Render
     const h = Math.ceil((lines * 13 + 6) / GRID) * GRID;
     const x = Math.round((port.absX + 6) / GRID) * GRID;     // just right of the output stub
     const y = Math.round((port.absY - h - 6) / GRID) * GRID;  // above the fan-out trunk
-    labels.push({ x, y, width: w, height: h, anchorX: port.absX, anchorY: port.absY, name: il.name, description: il.description });
+    labels.push({ x, y, width: w, height: h, anchorX: port.absX, anchorY: port.absY, driverId: il.driverId, name: il.name, description: il.description });
     allObstacles.push({ x, y, w, h, id: `label_${il.driverId}` });
   }
 
@@ -2599,6 +2655,111 @@ function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: Render
     }
   }
 
+  // Post-routing net-label relocation. A consumed-intermediate label is placed just above its
+  // driver's output BEFORE routing (and registered as a routing obstacle). That default spot can
+  // still end up on a wire: a fan-out branch that turns UP to a consumer above the driver pierces
+  // it, or a wide name reaches into the downstream block whose port the branch must enter (so the
+  // router cannot avoid it). Wires are final here, and a label is a pure annotation, so relocating
+  // it never disturbs a wire. For each label whose box overlaps a wire or a gate/block body, search
+  // a grid of candidate boxes around its anchor and move it to the one with the fewest wire
+  // crossings, then fewest body overlaps, then least displacement. Keep the current spot if nothing
+  // scores better, so an already-clean label never moves.
+  {
+    const boxHitsWire = (x: number, y: number, w: number, h: number): number => {
+      let c = 0;
+      for (const wire of wires) for (let i = 0; i < wire.points.length - 1; i++) {
+        const a = wire.points[i], b = wire.points[i + 1];
+        if (Math.max(a.x, b.x) > x + 0.5 && Math.min(a.x, b.x) < x + w - 0.5 &&
+            Math.max(a.y, b.y) > y + 0.5 && Math.min(a.y, b.y) < y + h - 0.5) c++;
+      }
+      return c;
+    };
+    const boxHitsBody = (x: number, y: number, w: number, h: number): number => {
+      let c = 0;
+      for (const n of layoutNodes) {
+        if (n.gateType === 'INPUT' || n.gateType === 'OUTPUT') continue;
+        if (x + w > n.absX + 0.5 && n.absX + n.width > x + 0.5 &&
+            y + h > n.absY + 0.5 && n.absY + n.height > y + 0.5) c++;
+      }
+      return c;
+    };
+    const boxHitsLabel = (x: number, y: number, w: number, h: number, self: LayoutLabel): number => {
+      let c = 0;
+      for (const o of labels) {
+        if (o === self) continue;
+        if (x + w > o.x + 0.5 && o.x + o.width > x + 0.5 && y + h > o.y + 0.5 && o.y + o.height > y + 0.5) c++;
+      }
+      return c;
+    };
+    // Nearest gap (0 if overlapping) between a label box and an axis-aligned wire segment, treating
+    // the segment as its degenerate bounding rect.
+    const boxSegDist = (x: number, y: number, w: number, h: number, a: { x: number; y: number }, b: { x: number; y: number }): number => {
+      const dx = Math.max(0, Math.max(x - Math.max(a.x, b.x), Math.min(a.x, b.x) - (x + w)));
+      const dy = Math.max(0, Math.max(y - Math.max(a.y, b.y), Math.min(a.y, b.y) - (y + h)));
+      return Math.hypot(dx, dy);
+    };
+    for (const lb of labels) {
+      const { width: w, height: h, anchorX: ax, anchorY: ay } = lb;
+      // The label NAMES its driver's output net, so it should sit RIGHT NEXT TO that net's wire.
+      // Primary objective: clear of wires (the bug) and bodies; among clear spots, MINIMISE the
+      // distance to the driver's own fan-out wire so the label hugs the signal it names (rather than
+      // floating off to distant whitespace). A tiny bias keeps it above / on the output side only to
+      // break ties between equally-close spots.
+      // The net's full geometry: EVERY wire driven by this node (all fan-out branches share the
+      // driver's id), so placement optimises against the whole net, not one branch. Its fan-out
+      // JUNCTION dots (branch points that lie on those wires) are added as point-segments too — a
+      // junction is the net's identity node and a natural leader attach point.
+      const netWires = wires.filter(wr => wr.fromId === lb.driverId);
+      const netSegs: [{ x: number; y: number }, { x: number; y: number }][] = [];
+      for (const wr of netWires) for (let i = 0; i < wr.points.length - 1; i++) netSegs.push([wr.points[i], wr.points[i + 1]]);
+      const onNet = (jx: number, jy: number) => netSegs.some(([a, b]) =>
+        Math.min(a.x, b.x) - 0.5 <= jx && jx <= Math.max(a.x, b.x) + 0.5 &&
+        Math.min(a.y, b.y) - 0.5 <= jy && jy <= Math.max(a.y, b.y) + 0.5);
+      for (const j of mergedJunctions) if (onNet(j.x, j.y)) netSegs.push([{ x: j.x, y: j.y }, { x: j.x, y: j.y }]);
+      const distToNet = (x: number, y: number): number => {
+        let d = Infinity;
+        for (const [a, b] of netSegs) d = Math.min(d, boxSegDist(x, y, w, h, a, b));
+        return Number.isFinite(d) ? d : Math.hypot(x - ax, y - ay);
+      };
+      // With a leader line the label should sit a readable distance OFF the net (so the connector is
+      // visible and the text isn't jammed against the wire); without one, it should hug the net.
+      const idealGap = opts.wireLabelLeader ? 16 : 0;
+      const cost = (x: number, y: number) => {
+        const tieBias = (x + w < ax - 0.5 ? 6 : 0) + (y > ay + 0.5 ? 3 : 0); // ≪ 1px of distance; ties only
+        return boxHitsWire(x, y, w, h) * 100000 + boxHitsBody(x, y, w, h) * 3000 + boxHitsLabel(x, y, w, h, lb) * 2000 +
+          Math.abs(distToNet(x, y) - idealGap) + tieBias;
+      };
+      let best = { x: lb.x, y: lb.y, c: cost(lb.x, lb.y) };
+      const defaultClean = boxHitsWire(lb.x, lb.y, w, h) === 0 && boxHitsBody(lb.x, lb.y, w, h) === 0;
+      // Relocate when the default overlaps, OR always under WIRE_LABEL_LEADER (to seat every label at
+      // the readable gap its connector needs).
+      if (!defaultClean || opts.wireLabelLeader) {
+        // Dense grid around the anchor. Left edge sweeps from just left of the output to well PAST it:
+        // the net is a shared fan-out, so a spot to the RIGHT of the junction (hugging a branch) is
+        // valid too. distToNet then selects the clear spot nearest the net wire.
+        for (let x = Math.round((ax - w - 20) / GRID) * GRID; x <= ax + 180; x += GRID) {
+          for (let y = Math.round((ay - 200) / GRID) * GRID; y <= ay + 200; y += GRID) {
+            if (x < 0 || y < 0) continue;
+            const c = cost(x, y);
+            if (c < best.c) best = { x, y, c };
+          }
+        }
+        lb.x = best.x; lb.y = best.y;
+      }
+      // Leader target: the point on the net (any branch OR a junction, via netSegs) nearest the
+      // (final) label box, so an optional leader line (OPTION WIRE_LABEL_LEADER) connects the label to
+      // the signal it names. Clamp the label's centre onto each net segment and keep the closest.
+      const cx = lb.x + w / 2, cy = lb.y + h / 2;
+      let bd = Infinity;
+      for (const [a, b] of netSegs) {
+        const px = Math.max(Math.min(a.x, b.x), Math.min(Math.max(a.x, b.x), cx));
+        const py = Math.max(Math.min(a.y, b.y), Math.min(Math.max(a.y, b.y), cy));
+        const d = Math.hypot(px - cx, py - cy);
+        if (d < bd) { bd = d; lb.leaderX = px; lb.leaderY = py; }
+      }
+    }
+  }
+
   // Re-normalise vertical position: the alignment/collision passes can drift content downward
   // from the assigned coordinates, leaving empty space at the top. Shift everything uniformly
   // (preserving every relative position and wire shape) so the topmost content sits at PAD_Y.
@@ -2616,7 +2777,7 @@ function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: Render
       }
       for (const w of wires) for (const p of w.points) p.y += dy;
       for (const j of mergedJunctions) j.y += dy;
-      for (const l of labels) { l.y += dy; l.anchorY += dy; }  // labels are anchored to gates — shift with them
+      for (const l of labels) { l.y += dy; l.anchorY += dy; if (l.leaderY !== undefined) l.leaderY += dy; }  // labels are anchored to gates — shift with them
     }
   }
 
@@ -2650,7 +2811,7 @@ function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: Render
       }
       for (const w of wires) for (const p of w.points) p.y -= shiftFor(p.y);
       for (const j of mergedJunctions) j.y -= shiftFor(j.y);
-      for (const l of labels) { const dy = shiftFor(l.y); l.y -= dy; l.anchorY -= dy; }
+      for (const l of labels) { const dy = shiftFor(l.y); l.y -= dy; l.anchorY -= dy; if (l.leaderY !== undefined) l.leaderY -= dy; }
     }
   }
 

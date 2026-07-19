@@ -121,6 +121,11 @@ the last occurrence wins.
 | _integer px_
 | Blank border (in pixels) drawn around the diagram content in the rendered/exported SVG. Labels are already inside the content bounds, so this is a pure outer frame.
 | 8
+
+| WIRE_LABEL_LEADER
+| TRUE / FALSE
+| Draw a dashed leader line (with an endpoint dot on the wire) from each consumed-intermediate net label to the net it names. The label is seated a readable distance off the wire so the connector is visible; useful where a wide label cannot sit directly on a congested fan-out junction.
+| TRUE
 |===
 
 === Examples
