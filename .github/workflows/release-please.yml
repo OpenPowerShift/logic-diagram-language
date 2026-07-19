@@ -45,5 +45,10 @@ jobs:
       - run: |
           echo "ACTIONS_ID_TOKEN_REQUEST_URL=${ACTIONS_ID_TOKEN_REQUEST_URL:+set}"
           echo "ACTIONS_ID_TOKEN_REQUEST_TOKEN=${ACTIONS_ID_TOKEN_REQUEST_TOKEN:+set}"
-      # `npm publish` runs `prepublishOnly` (build:lib) to produce dist/, then publishes with OIDC.
-      - run: npm publish
+      - run: |
+          echo "Repository: $GITHUB_REPOSITORY"
+          echo "Workflow: $GITHUB_WORKFLOW"
+          echo "Workflow Ref: $GITHUB_WORKFLOW_REF"
+          echo "Run ID: $GITHUB_RUN_ID"
+          # `npm publish` runs `prepublishOnly` (build:lib) to produce dist/, then publishes with OIDC.
+      - run: npm publish --provenance
