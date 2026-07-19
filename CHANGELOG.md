@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/OpenPowerShift/logic-diagram-language/compare/v0.2.2...v0.2.3) (2026-07-19)
+
+
+### Bug Fixes
+
+* Debug release workflow ([e4b8ae8](https://github.com/OpenPowerShift/logic-diagram-language/commit/e4b8ae8821262af47d67f876b0d65239f9b1f0bc))
+
 ## [0.2.2](https://github.com/OpenPowerShift/logic-diagram-language/compare/v0.2.1...v0.2.2) (2026-07-19)
 
 
