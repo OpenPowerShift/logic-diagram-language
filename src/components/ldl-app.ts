@@ -531,7 +531,7 @@ export class LdlApp extends LitElement {
     try {
       const result = parse(this.sourceText);
       if (result.diagram.outputs.length > 0) {
-        return renderDiagram(result.diagram, result.diagram.portMeta, this.showLabels, this.showIds, this.liveOptions(result.diagram), LIGHT_DIAGRAM);
+        return renderDiagram(result.diagram, this.showLabels, this.showIds, this.liveOptions(result.diagram), LIGHT_DIAGRAM);
       }
     } catch { /* fall through to cached svg */ }
     return this.svg;
@@ -575,9 +575,9 @@ export class LdlApp extends LitElement {
       this.parseErrors = result.errors;
       if (result.diagram.outputs.length > 0) {
         const options = this.liveOptions(result.diagram);
-        const layout = layoutDiagram(result.diagram, result.diagram.portMeta, options);
+        const layout = layoutDiagram(result.diagram, options);
         this.checks = validateLayout(layout);
-        this.svg = renderDiagram(result.diagram, result.diagram.portMeta, this.showLabels, this.showIds, options, this.currentTheme.diagram);
+        this.svg = renderDiagram(result.diagram, this.showLabels, this.showIds, options, this.currentTheme.diagram);
       } else {
         this.svg = '';
         this.checks = [];

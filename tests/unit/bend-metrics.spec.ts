@@ -33,7 +33,7 @@ describe('Bend/crossing metrics', () => {
   for (const [name, src] of Object.entries(EXAMPLES)) {
     it(name, () => {
       const r = parse(src);
-      const l = layoutDiagram(r.diagram, r.diagram.portMeta, resolveOptions(r.diagram.options));
+      const l = layoutDiagram(r.diagram, resolveOptions(r.diagram.options));
       expect(metrics(l)).toMatchSnapshot();
     });
   }
@@ -57,7 +57,7 @@ describe('Crossing ceiling (never regress)', () => {
   for (const [name, src] of Object.entries(EXAMPLES)) {
     it(name, () => {
       const r = parse(src);
-      const l = layoutDiagram(r.diagram, r.diagram.portMeta, resolveOptions(r.diagram.options));
+      const l = layoutDiagram(r.diagram, resolveOptions(r.diagram.options));
       const crossings = findWireCrossings(l.wires, l.junctions).length;
       const ceiling = CROSSING_CEILING[name] ?? 0;
       expect(crossings, `${name}: ${crossings} crossings exceeds ceiling ${ceiling}`).toBeLessThanOrEqual(ceiling);

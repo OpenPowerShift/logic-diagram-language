@@ -1,7 +1,7 @@
 // layout.ts is the thin orchestrator: layoutDiagram runs candidate layouts (via layoutOnce) and picks
 // the best on measured geometry; layoutOnce is placeNodes -> routeWires -> bounds. Everything else
 // lives in ./layout/*: types, geometry, placement, routing, labels, scoring (crossings), crossmin.
-import type { Diagram, PortMeta, RenderOptions } from '../parser/ast.js';
+import type { Diagram, RenderOptions } from '../parser/ast.js';
 import { DEFAULT_OPTIONS } from '../parser/ast.js';
 
 import type {
@@ -30,7 +30,7 @@ import { resetId } from './layout/geometry.js';
 // whichever measures fewer crossings on the REAL geometry. 'heuristic' is always a candidate, so we
 // can never render worse than before; 'crossmin' is tried only when 'heuristic' isn't already clean
 // (the common case), keeping cost ~1x. Smarter candidates can be added later — each only ever helps.
-export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], options?: RenderOptions): LayoutResult {
+export function layoutDiagram(diagram: Diagram, options?: RenderOptions): LayoutResult {
   // Candidates span two independent dimensions: ordering ('heuristic' | 'crossmin') and long-edge
   // lane packing (loose | tight — see assignCoordinates `laneTight`). Each is a full independent
   // layout; we keep the best on MEASURED geometry, ranked lexicographically by: fewest sub-min
@@ -110,15 +110,15 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
     return false;                                                 // tie → keep the earlier candidate
   };
 
-  let best = layoutOnce(diagram, portMeta, options, 'heuristic', false);
+  let best = layoutOnce(diagram, options, 'heuristic', false);
   const consider = (l: LayoutResult) => { if (better(l, best)) best = l; };
-  consider(layoutOnce(diagram, portMeta, options, 'heuristic', true));   // lane-tight variant (collapses voids)
+  consider(layoutOnce(diagram, options, 'heuristic', true));   // lane-tight variant (collapses voids)
   // Reach for the crossmin candidates when the current best is not already clean — it still has
   // crossings, or (rarer) carries a cross-net overlap or a gate-body intrusion a different ordering
   // may avoid.
   if (cr(best) > 0 || overlaps(best) > 0 || bodyIntrusions(best) > 0) {
-    consider(layoutOnce(diagram, portMeta, options, 'crossmin', false));
-    consider(layoutOnce(diagram, portMeta, options, 'crossmin', true));
+    consider(layoutOnce(diagram, options, 'crossmin', false));
+    consider(layoutOnce(diagram, options, 'crossmin', true));
   }
   symmetriseSmallGates(best);                                    // cosmetic, validated post-pass
   placeNetLabels(best.labels, best.wires, best.nodes, best.junctions, options ?? DEFAULT_OPTIONS); // on FINAL geometry
@@ -159,13 +159,13 @@ export function layoutDiagram(diagram: Diagram, portMeta: PortMeta[] = [], optio
 // if it renders fewer crossings than the heuristic — so the combinatorial count need not be perfect.
 
 
-function layoutOnce(diagram: Diagram, portMeta: PortMeta[] = [], options: RenderOptions | undefined, strategy: 'heuristic' | 'crossmin', laneTight = false): LayoutResult {
+function layoutOnce(diagram: Diagram, options: RenderOptions | undefined, strategy: 'heuristic' | 'crossmin', laneTight = false): LayoutResult {
   resetId();
 
   const opts = options ?? DEFAULT_OPTIONS;
 
   // Two phases: place every node (graph → sized gates → coordinates), then route + reshape the wires.
-  const { nodes, intermediateLabels, layoutNodes, nodeMap } = placeNodes(diagram, portMeta, opts, strategy, laneTight);
+  const { nodes, intermediateLabels, layoutNodes, nodeMap } = placeNodes(diagram, opts, strategy, laneTight);
   const { wires, junctions: mergedJunctions, labels } = routeWires(nodes, layoutNodes, nodeMap, intermediateLabels, opts);
 
   const maxX = Math.max(...layoutNodes.map(n => n.absX + n.width), ...wires.flatMap(w => w.points.map(p => p.x)), ...labels.map(l => l.x + l.width));

@@ -1,6 +1,6 @@
 import type { FlatNode, IntermediateLabel } from '../graph.js';
 import { buildGraph } from '../graph.js';
-import type { Diagram, PortMeta, RenderOptions } from '../../parser/ast.js';
+import type { Diagram, RenderOptions } from '../../parser/ast.js';
 import { orCurveTapX } from '../gates.js';
 import { hasMathContent } from '../math-renderer.js';
 import { crossminOrder } from './crossmin.js';
@@ -195,12 +195,11 @@ export function assignCoordinates(
 // cleanup, input/output snap, block separation, OR curve tap). Returns the placed nodes for routing.
 export function placeNodes(
   diagram: Diagram,
-  portMeta: PortMeta[],
   opts: RenderOptions,
   strategy: 'heuristic' | 'crossmin',
   laneTight: boolean,
 ): { nodes: Map<string, FlatNode>; intermediateLabels: IntermediateLabel[]; layoutNodes: LayoutNode[]; nodeMap: Map<string, LayoutNode> } {
-  const { nodes, intermediateLabels } = buildGraph(diagram, portMeta, opts, uid);
+  const { nodes, intermediateLabels } = buildGraph(diagram, opts, uid);
 
   // Per-gate first-class port spacing. A multi-input AND/OR fed by a labelled INPUT spaces its
   // ports at a label-safe gap so those inputs can be placed directly on its ports (in
@@ -644,7 +643,7 @@ export function placeNodes(
 
       // Apply per-port style overrides
       const styleMap = new Map<string, 'CIRCLE' | 'SQUARE'>();
-      for (const m of portMeta) {
+      for (const m of diagram.portMeta) {
         if (m.property === 'Style') styleMap.set(m.identifier, m.value.toUpperCase() as 'CIRCLE' | 'SQUARE');
       }
 

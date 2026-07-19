@@ -18,7 +18,7 @@ it('hash', () => {
   const hashes:Record<string,string>={};
   for (const [name,src] of Object.entries(EXAMPLES)){
     const r=parse(src);
-    const l=layoutDiagram(r.diagram,r.diagram.portMeta,resolveOptions(r.diagram.options));
+    const l=layoutDiagram(r.diagram,resolveOptions(r.diagram.options));
     hashes[name]=createHash('sha256').update(JSON.stringify(digest(l))).digest('hex');
   }
   console.log('SI_HASH ' + hashes['Shared Intermediates']);

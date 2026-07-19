@@ -1,4 +1,4 @@
-import type { Diagram, PortMeta, RenderOptions } from '../parser/ast.js';
+import type { Diagram, RenderOptions } from '../parser/ast.js';
 import { DEFAULT_OPTIONS, resolveOptions } from '../parser/ast.js';
 import { layoutDiagram } from './layout.js';
 import type { LayoutNode, LayoutPort } from './layout.js';
@@ -20,10 +20,10 @@ function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-export function renderDiagram(diagram: Diagram, portMeta?: PortMeta[], showLabels: boolean = true, showIds: boolean = false, options?: RenderOptions, diagramTheme?: DiagramTheme): string {
+export function renderDiagram(diagram: Diagram, showLabels: boolean = true, showIds: boolean = false, options?: RenderOptions, diagramTheme?: DiagramTheme): string {
   const opts = options ?? DEFAULT_OPTIONS;
   const theme = diagramTheme ?? LIGHT_DIAGRAM;
-  const layout = layoutDiagram(diagram, portMeta, opts);
+  const layout = layoutDiagram(diagram, opts);
 
   // Style payload: user STYLE blocks (parser already stored them as StyleDecl[]). Concatenated
   // as-is into the rendered SVG's <defs><style>, so #ID selectors from `STYLE ... END STYLE` work

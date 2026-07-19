@@ -18,7 +18,7 @@ describe('Gate port-layout contract', () => {
   for (const [name, src] of Object.entries(EXAMPLES)) {
     it(name, () => {
       const r = parse(src);
-      const l = layoutDiagram(r.diagram, r.diagram.portMeta, resolveOptions(r.diagram.options));
+      const l = layoutDiagram(r.diagram, resolveOptions(r.diagram.options));
       for (const g of l.nodes) {
         if (g.gateType !== 'AND' && g.gateType !== 'OR') continue;
         // output dead-centre

@@ -19,7 +19,7 @@ function build(src: string, adaptive: boolean): LayoutResult {
   const o = resolveOptions(r.diagram.options);
   // Force the column-spacing axis explicitly on BOTH sides. ADAPTIVE is now the default, so the
   // UNIFORM baseline must be pinned here or this comparison would test adaptive-vs-adaptive.
-  return layoutDiagram(r.diagram, r.diagram.portMeta, { ...o, columnSpacing: adaptive ? 'ADAPTIVE' : 'UNIFORM' });
+  return layoutDiagram(r.diagram, { ...o, columnSpacing: adaptive ? 'ADAPTIVE' : 'UNIFORM' });
 }
 const isGate = (l: LayoutResult, id: string) => {
   const n = l.nodes.find(x => x.id === id);

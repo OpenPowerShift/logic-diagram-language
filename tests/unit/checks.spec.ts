@@ -9,7 +9,7 @@ const BARS = /OPTION\s+GATE_INPUT_STYLE\s*=\s*BARS/i;
 
 function checksFor(src: string) {
   const r = parse(src);
-  const l = layoutDiagram(r.diagram, r.diagram.portMeta, resolveOptions(r.diagram.options));
+  const l = layoutDiagram(r.diagram, resolveOptions(r.diagram.options));
   return validateLayout(l);
 }
 

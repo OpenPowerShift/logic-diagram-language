@@ -8,7 +8,7 @@ describe('SVG Renderer', () => {
   it('renders a simple AND gate expression', () => {
     const result = parse('OUT = A AND B');
     expect(result.errors).toHaveLength(0);
-    const svg = renderDiagram(result.diagram, result.diagram.portMeta);
+    const svg = renderDiagram(result.diagram);
     expect(svg).toContain('<svg');
     expect(svg).toContain('</svg>');
   });
@@ -16,28 +16,28 @@ describe('SVG Renderer', () => {
   it('renders a simple OR gate expression', () => {
     const result = parse('OUT = A OR B');
     expect(result.errors).toHaveLength(0);
-    const svg = renderDiagram(result.diagram, result.diagram.portMeta);
+    const svg = renderDiagram(result.diagram);
     expect(svg).toContain('ldl-gate-or');
   });
 
   it('renders a NOT gate expression', () => {
     const result = parse('OUT = NOT A');
     expect(result.errors).toHaveLength(0);
-    const svg = renderDiagram(result.diagram, result.diagram.portMeta);
+    const svg = renderDiagram(result.diagram);
     expect(svg).toContain('ldl-gate-not');
   });
 
   it('renders a combined expression with AND, OR, NOT', () => {
     const result = parse('CBFPS = AB AND DC OR (NOT DC AND GF)');
     expect(result.errors).toHaveLength(0);
-    const svg = renderDiagram(result.diagram, result.diagram.portMeta);
+    const svg = renderDiagram(result.diagram);
     expect(svg).toContain('<svg');
   });
 
   it('renders wires between elements', () => {
     const result = parse('OUT = A AND B');
     expect(result.errors).toHaveLength(0);
-    const svg = renderDiagram(result.diagram, result.diagram.portMeta);
+    const svg = renderDiagram(result.diagram);
     expect(svg).toContain('ldl-wire');
   });
 
@@ -46,7 +46,7 @@ describe('SVG Renderer', () => {
 O1 = I1 AND I2`;
     const result = parse(source);
     expect(result.errors).toHaveLength(0);
-    const svg = renderDiagram(result.diagram, result.diagram.portMeta, true);
+    const svg = renderDiagram(result.diagram, true);
     expect(svg).toContain('ldl-name');
     expect(svg).toContain('Test Input');
   });
@@ -56,7 +56,7 @@ O1 = I1 AND I2`;
 O1 = I1 AND I2`;
     const result = parse(source);
     expect(result.errors).toHaveLength(0);
-    const svg = renderDiagram(result.diagram, result.diagram.portMeta, true);
+    const svg = renderDiagram(result.diagram, true);
     expect(svg).toContain('ldl-description');
     expect(svg).toContain('(BI 3.1)');
   });
@@ -64,14 +64,14 @@ O1 = I1 AND I2`;
   it('includes label visibility classes', () => {
     const result = parse('OUT = A AND B');
     expect(result.errors).toHaveLength(0);
-    const svg = renderDiagram(result.diagram, result.diagram.portMeta, true);
+    const svg = renderDiagram(result.diagram, true);
     expect(svg).toContain('ldl-show-labels');
   });
 
   it('renders gates with absolute port positions', () => {
     const result = parse('OUT = A AND B');
     expect(result.errors).toHaveLength(0);
-    const svg = renderDiagram(result.diagram, result.diagram.portMeta);
+    const svg = renderDiagram(result.diagram);
     // Check for port circles with cx/cy (absolute positioning)
     expect(svg).toContain('ldl-port');
     expect(svg).toContain('r="3"');
@@ -85,7 +85,7 @@ describe('SVG wire-node linkage', () => {
   for (const [name, src] of Object.entries(EXAMPLES)) {
     it(`${name}: wires reference valid SVG node ids`, () => {
       const r = parse(src);
-      const svg = renderDiagram(r.diagram, r.diagram.portMeta, true, false, resolveOptions(r.diagram.options));
+      const svg = renderDiagram(r.diagram, true, false, resolveOptions(r.diagram.options));
       const nodeIds = new Set([...svg.matchAll(/<g class="ldl-symbol[^"]*" id="([^"]+)" /g)].map(m => m[1]));
       const froms = [...svg.matchAll(/data-from="([^"]+)"/g)].map(m => m[1]);
       const tos = [...svg.matchAll(/data-to="([^"]+)"/g)].map(m => m[1]);

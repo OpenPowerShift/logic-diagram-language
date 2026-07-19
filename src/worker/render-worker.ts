@@ -33,9 +33,9 @@ self.onmessage = (e: MessageEvent<RenderRequest>) => {
     if (result.diagram.outputs.length > 0) {
       const opts = resolveOptions(result.diagram.options);
       opts.hideJunctions = hideJunctions || opts.hideJunctions;
-      const layout = layoutDiagram(result.diagram, result.diagram.portMeta, opts);
+      const layout = layoutDiagram(result.diagram, opts);
       const checks = validateLayout(layout);
-      const svg = renderDiagram(result.diagram, result.diagram.portMeta, showLabels, showIds, opts, theme);
+      const svg = renderDiagram(result.diagram, showLabels, showIds, opts, theme);
       res = { id, svg, checks, parseErrors: result.errors };
     } else {
       res = { id, svg: '', checks: [], parseErrors: result.errors };

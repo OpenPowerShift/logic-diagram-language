@@ -11,7 +11,7 @@ describe('Common Subexpression Deduplication', () => {
   it('deduplicates AND subexpression across outputs', () => {
     const src = `O1 = A AND B\nO4 = NOT (A AND B)`;
     const r = parse(src);
-    const l = layoutDiagram(r.diagram, r.diagram.portMeta);
+    const l = layoutDiagram(r.diagram);
     const andGates = l.nodes.filter(n => n.gateType === 'AND');
     expect(andGates).toHaveLength(1);
   });
@@ -19,7 +19,7 @@ describe('Common Subexpression Deduplication', () => {
   it('deduplicates NOT subexpression across outputs', () => {
     const src = `O1 = (I1 AND NOT I2) AND NOT I3\nO2 = NOT I3`;
     const r = parse(src);
-    const l = layoutDiagram(r.diagram, r.diagram.portMeta);
+    const l = layoutDiagram(r.diagram);
     const notGates = l.nodes.filter(n => n.gateType === 'NOT');
     // Should have exactly 2 NOTs: one for NOT I2, one for NOT I3
     expect(notGates).toHaveLength(2);
@@ -28,7 +28,7 @@ describe('Common Subexpression Deduplication', () => {
   it('deduplicates commutative AND with reversed inputs', () => {
     const src = `O1 = I1 AND I2\nO2 = I2 AND I1`;
     const r = parse(src);
-    const l = layoutDiagram(r.diagram, r.diagram.portMeta);
+    const l = layoutDiagram(r.diagram);
     const andGates = l.nodes.filter(n => n.gateType === 'AND');
     expect(andGates).toHaveLength(1);
   });
@@ -36,7 +36,7 @@ describe('Common Subexpression Deduplication', () => {
   it('does not deduplicate non-commutative NOT with different inputs', () => {
     const src = `O1 = NOT I1\nO2 = NOT I2`;
     const r = parse(src);
-    const l = layoutDiagram(r.diagram, r.diagram.portMeta);
+    const l = layoutDiagram(r.diagram);
     const notGates = l.nodes.filter(n => n.gateType === 'NOT');
     expect(notGates).toHaveLength(2);
   });
@@ -44,7 +44,7 @@ describe('Common Subexpression Deduplication', () => {
   it('Boolean Algebra example has no overlapping gates', () => {
     const src = `O1 = A AND B\nO2 = A OR B\nO3 = NOT A\nO4 = NOT (A AND B)`;
     const r = parse(src);
-    const l = layoutDiagram(r.diagram, r.diagram.portMeta);
+    const l = layoutDiagram(r.diagram);
     const gates = l.nodes.filter(n => n.gateType !== 'INPUT' && n.gateType !== 'OUTPUT');
     for (let i = 0; i < gates.length; i++) {
       for (let j = i + 1; j < gates.length; j++) {
@@ -63,7 +63,7 @@ describe('Common Subexpression Deduplication', () => {
   it('Differential Protection has no overlapping gates', () => {
     const src = `O1 = (I1 AND NOT I2) AND NOT I3\nO2 = NOT I3`;
     const r = parse(src);
-    const l = layoutDiagram(r.diagram, r.diagram.portMeta);
+    const l = layoutDiagram(r.diagram);
     const gates = l.nodes.filter(n => n.gateType !== 'INPUT' && n.gateType !== 'OUTPUT');
     for (let i = 0; i < gates.length; i++) {
       for (let j = i + 1; j < gates.length; j++) {
@@ -90,7 +90,7 @@ CB52ABFY.Description = "Setting"
 I1I2.Name = "\u0024Test\u0024"
 INOM.Name = "\u00240.02\u0024"`;
     const r = parse(src);
-    const l = layoutDiagram(r.diagram, r.diagram.portMeta);
+    const l = layoutDiagram(r.diagram);
     const gates = l.nodes.filter(n => n.gateType !== 'INPUT' && n.gateType !== 'OUTPUT');
     for (const w of l.wires) {
       for (let i = 0; i < w.points.length - 1; i++) {
@@ -123,7 +123,7 @@ describe('A* Router Edge Cases', () => {
   it('routes around a gate that blocks direct path', () => {
     const src = `O1 = A AND B\nO2 = C AND D\nO3 = (A AND B) OR (C AND D)`;
     const r = parse(src);
-    const l = layoutDiagram(r.diagram, r.diagram.portMeta);
+    const l = layoutDiagram(r.diagram);
     const gates = l.nodes.filter(n => n.gateType !== 'INPUT' && n.gateType !== 'OUTPUT');
     for (const w of l.wires) {
       for (let i = 0; i < w.points.length - 1; i++) {
@@ -154,7 +154,7 @@ describe('A* Router Edge Cases', () => {
   it('routes multiple wires to same gate without overlap', () => {
     const src = `O1 = A AND B AND C`;
     const r = parse(src);
-    const l = layoutDiagram(r.diagram, r.diagram.portMeta);
+    const l = layoutDiagram(r.diagram);
     const crossings = findWireCrossings(l.wires, l.junctions);
     expect(crossings).toHaveLength(0);
   });
@@ -162,7 +162,7 @@ describe('A* Router Edge Cases', () => {
   it('right-to-left wire enters dest gate from the left', () => {
     const src = `O1 = NOT A\nO2 = NOT B\nO3 = (NOT A) AND (NOT B)`;
     const r = parse(src);
-    const l = layoutDiagram(r.diagram, r.diagram.portMeta);
+    const l = layoutDiagram(r.diagram);
     for (const w of l.wires) {
       const lastPoint = w.points[w.points.length - 1];
       const secondLast = w.points[w.points.length - 2];
@@ -178,7 +178,7 @@ describe('A* Router Edge Cases', () => {
   it('complex circuit with no gate collisions', () => {
     const src = `O1 = A AND B\nO2 = C OR D\nO3 = NOT E\nO4 = (A AND B) OR (NOT E)`;
     const r = parse(src);
-    const l = layoutDiagram(r.diagram, r.diagram.portMeta);
+    const l = layoutDiagram(r.diagram);
     const gates = l.nodes.filter(n => n.gateType !== 'INPUT' && n.gateType !== 'OUTPUT');
     for (let i = 0; i < gates.length; i++) {
       for (let j = i + 1; j < gates.length; j++) {

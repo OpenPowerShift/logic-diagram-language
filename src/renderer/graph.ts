@@ -67,7 +67,6 @@ export function flattenGate(node: LogicNode): LogicNode {
 // absorption, and assign depths. Pure with respect to geometry — only the semantic model.
 export function buildGraph(
   diagram: Diagram,
-  portMeta: PortMeta[],
   opts: RenderOptions,
   uid: (prefix: string) => string,
 ): Graph {
@@ -77,7 +76,7 @@ export function buildGraph(
   }));
 
   const metaMap = new Map<string, { name?: string; description?: string }>();
-  for (const m of portMeta) {
+  for (const m of diagram.portMeta) {
     let e = metaMap.get(m.identifier);
     if (!e) { e = {}; metaMap.set(m.identifier, e); }
     if (m.property === 'Name') e.name = m.value;
@@ -102,7 +101,7 @@ export function buildGraph(
       : undefined;
 
   const outputMeta = new Map<string, { name?: string; description?: string }>();
-  for (const m of portMeta) {
+  for (const m of diagram.portMeta) {
     let e = outputMeta.get(m.identifier);
     if (!e) { e = {}; outputMeta.set(m.identifier, e); }
     if (m.property === 'Name') e.name = m.value;
@@ -128,7 +127,7 @@ export function buildGraph(
   for (const o of flatOutputs) scanRefs(o.name, o.expression);
 
   const forceOut = new Set<string>();
-  for (const m of portMeta) if (m.property === 'Out' && /^(true|1|yes|on)$/i.test(m.value.trim())) forceOut.add(m.identifier);
+  for (const m of diagram.portMeta) if (m.property === 'Out' && /^(true|1|yes|on)$/i.test(m.value.trim())) forceOut.add(m.identifier);
 
   const isShownOutput = (name: string) => !consumedByOther.has(name) || forceOut.has(name) || selfRef.has(name);
 

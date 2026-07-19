@@ -18,7 +18,7 @@ const GATE_ENTRANCE = 20;    // min horizontal approach into a gate input port (
 
 function build(src: string): LayoutResult {
   const r = parse(src);
-  return layoutDiagram(r.diagram, r.diagram.portMeta, resolveOptions(r.diagram.options));
+  return layoutDiagram(r.diagram, resolveOptions(r.diagram.options));
 }
 
 const onGrid = (v: number) => Math.abs(v - Math.round(v / GRID) * GRID) < 0.01;
@@ -292,7 +292,7 @@ describe('Layout invariants', () => {
       // loose enough never to flake on a legitimate dense example.
       it('diagram height stays bounded (no placement ballooning)', () => {
         const r = parse(src);
-        const l = layoutDiagram(r.diagram, r.diagram.portMeta, resolveOptions(r.diagram.options));
+        const l = layoutDiagram(r.diagram, resolveOptions(r.diagram.options));
         const inputCount = l.nodes.filter(n => n.gateType === 'INPUT').length;
         const bound = 1500 + inputCount * 250;
         expect(l.height, `${name}: height ${l.height} exceeds bound ${bound} (inputs=${inputCount})`).toBeLessThan(bound);

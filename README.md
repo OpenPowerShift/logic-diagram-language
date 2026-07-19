@@ -60,7 +60,6 @@ import {
 const { diagram } = parse("O1 = I1 AND NOT I2");
 const svg = renderDiagram(
   diagram,
-  diagram.portMeta,
   true,
   false,
   resolveOptions(diagram.options),

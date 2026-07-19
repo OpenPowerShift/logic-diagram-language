@@ -6,7 +6,7 @@ import { resolveOptions } from '../../src/parser/ast.js';
 function graphOf(src: string) {
   const r = parse(src);
   let i = 0;
-  return buildGraph(r.diagram, r.diagram.portMeta, resolveOptions(r.diagram.options), (p) => `${p}_${++i}`);
+  return buildGraph(r.diagram, resolveOptions(r.diagram.options), (p) => `${p}_${++i}`);
 }
 
 describe('buildGraph', () => {

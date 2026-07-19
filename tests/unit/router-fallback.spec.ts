@@ -25,7 +25,7 @@ OC.Name="Phase Trip"`,
 
 function diagonalSegments(src: string): number {
   const r = parse(src);
-  const l = layoutDiagram(r.diagram, r.diagram.portMeta, resolveOptions(r.diagram.options));
+  const l = layoutDiagram(r.diagram, resolveOptions(r.diagram.options));
   let diag = 0;
   for (const w of l.wires) {
     for (let i = 0; i < w.points.length - 1; i++) {

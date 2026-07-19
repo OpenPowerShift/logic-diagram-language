@@ -49,7 +49,7 @@ describe('Visual regression (layout geometry)', () => {
     it(name, () => {
       const r = parse(src);
       expect(r.errors, `${name} parse errors`).toEqual([]);
-      const l = layoutDiagram(r.diagram, r.diagram.portMeta, resolveOptions(r.diagram.options));
+      const l = layoutDiagram(r.diagram, resolveOptions(r.diagram.options));
       expect(geometryDigest(l)).toMatchSnapshot();
     });
   }

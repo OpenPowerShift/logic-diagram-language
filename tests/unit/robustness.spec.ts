@@ -69,7 +69,7 @@ describe('Robustness corpus (correctness invariants)', () => {
     it(name, () => {
       const r = parse(src);
       expect(r.errors, 'parse errors').toEqual([]);
-      const l = layoutDiagram(r.diagram, r.diagram.portMeta, resolveOptions(r.diagram.options));
+      const l = layoutDiagram(r.diagram, resolveOptions(r.diagram.options));
       const byId = new Map(l.nodes.map(n => [n.id, n]));
 
       for (const w of l.wires) {
