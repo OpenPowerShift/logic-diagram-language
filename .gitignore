@@ -1,12 +1,5 @@
 node_modules/*
 dist/assets/*
 
-# Library build artifacts (dist/index.js, type declarations, subdir modules). Rebuilt by
-# `npm run build:lib` / `prepublishOnly`; only the tracked app shell dist/index.html is committed.
-dist/*.js
-dist/*.js.map
-dist/*.d.ts
-dist/*.d.ts.map
-dist/parser/
-dist/renderer/
-dist/theme/
+# Library build output (npm package). Rebuilt by `npm run build:lib` / `prepublishOnly`.
+lib/

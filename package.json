@@ -22,19 +22,23 @@
   "engines": {
     "node": ">=20"
   },
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./lib/index.js",
+  "module": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js"
     },
     "./package.json": "./package.json"
   },
-  "sideEffects": false,
+  "sideEffects": [
+    "**/components/*",
+    "**/main.ts",
+    "**/*.css"
+  ],
   "files": [
-    "dist",
+    "lib",
     "docs",
     "spec",
     "README.md",

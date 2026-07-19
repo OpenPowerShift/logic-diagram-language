@@ -79,7 +79,7 @@ Requires Node 20+ (the dev playground uses Node 24 — see `.nvmrc`).
 npm install
 npm run dev        # live playground at the printed URL — type LDL, see SVG update live
 npm run build      # type-check + production build of the playground app to dist/
-npm run build:lib  # build the publishable library to dist/ (index.js + type declarations)
+npm run build:lib  # build the publishable library to lib/ (index.js + type declarations)
 npm test           # run the test suite (vitest)
 ```
 
