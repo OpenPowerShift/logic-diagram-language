@@ -1,5 +1,5 @@
 import type { LayoutResult, LayoutWire } from './types.js';
-import { GRID, MIN_DOGLEG, MIN_WIRE_SPACING } from './types.js';
+import { MIN_WIRE_SPACING } from './types.js';
 import { findWireCrossings } from './crossings.js';
 
 export function symmetriseSmallGates(l: LayoutResult): void {
