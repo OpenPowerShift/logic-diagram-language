@@ -1,8 +1,15 @@
 # LDL — Logic Diagram Language
 
-LDL is a small text language and renderer for **logic and protection schematics**. You
+LDL is a small text language and renderer for **logic and protection diagrams**. You
 write boolean equations; the renderer draws the gates, routes the wires, and lays the
-whole diagram out automatically — producing clean, publication-quality SVG (and PDF).
+whole diagram out automatically — producing clean, publication-quality SVG (and PNG/PDF
+in the browser).
+
+> **Try it in the browser: [openpowershift.github.io/logic-diagram-language](https://openpowershift.github.io/logic-diagram-language/)**
+> — a live playground: type LDL on the left, see the diagram on the right.
+>
+> Published as **`@openpowershift/logic-diagram-language`**. See the **[API Reference](docs/api.adoc)**
+> for programmatic use.
 
 ```
 TRIP = OVERCURRENT AND NOT BLOCK
@@ -25,8 +32,8 @@ automatically whenever the logic changes.
 - **Expression-first.** A simple boolean expression produces a complete diagram. Names
   that are consumed elsewhere become shared internal signals; names that aren't become
   outputs.
-- **Declarative — the layout is the renderer's job.** You describe *what* is connected,
-  not *where* things go. A Sugiyama-style layout engine assigns layers and coordinates
+- **Declarative — the layout is the renderer's job.** You describe _what_ is connected,
+  not _where_ things go. A Sugiyama-style layout engine assigns layers and coordinates
   and actively minimises wire crossings; every reshaping pass validates a single
   wire-separation contract so wires never overlap or crowd.
 - **Protection-domain aware.** Beyond `AND`/`OR`/`NOT`, LDL has SEL-style function
@@ -37,20 +44,48 @@ automatically whenever the logic changes.
 - **Readable output.** Options control inversion bubbles vs. NOT gates, input bars,
   compactness, adaptive column spacing, and more.
 
-## Quick start
+## Use as a library
 
-Requires Node 24+ (see `.nvmrc`).
+```bash
+npm install @openpowershift/logic-diagram-language
+```
+
+```ts
+import {
+  parse,
+  renderDiagram,
+  resolveOptions,
+} from "@openpowershift/logic-diagram-language";
+
+const { diagram } = parse("O1 = I1 AND NOT I2");
+const svg = renderDiagram(
+  diagram,
+  diagram.portMeta,
+  true,
+  false,
+  resolveOptions(diagram.options),
+); // → a complete <svg>…</svg> string
+```
+
+SVG rendering is isomorphic (Node + browser). In the browser, `svgToPngBlob(svg)` and
+`svgToPdfBlob(svg)` rasterise it to a PNG/PDF `Blob`. Full API, options table and PNG/PDF
+recipes are in the **[API Reference](docs/api.adoc)**.
+
+## Playground / development
+
+Requires Node 20+ (the dev playground uses Node 24 — see `.nvmrc`).
 
 ```bash
 npm install
 npm run dev        # live playground at the printed URL — type LDL, see SVG update live
-npm run build      # type-check + production build to dist/
+npm run build      # type-check + production build of the playground app to dist/
+npm run build:lib  # build the publishable library to dist/ (index.js + type declarations)
 npm test           # run the test suite (vitest)
 ```
 
 The playground has a source editor on the left and a live diagram on the right, with a
 dropdown of built-in examples covering every language feature. Toggle labels/ids,
-junction dots, zoom, and export to SVG/PDF.
+junction dots, zoom, and export to SVG/PNG/PDF.
 
 ## A taste of the language
 
@@ -72,17 +107,23 @@ examples, and the **[LDL Specification](spec/spec.adoc)** for the formal grammar
 rendering contract. Current implementation status is tracked in
 [IMPLEMENTATION.md](IMPLEMENTATION.md).
 
+**Generating LDL with an AI agent?** Point it at
+**[docs/ldl-for-llms.md](docs/ldl-for-llms.md)** — a compact, implemented-only authoring guide (the
+full spec includes reserved features that don't render yet, which trips agents up).
+
 ## Project layout
 
-| Path | What |
-| --- | --- |
-| `src/parser/` | Tokeniser, parser, and AST for LDL source |
-| `src/renderer/` | Layout engine (`layout.ts`, `graph.ts`), A\* wire router, SVG renderer, gate symbols |
-| `src/components/` | Lit web components — the playground app, editor and viewer |
-| `src/worker/` | Off-thread parse → layout → render worker |
-| `docs/` | User guide |
-| `spec/` | AsciiDoc language specification (`spec/spec.adoc`) |
-| `tests/` | Vitest unit tests, layout invariants, and golden geometry/visual-regression snapshots |
+| Path                  | What                                                                                  |
+| --------------------- | ------------------------------------------------------------------------------------- |
+| `src/index.ts`        | Public library API (`parse`, `renderDiagram`, `layoutDiagram`, options, types)        |
+| `src/export-image.ts` | Browser-only PNG/PDF helpers (`svgToPngBlob`, `svgToPdfBlob`)                         |
+| `src/parser/`         | Tokeniser, parser, and AST for LDL source                                             |
+| `src/renderer/`       | Layout engine (`layout.ts`, `graph.ts`), A\* wire router, SVG renderer, gate symbols  |
+| `src/components/`     | Lit web components — the playground app, editor and viewer                            |
+| `src/worker/`         | Off-thread parse → layout → render worker                                             |
+| `docs/`               | [User guide](docs/user-guide.adoc) and [API reference](docs/api.adoc)                 |
+| `spec/`               | AsciiDoc language specification (`spec/spec.adoc`)                                    |
+| `tests/`              | Vitest unit tests, layout invariants, and golden geometry/visual-regression snapshots |
 
 ## Status
 

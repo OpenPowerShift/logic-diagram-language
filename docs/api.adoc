@@ -1,0 +1,196 @@
+= LDL API Reference
+:toc: left
+:toclevels: 2
+:source-highlighter: highlight.js
+
+The `@openpowershift/logic-diagram-language` package turns *LDL* source (see the
+link:user-guide.adoc[User Guide] for the language) into an SVG, and — in the browser — into a PNG or
+PDF. This page documents the programmatic API.
+
+== Installation
+
+[source,sh]
+----
+npm install @openpowershift/logic-diagram-language
+----
+
+The package is ESM-only (`"type": "module"`) and ships type declarations. SVG rendering is
+isomorphic (Node + browser); the PNG/PDF helpers are browser-only.
+
+== Pipeline
+
+[source]
+----
+LDL source ──parse──▶ Diagram ──layoutDiagram──▶ LayoutResult (geometry)
+                          └────── renderDiagram ──▶ SVG string
+----
+
+`renderDiagram` runs the layout internally, so the common path is just `parse` → `renderDiagram`.
+
+== Quick start (SVG)
+
+[source,ts]
+----
+import { parse, renderDiagram, resolveOptions } from '@openpowershift/logic-diagram-language';
+
+const source = `
+  O1.Name = "Trip"
+  I1.Name = "Overcurrent"
+  I2.Name = "Enable"
+  O1 = I1 AND I2
+`;
+
+const { diagram, errors } = parse(source);
+if (errors.length) throw new Error(errors[0].message);
+
+const svg = renderDiagram(
+  diagram,
+  diagram.portMeta,
+  true,                             // showLabels
+  false,                            // showIds
+  resolveOptions(diagram.options),  // options (merges OPTION lines over the defaults)
+);
+// `svg` is a complete <svg>…</svg> string — write it to a file or inject into the DOM.
+----
+
+== Rendering to SVG
+
+[source,ts]
+----
+function renderDiagram(
+  diagram: Diagram,
+  portMeta?: PortMeta[],
+  showLabels?: boolean,       // default true  — draw .Name / .Description labels
+  showIds?: boolean,          // default false — draw bare identifiers (I1, AND#G1, …)
+  options?: RenderOptions,    // default DEFAULT_OPTIONS
+  diagramTheme?: DiagramTheme // default LIGHT_DIAGRAM
+): string
+----
+
+- `diagram` / `portMeta` come from `parse()` (`result.diagram`, `result.diagram.portMeta`).
+- `options` is a fully-resolved `RenderOptions`; build it with `resolveOptions(diagram.options)` so a
+  diagram's own `OPTION` lines are honoured, then override fields as needed.
+- Pass `DARK_DIAGRAM` (or a custom `DiagramTheme`) for a dark render.
+
+Node example writing a file:
+
+[source,ts]
+----
+import { writeFileSync } from 'node:fs';
+import { parse, renderDiagram, resolveOptions } from '@openpowershift/logic-diagram-language';
+
+const { diagram } = parse(source);
+writeFileSync('diagram.svg', renderDiagram(diagram, diagram.portMeta, true, false,
+  resolveOptions(diagram.options)));
+----
+
+== Rendering to PNG (browser)
+
+[source,ts]
+----
+import { parse, renderDiagram, resolveOptions, svgToPngBlob } from '@openpowershift/logic-diagram-language';
+
+const { diagram } = parse(source);
+const svg = renderDiagram(diagram, diagram.portMeta, true, false, resolveOptions(diagram.options));
+
+const pngBlob = await svgToPngBlob(svg, 2);   // 2× the diagram's intrinsic pixel size
+// e.g. download it:
+const url = URL.createObjectURL(pngBlob);
+Object.assign(document.createElement('a'), { href: url, download: 'diagram.png' }).click();
+URL.revokeObjectURL(url);
+----
+
+`svgToPngBlob(svg, scale = 2)` rasterises the SVG onto a white `<canvas>` at `scale`× and returns a
+PNG `Blob`. Browser only (needs `DOMParser`, `Image`, `<canvas>`).
+
+== Rendering to PDF (browser)
+
+[source,ts]
+----
+import { svgToPdfBlob } from '@openpowershift/logic-diagram-language';
+
+const pdfBlob = await svgToPdfBlob(svg);       // single page sized to the diagram
+----
+
+`svgToPdfBlob(svg, scale = 2)` returns a one-page PDF `Blob` sized to the diagram (orientation follows
+the aspect ratio). It loads `jspdf` on demand, so it is not pulled into your bundle unless used.
+Browser only.
+
+TIP: In Node, render the SVG with `renderDiagram` and convert it with a server-side rasteriser such as
+`@resvg/resvg-js`, `sharp`, or a headless browser.
+
+== Options
+
+Resolve a diagram's `OPTION` lines into a `RenderOptions`, then override individually:
+
+[source,ts]
+----
+import { resolveOptions, DEFAULT_OPTIONS } from '@openpowershift/logic-diagram-language';
+
+const options = resolveOptions(diagram.options);
+options.inversion = 'BUBBLES';     // override in code
+options.margin = 16;
+----
+
+`resolveOptions(optionDecls)` starts from `DEFAULT_OPTIONS` and applies each `OPTION` declaration.
+Passing `diagram.options` (from `parse`) reproduces exactly what the diagram asked for.
+
+[cols="1m,1,1m",options="header"]
+|===
+| Field | Values | Default
+
+| inversion        | `'GATES'` \| `'BUBBLES'`                              | `'GATES'`
+| portStyle        | `'CIRCLE'` \| `'SQUARE'`                              | `'CIRCLE'`
+| gateInputStyle   | `'EXPAND'` \| `'BARS'`                                | `'EXPAND'`
+| inputOrder       | `'AUTO'` \| `'DECLARATION'`                           | `'AUTO'`
+| outputOrder      | `'AUTO'` \| `'DECLARATION'`                           | `'AUTO'`
+| columnSpacing    | `'ADAPTIVE'` \| `'UNIFORM'`                           | `'ADAPTIVE'`
+| compactness      | `'NORMAL'` \| `'COMPACT'` \| `'COMPACT_V'` \| `'COMPACT_H'` \| `'SPACIOUS'` | `'NORMAL'`
+| compactnessFactors | `[number, number]` (vertical, horizontal)          | —
+| margin           | `number` (px)                                        | `8`
+| wireLabelLeader  | `boolean`                                            | `true`
+| strokeWidth      | `number` (px)                                        | `2.5`
+| hideJunctions    | `boolean`                                            | `false`
+|===
+
+Each field also has an `OPTION` form (e.g. `OPTION INVERSION = BUBBLES`, `OPTION MARGIN = 16`) — see
+the link:user-guide.adoc[User Guide] and link:../spec/spec.adoc[spec] for the source syntax.
+
+== Working with geometry directly
+
+To post-process the layout (custom renderer, measurements, hit-testing) call `layoutDiagram`:
+
+[source,ts]
+----
+import { parse, layoutDiagram, resolveOptions, findWireCrossings } from '@openpowershift/logic-diagram-language';
+
+const { diagram } = parse(source);
+const layout = layoutDiagram(diagram, diagram.portMeta, resolveOptions(diagram.options));
+
+layout.nodes;      // LayoutNode[]  — gates/blocks/inputs/outputs with absX/absY/width/height + ports
+layout.wires;      // LayoutWire[]  — orthogonal point lists, fromId/toId
+layout.junctions;  // LayoutJunction[]
+layout.labels;     // LayoutLabel[] — consumed-intermediate net labels (+ optional leaderX/leaderY)
+layout.width; layout.height;
+
+const crossings = findWireCrossings(layout.wires, layout.junctions); // WireCrossing[]
+----
+
+== Exports
+
+[cols="1m,3",options="header"]
+|===
+| Export | Description
+
+| parse                 | LDL source → `{ diagram, errors }`
+| renderDiagram         | `Diagram` → SVG string (runs layout internally)
+| layoutDiagram         | `Diagram` → `LayoutResult` (geometry only)
+| findWireCrossings     | count/enumerate wire crossings in a layout
+| resolveOptions        | `OptionDecl[]` → fully-resolved `RenderOptions`
+| DEFAULT_OPTIONS       | the default `RenderOptions`
+| svgToPngBlob          | SVG string → PNG `Blob` (browser)
+| svgToPdfBlob          | SVG string → PDF `Blob` (browser)
+| LIGHT_DIAGRAM, DARK_DIAGRAM | built-in `DiagramTheme` values
+| EXAMPLES, EXAMPLE_NAMES | map of example name → LDL source, and its keys
+| _types_               | `RenderOptions`, `Diagram`, `LayoutResult`, `DiagramTheme`, … (see `index.d.ts`)
+|===

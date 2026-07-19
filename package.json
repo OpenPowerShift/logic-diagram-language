@@ -1,15 +1,53 @@
 {
-  "name": "ldl",
+  "name": "@openpowershift/logic-diagram-language",
   "version": "0.1.0",
-  "private": true,
+  "description": "Render SEL-style protection-relay logic diagrams from a compact text language (LDL) to SVG, PNG, or PDF.",
+  "keywords": [
+    "logic-diagram",
+    "protection-relay",
+    "sel",
+    "svg",
+    "schematic",
+    "ladder-logic",
+    "diagram"
+  ],
   "license": "MIT",
+  "author": "Daniel Mulholland",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/openpowershift/logic-diagram-language.git"
+  },
+  "homepage": "https://github.com/openpowershift/logic-diagram-language#readme",
   "type": "module",
   "engines": {
-    "node": ">=24"
+    "node": ">=20"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "docs",
+    "spec",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:lib": "tsc -p tsconfig.lib.json",
+    "prepublishOnly": "npm run build:lib",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -18,20 +56,20 @@
     "lint": "eslint src/"
   },
   "dependencies": {
+    "@mathjax/src": "^4.1.2",
+    "jspdf": "^4.2.1"
+  },
+  "devDependencies": {
     "@codemirror/commands": "^6.8.0",
     "@codemirror/language": "^6.11.0",
     "@codemirror/state": "^6.5.0",
     "@codemirror/view": "^6.36.0",
-    "@mathjax/src": "^4.1.2",
-    "codemirror": "^6.0.0",
-    "jspdf": "^4.2.1",
-    "lit": "^3.2.0"
-  },
-  "devDependencies": {
     "@playwright/test": "^1.52.0",
     "@types/node": "^26.0.0",
+    "codemirror": "^6.0.0",
     "eslint": "^9.0.0",
     "jsdom": "^29.1.1",
+    "lit": "^3.2.0",
     "typescript": "^5.7.0",
     "typescript-eslint": "^8.62.0",
     "vite": "^6.3.0",

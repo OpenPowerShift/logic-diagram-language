@@ -1,0 +1,24 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": false,
+    "sourceMap": false,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "module": "ESNext",
+    "moduleResolution": "bundler"
+  },
+  "include": ["src/index.ts", "src/export-image.ts"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "tests",
+    "src/main.ts",
+    "src/components",
+    "src/highlight",
+    "src/worker",
+    "src/theme/theme-observer.ts"
+  ]
+}
