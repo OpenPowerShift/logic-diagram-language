@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.7](https://github.com/OpenPowerShift/logic-diagram-language/compare/v0.2.6...v0.2.7) (2026-07-23)
+
+
+### Bug Fixes
+
+* run pre/postpublish scripts as ESM and read README.adoc ([791b477](https://github.com/OpenPowerShift/logic-diagram-language/commit/791b4775be1b198911b32b27031bde1c45af43d4))
+
 ## [0.2.6](https://github.com/OpenPowerShift/logic-diagram-language/compare/v0.2.5...v0.2.6) (2026-07-23)
 
 
