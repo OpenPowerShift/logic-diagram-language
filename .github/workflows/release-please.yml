@@ -8,6 +8,13 @@ permissions:
   contents: write
   pull-requests: write
 
+# Serialise release runs per branch so concurrent pushes can't race the release-PR
+# branch ref (which previously left a release un-tagged). Never cancel in progress —
+# a run may be mid-tag/publish.
+concurrency:
+  group: release-please-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   # Maintains a "release PR" that rolls up Conventional-Commit changes, bumps the version, and updates
   # CHANGELOG.md. Merging that PR tags the release (vX.Y.Z) and creates the GitHub Release.
