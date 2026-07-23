@@ -41,7 +41,7 @@
     "lib",
     "docs",
     "spec",
-    "README.md",
+    "README.adoc",
     "LICENSE"
   ],
   "publishConfig": {
@@ -51,7 +51,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "build:lib": "tsc -p tsconfig.lib.json",
-    "prepublishOnly": "npm run build:lib",
+    "postpublish": "node scripts/postpublish",
+    "prepublishOnly": "npm run build:lib && node scripts/prepublish",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",

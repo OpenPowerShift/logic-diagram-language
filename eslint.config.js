@@ -15,6 +15,6 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ['node_modules/', 'dist/', 'test-results/', '.local/', 'src/highlight/**/*.js'],
+    ignores: ['node_modules/', 'dist/', 'test-results/', '.local/', 'src/highlight/**/*.js', 'scripts/*'],
   },
 );
