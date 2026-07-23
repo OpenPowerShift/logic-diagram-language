@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.6](https://github.com/OpenPowerShift/logic-diagram-language/compare/v0.2.5...v0.2.6) (2026-07-23)
+
+
+### Bug Fixes
+
+* Change README to Asciidoc ([bd7c348](https://github.com/OpenPowerShift/logic-diagram-language/commit/bd7c3487c2fc09633b66af8026321c3a8dd7f6e7))
+
 ## [0.2.5](https://github.com/OpenPowerShift/logic-diagram-language/compare/v0.2.4...v0.2.5) (2026-07-23)
 
 
