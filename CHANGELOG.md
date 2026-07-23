@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.8](https://github.com/OpenPowerShift/logic-diagram-language/compare/v0.2.7...v0.2.8) (2026-07-23)
+
+
+### Bug Fixes
+
+* correct repository URL casing for npm provenance ([a5da546](https://github.com/OpenPowerShift/logic-diagram-language/commit/a5da54667100858662803637e2afcdb9174f9f64))
+
 ## [0.2.7](https://github.com/OpenPowerShift/logic-diagram-language/compare/v0.2.6...v0.2.7) (2026-07-23)
 
 
