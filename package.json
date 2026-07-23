@@ -15,9 +15,9 @@
   "author": "Daniel Mulholland",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/openpowershift/logic-diagram-language.git"
+    "url": "git+https://github.com/OpenPowerShift/logic-diagram-language.git"
   },
-  "homepage": "https://github.com/openpowershift/logic-diagram-language#readme",
+  "homepage": "https://github.com/OpenPowerShift/logic-diagram-language#readme",
   "type": "module",
   "engines": {
     "node": ">=20"
