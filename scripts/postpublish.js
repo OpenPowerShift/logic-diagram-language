@@ -1,11 +1,5 @@
-"use strict";
+import { unlinkSync, renameSync } from "node:fs";
 
-var fs = require("fs");
-
-// Remove README.md and restore hidden README.adoc
-fs.unlink("README.md", function (unlinkErr) {
-  if (unlinkErr) throw unlinkErr;
-});
-fs.rename(".README.adoc", "README.adoc", function (moveErr) {
-  if (moveErr) throw moveErr;
-});
+// Undo prepublish: remove the generated README.md and restore README.adoc.
+unlinkSync("README.md");
+renameSync(".README.adoc", "README.adoc");
