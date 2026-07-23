@@ -1,6 +1,6 @@
 {
   "name": "@openpowershift/logic-diagram-language",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Render SEL-style protection-relay logic diagrams from a compact text language (LDL) to SVG, PNG, or PDF.",
   "keywords": [
     "logic-diagram",
