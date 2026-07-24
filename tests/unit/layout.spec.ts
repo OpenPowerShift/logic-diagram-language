@@ -209,4 +209,25 @@ describe('Bubbles Mode - Double Inversion Cancellation', () => {
     const andGate = l.nodes.find(n => n.gateType === 'AND');
     expect(andGate!.outputs[0].bubbledOutput).toBe(true);
   });
+
+  // Issue #17: two weakly-connected subgraphs that meet only at a final gate (an SR-latch cluster and
+  // an analog-block cluster) must not be left with a tall node-free band between them.
+  it('compacts excessive vertical whitespace between weakly-connected subgraphs', () => {
+    const src = [
+      'BCIAAS = SR(BCTIVAAP_GT125 OR BCTIVAAP_LT55, BCTIVAA_GT70 AND BCTIVAA_LT110)',
+      'BCZ1A = FB#Z1(IAAVG, BCZ1R, IVA).OUT',
+      'BCZ2A = FB#Z2(IVA, BCCIM, BCZ2R).OUT',
+      'BCIAMS = FB#MS(IIAAVG, VNOM, BCCIM).OUT',
+      'BCIAPICKUP = BCIAAS AND BCZ1A AND BCZ2A AND BCIAMS',
+    ].join('\n');
+    const r = parse(src);
+    expect(r.errors).toHaveLength(0);
+    const l = layoutDiagram(r.diagram, resolveOptions(r.diagram.options));
+
+    // No internal horizontal slice free of every node body may exceed the compaction threshold.
+    const iv = l.nodes.map(n => [n.absY, n.absY + n.height] as [number, number]).sort((a, b) => a[0] - b[0]);
+    let bottom = iv[0][1], maxBand = 0;
+    for (let i = 1; i < iv.length; i++) { maxBand = Math.max(maxBand, iv[i][0] - bottom); bottom = Math.max(bottom, iv[i][1]); }
+    expect(maxBand).toBeLessThanOrEqual(130);
+  });
 });
