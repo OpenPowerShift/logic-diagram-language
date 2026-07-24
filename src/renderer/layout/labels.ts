@@ -1,8 +1,36 @@
 import type { LayoutLabel, LayoutWire, LayoutNode, LayoutJunction, LayoutResult } from './types.js';
 import type { RenderOptions } from '../../parser/ast.js';
 import { GRID } from './types.js';
+import { estimateTextWidth } from '../math-renderer.js';
+
+// Approximate bounding box of a boundary INPUT/OUTPUT node's rendered .Name/.Description text.
+// Input labels sit to the LEFT of the port (right-anchored from port.absX - 6); output labels to the
+// RIGHT (left-anchored from port.absX + 6). Name is 12px, description 9px stacked below. Net-label
+// placement treats these as obstacles so it never lands on a boundary label (issue #21).
+function ioLabelBoxes(nodes: LayoutNode[]): { x: number; y: number; w: number; h: number }[] {
+  const boxes: { x: number; y: number; w: number; h: number }[] = [];
+  for (const n of nodes) {
+    const isIn = n.gateType === 'INPUT', isOut = n.gateType === 'OUTPUT';
+    if (!isIn && !isOut) continue;
+    const port = isIn ? n.outputs[0] : n.inputs[0];
+    const text = n.name || n.label;
+    if (!port || !text) continue;
+    const w = Math.max(estimateTextWidth(text, 12), n.description ? estimateTextWidth(n.description, 9) : 0);
+    const top = n.description ? port.absY - 18 : port.absY - 9;
+    const h = n.description ? 34 : 18;
+    const x = isIn ? port.absX - 6 - w : port.absX + 6;
+    boxes.push({ x, y: top, w, h });
+  }
+  return boxes;
+}
 
 export function placeNetLabels(labels: LayoutLabel[], wires: LayoutWire[], nodes: LayoutNode[], junctions: LayoutJunction[], opts: RenderOptions): void {
+    const ioBoxes = ioLabelBoxes(nodes);
+    const boxHitsIOLabel = (x: number, y: number, w: number, h: number): number => {
+      let c = 0;
+      for (const b of ioBoxes) if (x + w > b.x + 0.5 && b.x + b.w > x + 0.5 && y + h > b.y + 0.5 && b.y + b.h > y + 0.5) c++;
+      return c;
+    };
     const boxHitsWire = (x: number, y: number, w: number, h: number): number => {
       let c = 0;
       for (const wire of wires) for (let i = 0; i < wire.points.length - 1; i++) {
@@ -84,10 +112,10 @@ export function placeNetLabels(labels: LayoutLabel[], wires: LayoutWire[], nodes
         const toMid = Math.hypot(x + w / 2 - netMidX, y + h / 2 - netMidY);   // pull to the run's centre
         const tieBias = (x + w < ax - 0.5 ? 4 : 0) + (y > ay + 0.5 ? 2 : 0);  // gentle above/output-side lean for ties
         return boxHitsWire(x, y, w, h) * 100000 + boxHitsBody(x, y, w, h) * 3000 + boxHitsLabel(x, y, w, h, lb) * 2000 +
-          gapPenalty + toMid + tieBias;
+          boxHitsIOLabel(x, y, w, h) * 2000 + gapPenalty + toMid + tieBias;
       };
       let best = { x: lb.x, y: lb.y, c: cost(lb.x, lb.y) };
-      const defaultClean = boxHitsWire(lb.x, lb.y, w, h) === 0 && boxHitsBody(lb.x, lb.y, w, h) === 0;
+      const defaultClean = boxHitsWire(lb.x, lb.y, w, h) === 0 && boxHitsBody(lb.x, lb.y, w, h) === 0 && boxHitsIOLabel(lb.x, lb.y, w, h) === 0;
       // Relocate when the default overlaps, OR always under WIRE_LABEL_LEADER (to seat every label at
       // the readable gap its connector needs). Search a window centred on the net MIDPOINT so the
       // label can reach the middle of the run even when the driver output is far away.
