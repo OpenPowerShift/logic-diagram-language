@@ -4,6 +4,7 @@ import type { Diagram, RenderOptions } from '../../parser/ast.js';
 import { orCurveTapX } from '../gates.js';
 import { hasMathContent } from '../math-renderer.js';
 import { crossminOrder } from './crossmin.js';
+import { bkCompact, type BkNode } from './bk-align.js';
 import type { LayoutNode, LayoutPort } from './types.js';
 import {
   baseNodeHeight, gateGap, GATE_END_PAD, uid, naturalCompare, gateBodyHeight, gateInputPortY, fbDims, blockSize,
@@ -1209,6 +1210,108 @@ export function placeNodes(
       const tapX = gateNode.absX + orCurveTapX(gateNode.height, localY);
       port.absX = port.bubbled ? tapX - BUBBLE_R * 2 : tapX;
     }
+  }
+
+  // ── Phase: Brandes–Köpf block straightening (#15). Build a minimal model (centre/height/column,
+  // dominance weight, and the straight-line offset to each node's dominant driver), solve it globally
+  // with bkCompact so straight signal chains form rigid blocks and lower-priority nodes are PUSHED to
+  // make room, then apply the result as rigid vertical shifts (body + ports). Snapshot + roll back if
+  // the placement-level quality (sub-MIN jogs / body overlaps / height) regresses at all — so BK is
+  // kept only where it is provably clean and can never break an invariant. O(V+E) per bounded iteration.
+  {
+    const isFeedback = (id: string) => nodes.get(id)?.kind === 'output';
+    const coneSize = new Map<string, number>();
+    const sizeOf = (id: string, seen = new Set<string>()): number => {
+      const c = coneSize.get(id); if (c !== undefined) return c;
+      if (seen.has(id)) return 1;
+      seen.add(id);
+      let s = 1;
+      for (const d of nodes.get(id)?.inputIds ?? []) if (!isFeedback(d)) s += sizeOf(d, seen);
+      seen.delete(id); coneSize.set(id, s);
+      return s;
+    };
+    const centerOf = (n: LayoutNode) => n.absY + n.height / 2;
+    // Driver→port mapping matching the router's rule (AND/OR: ascending source Y; else input order),
+    // mirroring the bubble/FB label passes above. Returns each real driver's source Y and the Y of the
+    // port on `C` it feeds.
+    const driverPorts = (C: LayoutNode): { driverId: string; srcY: number; portY: number }[] => {
+      const fc = nodes.get(C.id); if (!fc) return [];
+      const order = fc.inputIds.map((id, i) => ({ id, y: blkSrcY(id, fc.inputPorts?.[i]) ?? Infinity }));
+      if (C.gateType === 'AND' || C.gateType === 'OR') order.sort((a, b) => a.y - b.y);
+      const out: { driverId: string; srcY: number; portY: number }[] = [];
+      order.forEach((e, rank) => {
+        const port = C.inputs[Math.min(rank, C.inputs.length - 1)];
+        if (Number.isFinite(e.y) && port && !isFeedback(e.id)) out.push({ driverId: e.id, srcY: e.y, portY: port.absY });
+      });
+      return out;
+    };
+
+    const bkNodes: BkNode[] = layoutNodes.map(n => {
+      const bn: BkNode = { id: n.id, center: centerOf(n), height: Math.max(1, n.height), col: n.absX, weight: sizeOf(n.id) };
+      if (n.gateType !== 'INPUT') {
+        const dps = driverPorts(n);
+        if (dps.length) {
+          const dom = dps.reduce((a, b) => {
+            const depthA = nodeMap.get(a.driverId)?.depth ?? -1, depthB = nodeMap.get(b.driverId)?.depth ?? -1;
+            if (depthB !== depthA) return depthB > depthA ? b : a;
+            return sizeOf(b.driverId) > sizeOf(a.driverId) ? b : a;
+          });
+          const dNode = nodeMap.get(dom.driverId);
+          if (dNode) {
+            bn.domId = dom.driverId;
+            // Straight wire: C's port for `dom` must land on dom's source Y. In centre space that fixes
+            // (centre[C] − centre[dom]) to this constant (both endpoints shift rigidly with their node).
+            bn.domRel = (centerOf(n) - centerOf(dNode)) + (dom.srcY - dom.portY);
+          }
+        }
+      }
+      return bn;
+    });
+
+    const snap = layoutNodes.map(n => ({ n, absY: n.absY, ins: n.inputs.map(p => ({ p, y: p.absY })), outs: n.outputs.map(p => ({ p, y: p.absY })) }));
+    const restore = () => { for (const s of snap) { s.n.absY = s.absY; s.ins.forEach(e => e.p.absY = e.y); s.outs.forEach(e => e.p.absY = e.y); } };
+    // Placement-level quality: (sub-MIN jogs, body overlaps, straight-wire count, height). Straightening
+    // is ACCEPTED only when it strictly increases the number of dead-straight wires (the #15 objective)
+    // without adding a jog/overlap and without ballooning the diagram — mirroring the candidate scorer's
+    // priority (overlaps > doglegs > … > bends > height), with height as the final guard.
+    const quality = (): { sub: number; ov: number; straight: number; height: number } => {
+      let sub = 0, straight = 0, minY = Infinity, maxY = -Infinity;
+      for (const C of layoutNodes) {
+        minY = Math.min(minY, C.absY); maxY = Math.max(maxY, C.absY + C.height);
+        for (const e of driverPorts(C)) {
+          const d = Math.abs(e.srcY - e.portY);
+          if (d < 0.5) straight++;
+          else if (d < MIN_DOGLEG - 0.01) sub++;
+        }
+      }
+      // Body overlaps, compared only within a column (same absX) — bodies in different columns can't
+      // overlap in X, so this stays ~O(V) rather than O(V²) on large diagrams.
+      const byCol = new Map<number, LayoutNode[]>();
+      for (const n of layoutNodes) if (n.gateType !== 'INPUT' && n.gateType !== 'OUTPUT') (byCol.get(n.absX) ?? byCol.set(n.absX, []).get(n.absX)!).push(n);
+      let ov = 0;
+      for (const col of byCol.values()) for (let i = 0; i < col.length; i++) for (let j = i + 1; j < col.length; j++) {
+        const a = col[i], b = col[j];
+        if (Math.min(a.absY + a.height, b.absY + b.height) > Math.max(a.absY, b.absY)) ov++;
+      }
+      return { sub, ov, straight, height: maxY - minY };
+    };
+    const q0 = quality();
+
+    const solved = bkCompact(bkNodes);
+    for (const n of layoutNodes) {
+      const target = solved.get(n.id);
+      if (target === undefined) continue;
+      // Grid-snap independently: block members' targets differ by multiples of GRID, so snapping keeps
+      // straightened wires exactly straight while placing pushed nodes on the grid.
+      const delta = Math.round(target / GRID) * GRID - centerOf(n);
+      if (delta === 0) continue;
+      n.absY += delta;
+      for (const p of n.inputs) p.absY += delta;
+      for (const p of n.outputs) p.absY += delta;
+    }
+
+    const q1 = quality();
+    const accept = q1.sub <= q0.sub && q1.ov <= q0.ov && q1.straight > q0.straight && q1.height <= q0.height * 1.5 + GRID;    if (!accept) restore();
   }
 
   return { nodes, intermediateLabels, layoutNodes, nodeMap };
