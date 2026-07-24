@@ -1001,12 +1001,12 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
 {
   "canvas": [
     920,
-    225,
+    210,
   ],
   "junctions": [
     [
       320,
-      125,
+      155,
     ],
   ],
   "labels": [],
@@ -1052,7 +1052,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "block": null,
       "box": [
         525,
-        175,
+        140,
         60,
         50,
       ],
@@ -1060,14 +1060,14 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "inputs": [
         [
           525,
-          190,
+          155,
           "in_0",
           null,
           0,
         ],
         [
           525,
-          205,
+          170,
           "in_1",
           null,
           0,
@@ -1078,7 +1078,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "outputs": [
         [
           585,
-          200,
+          165,
           "out",
           0,
         ],
@@ -1089,7 +1089,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "block": null,
       "box": [
         170,
-        115,
+        145,
         100,
         20,
       ],
@@ -1100,7 +1100,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "outputs": [
         [
           270,
-          125,
+          155,
           "out",
           0,
         ],
@@ -1111,7 +1111,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "block": null,
       "box": [
         170,
-        195,
+        190,
         100,
         20,
       ],
@@ -1122,7 +1122,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "outputs": [
         [
           270,
-          205,
+          200,
           "out",
           0,
         ],
@@ -1185,7 +1185,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "block": null,
       "box": [
         680,
-        115,
+        135,
         60,
         50,
       ],
@@ -1193,14 +1193,14 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "inputs": [
         [
           688,
-          130,
+          150,
           "in_0",
           null,
           0,
         ],
         [
           690,
-          145,
+          165,
           "in_1",
           null,
           0,
@@ -1211,7 +1211,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "outputs": [
         [
           740,
-          140,
+          160,
           "out",
           0,
         ],
@@ -1222,7 +1222,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "block": null,
       "box": [
         820,
-        130,
+        150,
         100,
         20,
       ],
@@ -1230,7 +1230,7 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "inputs": [
         [
           820,
-          140,
+          160,
           "in",
           null,
           0,
@@ -1248,32 +1248,11 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "points": [
         [
           270,
-          125,
-        ],
-        [
-          320,
-          125,
+          155,
         ],
         [
           320,
           155,
-        ],
-        [
-          365,
-          155,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          270,
-          125,
-        ],
-        [
-          320,
-          125,
         ],
         [
           320,
@@ -1290,11 +1269,32 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "points": [
         [
           270,
-          205,
+          155,
+        ],
+        [
+          365,
+          155,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          200,
+        ],
+        [
+          450,
+          200,
+        ],
+        [
+          450,
+          170,
         ],
         [
           525,
-          205,
+          170,
         ],
       ],
     },
@@ -1319,16 +1319,16 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
           80,
         ],
         [
-          660,
+          605,
           80,
         ],
         [
-          660,
-          130,
+          605,
+          150,
         ],
         [
           688,
-          130,
+          150,
         ],
       ],
     },
@@ -1340,16 +1340,8 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
           155,
         ],
         [
-          480,
-          155,
-        ],
-        [
-          480,
-          190,
-        ],
-        [
           525,
-          190,
+          155,
         ],
       ],
     },
@@ -1358,19 +1350,11 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "points": [
         [
           585,
-          200,
-        ],
-        [
-          660,
-          200,
-        ],
-        [
-          660,
-          145,
+          165,
         ],
         [
           690,
-          145,
+          165,
         ],
       ],
     },
@@ -1379,11 +1363,11 @@ exports[`Visual regression (layout geometry) > Combined Logic (CBFPS) 1`] = `
       "points": [
         [
           740,
-          140,
+          160,
         ],
         [
           820,
-          140,
+          160,
         ],
       ],
     },
