@@ -94,3 +94,33 @@ describe('SVG wire-node linkage', () => {
     });
   }
 });
+
+// TeX math ($...$) must typeset in every centred label — function-block and named-gate
+// names/descriptions and net (wire) labels — the same way it already does for port labels.
+// Regression for labels that previously emitted the raw `$...$` source as plain text.
+describe('math in block / gate / wire labels', () => {
+  it('renders block description math as typeset SVG, not raw TeX', () => {
+    const r = parse('O = FB#B(X, Y).OUT\nB.Description = "$\\frac{a}{b}$"');
+    expect(r.errors).toHaveLength(0);
+    const svg = renderDiagram(r.diagram, resolveOptions(r.diagram.options));
+    expect(svg).toContain('class="ldl-math"');   // typeset math group present
+    expect(svg).not.toContain('$\\frac');        // raw TeX not leaked as text
+  });
+
+  it('renders net (wire) label math as typeset SVG', () => {
+    // INT is consumed below -> a net label is drawn on the wire.
+    const r = parse('INT = A AND B\nO = INT OR C\nINT.Name = "$I_a$"');
+    expect(r.errors).toHaveLength(0);
+    const svg = renderDiagram(r.diagram, resolveOptions(r.diagram.options));
+    expect(svg).toContain('ldl-net-label');
+    expect(svg).toContain('class="ldl-math"');
+  });
+
+  it('produces well-formed XML for math containing a "<" relation', () => {
+    const r = parse('O = FB#B(X, Y).OUT\nB.Description = "$a < b$"');
+    const svg = renderDiagram(r.diagram, resolveOptions(r.diagram.options));
+    // A raw "<" inside an attribute value is valid HTML but invalid XML/SVG (breaks
+    // rsvg/PDF export). No attribute value may contain an unescaped "<".
+    expect(svg).not.toMatch(/="[^"]*<[^"]*"/);
+  });
+});

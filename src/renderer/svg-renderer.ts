@@ -81,11 +81,11 @@ export function renderDiagram(diagram: Diagram, options?: RenderOptions, diagram
       }
     }
     if (lbl.name) {
-      svgLabels.push(`<text class="ldl-label ldl-name" x="${cx}" y="${ty}" text-anchor="middle" fill="${theme.nameFill}" font-size="11" font-family="sans-serif" font-weight="600">${esc(lbl.name)}</text>`);
+      svgLabels.push(centeredLabel(lbl.name, cx, ty, 11, theme.nameFill, false, '600'));
       ty += 12;
     }
     if (lbl.description) {
-      svgLabels.push(`<text class="ldl-label ldl-description" x="${cx}" y="${ty}" text-anchor="middle" fill="${theme.descFill}" font-size="9" font-family="sans-serif">${esc(lbl.description)}</text>`);
+      svgLabels.push(centeredLabel(lbl.description, cx, ty, 9, theme.descFill, true, ''));
     }
     svgLabels.push('</g>');
   }
@@ -354,6 +354,18 @@ function portMarker(x: number, y: number, dir: 'ldl-input' | 'ldl-output', name:
   return `<circle class="ldl-port ${dir} ldl-port-circle" data-port="${esc(name)}" cx="${x}" cy="${y}" r="${3}" fill="${theme.portFill}"/>`;
 }
 
+// A body-centred label (block/named-gate name or description). Routes through the math pipeline
+// when it contains `$…$`, so TeX typesets the same way it does for port labels; otherwise emits a
+// plain centred <text> (preserving the existing weight/size for the common no-math case).
+function centeredLabel(text: string, cx: number, y: number, fontSize: number, fill: string, isDescription: boolean, fontWeight: string): string {
+  if (hasMathContent(text)) {
+    return renderMixedLabelContent(splitIntoSegments(text), cx, y, 'middle', fontSize, fill, isDescription);
+  }
+  const cls = isDescription ? 'ldl-description' : 'ldl-name';
+  const w = fontWeight ? ` font-weight="${fontWeight}"` : '';
+  return `<text class="ldl-label ${cls}" x="${cx}" y="${y}" text-anchor="middle" fill="${fill}" font-size="${fontSize}" font-family="sans-serif"${w}>${esc(text)}</text>`;
+}
+
 function renderNodeLabels(node: LayoutNode, showLabels: boolean, labels: string[], theme: DiagramTheme): void {
   if (!showLabels) return;
 
@@ -386,20 +398,20 @@ function renderNodeLabels(node: LayoutNode, showLabels: boolean, labels: string[
     // FB block shows its name inside the box (renderFbNodeBody), so only the description goes below.
     const cx = node.absX + node.width / 2;
     if (node.name && node.blockType !== 'FB') {
-      labels.push(`<text class="ldl-label ldl-name" x="${cx}" y="${node.absY - 7}" text-anchor="middle" fill="${theme.nameFill}" font-size="12" font-family="sans-serif" font-weight="600">${esc(node.name)}</text>`);
+      labels.push(centeredLabel(node.name, cx, node.absY - 7, 12, theme.nameFill, false, '600'));
     }
     if (node.description) {
-      labels.push(`<text class="ldl-label ldl-description" x="${cx}" y="${node.absY + node.height + 15}" text-anchor="middle" fill="${theme.descFill}" font-size="9" font-family="sans-serif">${esc(node.description)}</text>`);
+      labels.push(centeredLabel(node.description, cx, node.absY + node.height + 15, 9, theme.descFill, true, ''));
     }
   } else if (!node.blockType && node.gateType !== 'INPUT' && node.gateType !== 'OUTPUT' && (node.name || node.description)) {
     // A named gate (AND#ID(...)) shows its instance name above and description below the body,
     // mirroring the SEL block label placement.
     const cx = node.absX + node.width / 2;
     if (node.name && node.blockType !== 'FB') {
-      labels.push(`<text class="ldl-label ldl-name" x="${cx}" y="${node.absY - 7}" text-anchor="middle" fill="${theme.nameFill}" font-size="12" font-family="sans-serif" font-weight="600">${esc(node.name)}</text>`);
+      labels.push(centeredLabel(node.name, cx, node.absY - 7, 12, theme.nameFill, false, '600'));
     }
     if (node.description) {
-      labels.push(`<text class="ldl-label ldl-description" x="${cx}" y="${node.absY + node.height + 15}" text-anchor="middle" fill="${theme.descFill}" font-size="9" font-family="sans-serif">${esc(node.description)}</text>`);
+      labels.push(centeredLabel(node.description, cx, node.absY + node.height + 15, 9, theme.descFill, true, ''));
     }
   }
 }
@@ -526,7 +538,7 @@ function renderMixedLabelContent(
   segments: { type: 'plain' | 'math'; text: string }[],
   baseX: number,
   baseY: number,
-  anchor: 'start' | 'end',
+  anchor: 'start' | 'end' | 'middle',
   fontSize: number,
   fill: string,
   isDescription: boolean,
@@ -573,7 +585,13 @@ function renderMixedLabelContent(
       }
     }
   } else {
+    // 'start' places from baseX; 'middle' centres the whole run on baseX by first
+    // measuring the total advance (segment widths + inter-segment gaps).
     let leftX = baseX;
+    if (anchor === 'middle') {
+      const total = measured.reduce((s, m) => s + m.width, 0) + segGap * Math.max(0, measured.length - 1);
+      leftX = baseX - total / 2;
+    }
     for (const seg of measured) {
       if (seg.type === 'plain') {
         parts.push(`<text class="ldl-label ${classSuffix}" x="${leftX}" y="${baseY}" text-anchor="start" fill="${fill}" font-size="${fontSize}" font-family="sans-serif"${fontWeight}>${esc(seg.text)}</text>`);

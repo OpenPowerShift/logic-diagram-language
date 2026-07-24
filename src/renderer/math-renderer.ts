@@ -52,7 +52,12 @@ export function renderMath(tex: string, fontSize: number): MathRenderResult | nu
     const baselineOffset = viewBox[3] > 0 ? height * (-viewBox[1] / viewBox[3]) : 0;
 
     setSvgPixelSize(svgEl, width, height);
-    const svgStr = adaptor.outerHTML(svgEl);
+    // MathJax annotates nodes with `data-latex="…"` echoing the TeX source. The liteAdaptor
+    // serialises these HTML-style (unescaped), so a relation like `a < b` leaves a raw `<`
+    // inside an attribute value — valid in an HTML document but NOT in standalone SVG/XML,
+    // which breaks rsvg/PDF export and strict SVG parsers. Strip the (purely informational)
+    // annotations so the embedded fragment is well-formed XML.
+    const svgStr = adaptor.outerHTML(svgEl).replace(/\s+data-latex(?:-item)?="[^"]*"/g, '');
 
     return { svg: svgStr, width, height, baselineOffset };
   } catch (e) {
