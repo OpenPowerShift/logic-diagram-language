@@ -32,8 +32,10 @@ A.Name = "Overcurrent"
 A.Description = "50P1 pickup"
 O1.Name = "Trip"
 
-// Inline TeX math in any label with $...$
+// Inline TeX math in any label (input/output, gate, function-block, or net) with $...$
 IA.Name = "$I_a > I_{pickup}$"
+// IMPORTANT: string literals are raw except for \" — TeX commands take a SINGLE backslash.
+// Write "$\frac{a}{b}$", NOT "$\\frac{a}{b}$" (a doubled \\ is a TeX line break and mis-renders).
 
 // Force an internal signal to ALSO be drawn as an output
 INT.OUT = TRUE
@@ -159,5 +161,5 @@ TRIP.Name  = "Trip"
 1. Only `AND` / `OR` / `NOT` operators (rewrite any NAND/NOR/XOR/XNOR).
 2. `OPTION` lines first, then assignments.
 3. Every signal that should be an **output** is not referenced elsewhere (or has `.OUT = TRUE`).
-4. Labels via `.Name` / `.Description`; wrap math in `$...$`.
+4. Labels via `.Name` / `.Description`; wrap math in `$...$` using **single** backslashes (`\frac`, not `\\frac`).
 5. Validate by rendering: `parse(src).errors` must be empty.
