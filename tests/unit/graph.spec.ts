@@ -47,4 +47,33 @@ describe('buildGraph', () => {
     const and = [...nodes.values()].find(n => n.gateType === 'AND')!;
     expect(and.invertedInputs && and.invertedInputs.size).toBe(1);
   });
+
+  // Issue #16: a signal that shares its identifier with an explicit object id must not render its
+  // .Name/.Description twice. Consumed intermediate -> object keeps it (no net label); shown output
+  // -> output node keeps it (object's copy cleared).
+  it('consumed-intermediate name colliding with a block id: object keeps label, no net label', () => {
+    const { nodes, intermediateLabels } = graphOf(
+      'X = FB#X(A, B).OUT\nY = TIMER(X, 0, 0)\nX.Name = "Voltage Check"',
+    );
+    // The FB block (its id is X) carries the label...
+    const fb = [...nodes.values()].find(n => n.blockType === 'FB')!;
+    expect(fb.name).toBe('Voltage Check');
+    // ...and no duplicate net label is emitted for the same identifier.
+    expect(intermediateLabels.some(l => l.name === 'Voltage Check')).toBe(false);
+  });
+
+  it('shown-output name colliding with a gate id: output keeps label, gate copy cleared', () => {
+    const { nodes } = graphOf('TRIP = AND#TRIP(A, B)\nTRIP.Name = "Trip"');
+    const output = [...nodes.values()].find(n => n.kind === 'output')!;
+    const gate = [...nodes.values()].find(n => n.gateType === 'AND')!;
+    expect(output.name).toBe('Trip');
+    expect(gate.name).toBeUndefined();
+  });
+
+  it('no collision: a distinct block id leaves the net label intact', () => {
+    const { intermediateLabels } = graphOf(
+      'X = FB#VCHK(A, B).OUT\nY = TIMER(X, 0, 0)\nX.Name = "Voltage Check"',
+    );
+    expect(intermediateLabels.some(l => l.name === 'Voltage Check')).toBe(true);
+  });
 });

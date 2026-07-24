@@ -26,6 +26,19 @@ O1.Description = "(BO 3.2)"
 
 These attributes are rendered as `ldl-label` class elements within the SVG and are controlled by the labels layer (see <<layout-rules>>).
 
+==== Name/id collision
+
+When a signal shares its identifier with an explicit object id — for example `X = FB#X(...)` or
+`TRIP = AND#TRIP(...)`, where the left-hand signal name equals the `#id` given to the block or gate —
+`X.Name` / `X.Description` is applied to exactly one rendered element, never both:
+
+* If the name is a *shown output*, the output node keeps the label (its conventional right-edge slot)
+  and the driving object's copy is cleared.
+* If the name is a *consumed intermediate*, the object (e.g. the function-block body) keeps the label
+  and no duplicate net label is drawn on the signal.
+
+To label the object and the signal independently, give the object a distinct id (e.g. `FB#VCHK`).
+
 === TeX in Labels
 
 Both `.Name` and `.Description` values support inline TeX math notation enclosed in dollar signs:

@@ -157,6 +157,10 @@ export function buildGraph(
   }
   // Resolve a defined name to its driver node, memoised. A name referenced while it is itself
   // being resolved is a cycle → loop back to its output node (feedback), or an input if unshown.
+  // Explicit object ids (from GATE#id / BLOCK#id). Used to resolve a name↔id collision: when a signal
+  // shares its identifier with an explicit object, `.Name`/`.Description` must render only once.
+  const explicitIds = new Set<string>();
+
   function resolveName(name: string): string {
     if (nameDriver.has(name)) return nameDriver.get(name)!;
     if (resolvingNames.has(name)) return outputIdByName.get(name) ?? makeInput(name);
@@ -182,6 +186,7 @@ export function buildGraph(
       const blockTypes = new Set(['TIMER', 'SR', 'RISING', 'FALLING', 'COMPARE', 'FB']);
       if (blockTypes.has(node.symbolName)) {
         const bt = node.symbolName;
+        if (node.id) explicitIds.add(node.id);
         const key = node.id ? `B#${node.id}` : `B:${bt}()`;
         let blockId = blockMap.get(key);
         if (!blockId) {
@@ -208,6 +213,7 @@ export function buildGraph(
       return id;
     }
     if (node.kind === 'gate') {
+      if (node.id) explicitIds.add(node.id);
       const inputIds = node.inputs.map(i => resolve(i));
       const inputPorts = node.inputs.map(portOf);
       // Canonical key for deduplication: sort inputs for commutative operators.
@@ -237,6 +243,7 @@ export function buildGraph(
       return id;
     }
     if (node.kind === 'block') {
+      if (node.id) explicitIds.add(node.id);
       const inputIds = node.inputs.map(i => resolve(i));
       const key = node.id
         ? `B#${node.id}`
@@ -273,11 +280,25 @@ export function buildGraph(
     on.depth = (nodes.get(driver)?.depth ?? 0) + 1;
   }
 
+  // Name↔id collision (issue #16): when a signal shares its identifier with an explicit object id
+  // (`X = FB#X(...)`, `TRIP = AND#TRIP(...)`), `X.Name`/`.Description` resolves onto BOTH the object
+  // and the signal, drawing the label twice. Render it once, on the natural element: a SHOWN OUTPUT
+  // keeps its conventional right-edge label, so clear the driving object's copy.
+  for (const id of explicitIds) {
+    if (!outputIdByName.has(id)) continue;                          // only shown outputs collide here
+    const internalId = exprMap.get(`G#${id}`) ?? blockMap.get(`B#${id}`);
+    const obj = internalId ? nodes.get(internalId) : undefined;
+    if (obj) { obj.name = undefined; obj.description = undefined; }
+  }
+
   // A consumed intermediate (not drawn as an output) can still be labelled at its fan-out
-  // junction by setting NAME.Name / NAME.Description — a net label on the shared signal.
+  // junction by setting NAME.Name / NAME.Description — a net label on the shared signal. But if the
+  // name collides with an explicit object id, the object (e.g. an FB body) already shows the label —
+  // so skip the net label to avoid the duplicate (the object wins for consumed intermediates).
   const intermediateLabels: IntermediateLabel[] = [];
   for (const [name, driverId] of nameDriver) {
     if (isShownOutput(name)) continue; // shown signals are labelled at their output node
+    if (explicitIds.has(name)) continue; // object with the same id already carries the label
     const meta = metaMap.get(name);
     if (meta && (meta.name || meta.description)) {
       intermediateLabels.push({ driverId, port: nameDriverPort.get(name), name: meta.name ?? name, description: meta.description });
