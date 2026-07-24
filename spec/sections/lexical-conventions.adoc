@@ -59,10 +59,11 @@ A block comment begins with `/*` and ends with `*/`. Block comments nest.
 
 === Math Delimiters
 
-Within string-valued attributes (`.Name` and `.Description`), TeX math notation is enclosed in dollar signs:
+Within string-valued attributes (`.Name` and `.Description`), TeX math notation is enclosed in dollar signs. This applies to *every* label — boundary input/output ports, named gates, function blocks, and consumed-intermediate net labels — all typeset math identically.
 
 * `$...$` -- Inline TeX math expression.
 * Inside math content, `\$` renders as a literal dollar sign (TeX syntax).
 * Outside math content, `\\$` in LDL source produces `\$`, which the segment parser treats as a literal dollar sign.
+* String literals are otherwise **raw**: the only recognized escape is `\"`. A backslash is passed through verbatim, so TeX control sequences take a **single** backslash (`$\frac{a}{b}$`, `$\sqrt{3}$`). A doubled `\\` is a TeX line break, not an escaped backslash, and mis-renders.
 
 Math delimiters are not recognized in expression code, only in quoted string attribute values.
