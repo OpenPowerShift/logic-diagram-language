@@ -12374,6 +12374,307 @@ exports[`Visual regression (layout geometry) > Square Ports 1`] = `
 }
 `;
 
+exports[`Visual regression (layout geometry) > Streamlined Ports 1`] = `
+{
+  "canvas": [
+    760,
+    165,
+  ],
+  "junctions": [
+    [
+      500,
+      125,
+    ],
+  ],
+  "labels": [
+    [
+      515,
+      145,
+      50,
+      20,
+      "Shared",
+      null,
+    ],
+  ],
+  "nodes": [
+    {
+      "block": null,
+      "box": [
+        365,
+        95,
+        60,
+        60,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          365,
+          110,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          365,
+          140,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          425,
+          125,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        520,
+        50,
+        60,
+        50,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          520,
+          65,
+          "in_0",
+          null,
+          0,
+        ],
+        [
+          520,
+          80,
+          "in_1",
+          null,
+          0,
+        ],
+      ],
+      "label": null,
+      "name": null,
+      "outputs": [
+        [
+          580,
+          75,
+          "out",
+          0,
+        ],
+      ],
+      "type": "AND",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        100,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "IN1",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          110,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        130,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "IN2",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          140,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        55,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "EN",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          65,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        660,
+        115,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          660,
+          125,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "ALARM",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        660,
+        65,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [
+        [
+          660,
+          75,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "TRIP",
+      "name": null,
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+  ],
+  "wires": [
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          110,
+        ],
+        [
+          365,
+          110,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          140,
+        ],
+        [
+          365,
+          140,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          270,
+          65,
+        ],
+        [
+          520,
+          65,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          425,
+          125,
+        ],
+        [
+          500,
+          125,
+        ],
+        [
+          500,
+          80,
+        ],
+        [
+          520,
+          80,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          425,
+          125,
+        ],
+        [
+          660,
+          125,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          580,
+          75,
+        ],
+        [
+          660,
+          75,
+        ],
+      ],
+    },
+  ],
+}
+`;
+
 exports[`Visual regression (layout geometry) > Styled by ID 1`] = `
 {
   "canvas": [

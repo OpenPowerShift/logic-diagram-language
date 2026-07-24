@@ -297,6 +297,17 @@ exports[`Bend/crossing metrics > Square Ports 1`] = `
 }
 `;
 
+exports[`Bend/crossing metrics > Streamlined Ports 1`] = `
+{
+  "H": 165,
+  "bends": 2,
+  "bent": 1,
+  "crossings": 0,
+  "straight": 5,
+  "wires": 6,
+}
+`;
+
 exports[`Bend/crossing metrics > Styled by ID 1`] = `
 {
   "H": 340,

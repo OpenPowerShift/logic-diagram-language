@@ -265,6 +265,16 @@ B.Name = "Signal B"
 O1 = A AND B
 O1.Name = "Result"`,
 
+  'Streamlined Ports': `// PORT_STYLE = NONE hides every terminal dot — boundary ports and gate/block
+// pins — for a streamlined view. The only dots left mark true wire junctions
+// (fan-out / crossovers), like SHARED branching to both outputs below.
+OPTION PORT_STYLE = NONE
+
+SHARED = IN1 AND IN2
+TRIP  = SHARED AND EN
+ALARM = SHARED
+SHARED.Name = "Shared"`,
+
   'Combined Options': `// Options combine freely. Here three at once — bubbles for NOT, bars for the
 // multi-input gate, and square port markers — each overriding its own default
 // (GATES / EXPAND / CIRCLE). Options must precede the logic they affect.
