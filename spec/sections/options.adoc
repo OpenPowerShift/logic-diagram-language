@@ -37,6 +37,11 @@ the last occurrence wins.
 | Port markers are rendered as squares (5×5)
 | --
 
+| PORT_STYLE
+| NONE
+| No terminal port markers are drawn (boundary ports and gate/block pins); only junction/crossover dots remain (a streamlined view). Junction dots are still governed by `HIDE_JUNCTIONS`.
+| --
+
 | GATE_INPUT_STYLE
 | EXPAND
 | Multi-input gates expand vertically to accommodate all input ports with even spacing

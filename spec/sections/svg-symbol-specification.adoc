@@ -146,4 +146,6 @@ When `OPTION PORT_STYLE = SQUARE`, ports render as 5×5 squares:
       fill="#2c3e50"/>
 ----
 
+When `OPTION PORT_STYLE = NONE`, no terminal port marker element is emitted at all — neither for boundary input/output ports nor for gate/function-block pins. Only junction (crossover) dots remain, giving a streamlined view; junction dots stay governed by `HIDE_JUNCTIONS`. Inversion bubbles are unaffected (they carry NOT semantics, not connectivity).
+
 Individual ports can override the document default via `.Style = SQUARE` or `.Style = CIRCLE`.
