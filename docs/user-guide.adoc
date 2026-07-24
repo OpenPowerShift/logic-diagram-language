@@ -248,8 +248,9 @@ most once; place them before the logic. Combine freely.
 | `GATE_INPUT_STYLE` | `EXPAND` (default), `BARS`
 | Grow multi-input gates vertically, or keep them 2-input-sized with input bars.
 
-| `PORT_STYLE` | `CIRCLE` (default), `SQUARE`
-| Port marker shape.
+| `PORT_STYLE` | `CIRCLE` (default), `SQUARE`, `NONE`
+| Port marker shape. `NONE` hides every terminal dot (boundary ports and gate/block
+pins) for a streamlined view, leaving only junction/crossover dots.
 
 | `OUTPUT_ORDER` | `AUTO` (default), `DECLARATION`
 | Reorder outputs by their driver to reduce crossings, or keep them in declared order.

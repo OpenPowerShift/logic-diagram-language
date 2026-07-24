@@ -304,7 +304,9 @@ function renderNodePorts(node: LayoutNode, ports: string[], opts: RenderOptions,
     if (port) {
       const x = port.absX;
       const y = port.absY;
-      if (opts.portStyle === 'SQUARE') {
+      if (opts.portStyle === 'NONE') {
+        // Streamlined view: no terminal marker (only junction/crossover dots remain).
+      } else if (opts.portStyle === 'SQUARE') {
         const size = PORT_SIZE;
         ports.push(`<rect class="ldl-port ldl-output ldl-port-square" data-port="out" x="${x - size / 2}" y="${y - size / 2}" width="${size}" height="${size}" fill="${theme.portFill}"/>`);
       } else {
@@ -347,6 +349,8 @@ function renderNodePorts(node: LayoutNode, ports: string[], opts: RenderOptions,
 }
 
 function portMarker(x: number, y: number, dir: 'ldl-input' | 'ldl-output', name: string, opts: RenderOptions, theme: DiagramTheme): string {
+  // Streamlined view: no terminal marker on gate/block pins or boundary ports.
+  if (opts.portStyle === 'NONE') return '';
   if (opts.portStyle === 'SQUARE') {
     const size = PORT_SIZE;
     return `<rect class="ldl-port ${dir} ldl-port-square" data-port="${esc(name)}" x="${x - size / 2}" y="${y - size / 2}" width="${size}" height="${size}" fill="${theme.portFill}"/>`;

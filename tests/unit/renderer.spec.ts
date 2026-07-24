@@ -124,3 +124,21 @@ describe('math in block / gate / wire labels', () => {
     expect(svg).not.toMatch(/="[^"]*<[^"]*"/);
   });
 });
+
+// OPTION PORT_STYLE = NONE — the "streamlined" view: suppress every terminal marker
+// (boundary ports + gate/block pins) while leaving junction/crossover dots intact.
+describe('PORT_STYLE = NONE (streamlined view)', () => {
+  it('emits no port markers but keeps junction (crossover) dots', () => {
+    // SHARED fans out to two outputs -> a junction dot; A/B/C/D are boundary ports.
+    const r = parse('OPTION PORT_STYLE = NONE\nSHARED = A AND B\nO1 = SHARED AND C\nO2 = SHARED OR D');
+    expect(r.errors).toHaveLength(0);
+    const svg = renderDiagram(r.diagram, resolveOptions(r.diagram.options));
+    expect(svg).not.toContain('class="ldl-port');    // no terminal dots
+    expect(svg).toContain('ldl-junction-group');     // crossover dots remain
+  });
+
+  it('still draws port markers by default (CIRCLE)', () => {
+    const svg = renderDiagram(parse('O = A AND B').diagram, resolveOptions(parse('O = A AND B').diagram.options));
+    expect(svg).toContain('class="ldl-port');
+  });
+});

@@ -85,7 +85,7 @@ Put `OPTION` lines at the top. Implemented options and defaults:
 | Option | Values (default first) |
 | --- | --- |
 | `INVERSION` | `GATES`, `BUBBLES` |
-| `PORT_STYLE` | `CIRCLE`, `SQUARE` |
+| `PORT_STYLE` | `CIRCLE`, `SQUARE`, `NONE` (hide terminal dots; keep only junction/crossover dots) |
 | `GATE_INPUT_STYLE` | `EXPAND`, `BARS` |
 | `INPUT_ORDER` | `AUTO`, `DECLARATION` |
 | `OUTPUT_ORDER` | `AUTO`, `DECLARATION` |
