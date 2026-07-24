@@ -127,10 +127,13 @@ this order:
   feedback routing, shared fan-out trunk merge, and the gate-entrance guarantee (<<gate-entrance>>).
 . **Junction detection**, a final uniform vertical re-normalisation (which shifts every node, wire,
   junction AND label together so labels never drift from the gates they annotate), and a
-  **blank-band collapse**: any fully-empty horizontal band between two disconnected logic sections
-  (no node, label, or wire — including verticals — crosses it, so the sections share no signal) is
-  reduced to a fixed section gap, removing wasted vertical space. Being a uniform per-section shift
-  over an empty band, it preserves every wire shape and cannot cause an overlap or crossing.
+  **blank-band collapse**: any horizontal band occupied by no node body, label, or wire *feature* — a
+  wire feature being a vertex (turn/endpoint) or a horizontal run, but NOT the interior of a vertical
+  run merely passing through — is reduced to a fixed section gap, removing wasted vertical space. This
+  covers both fully-disconnected sections and *weakly-connected* ones that meet only through the band
+  (e.g. an SR-latch cluster and an analog cluster joined solely at a final gate, the latch's Q wire
+  dropping through the gap). Being a uniform per-section shift, it preserves every wire shape — the
+  threaded verticals stay straight, just shorter — and cannot cause an overlap or crossing.
 
 Every reshaping pass validates its proposed geometry through the shared wire-separation contract
 (>= `MIN_WIRE_SPACING` between parallel cross-net segments) plus gate clearance, and reverts any move

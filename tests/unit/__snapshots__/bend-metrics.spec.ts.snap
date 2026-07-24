@@ -68,7 +68,7 @@ exports[`Bend/crossing metrics > Complex Protection 1`] = `
 
 exports[`Bend/crossing metrics > Differential Protection 1`] = `
 {
-  "H": 260,
+  "H": 250,
   "bends": 4,
   "bent": 2,
   "crossings": 0,
@@ -123,7 +123,7 @@ exports[`Bend/crossing metrics > Inversion Bubbles 1`] = `
 
 exports[`Bend/crossing metrics > Labelled Gates 1`] = `
 {
-  "H": 565,
+  "H": 560,
   "bends": 8,
   "bent": 4,
   "crossings": 0,
@@ -134,7 +134,7 @@ exports[`Bend/crossing metrics > Labelled Gates 1`] = `
 
 exports[`Bend/crossing metrics > Launch Interlock 1`] = `
 {
-  "H": 655,
+  "H": 630,
   "bends": 14,
   "bent": 7,
   "crossings": 0,
@@ -156,7 +156,7 @@ exports[`Bend/crossing metrics > Layout Options 1`] = `
 
 exports[`Bend/crossing metrics > Mixed Logic 1`] = `
 {
-  "H": 350,
+  "H": 345,
   "bends": 8,
   "bent": 4,
   "crossings": 0,
@@ -222,7 +222,7 @@ exports[`Bend/crossing metrics > Overcurrent Protection 1`] = `
 
 exports[`Bend/crossing metrics > Reactor Scram Matrix 1`] = `
 {
-  "H": 960,
+  "H": 900,
   "bends": 22,
   "bent": 11,
   "crossings": 0,

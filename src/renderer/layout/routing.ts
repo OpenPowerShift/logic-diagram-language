@@ -1104,19 +1104,27 @@ export function routeWires(
   }
 
   // ═══ PASS 16 · Section collapse ══════════════════════════════════════════════════════════
-  // Collapse blank vertical bands between disconnected logic sections. A fully-empty horizontal band
-  // (no node body, label, or wire — including verticals passing through) means the content above and
-  // below it are not connected by any wire, so pulling the lower section up cannot distort a wire or
-  // cause an overlap. Each such band wider than SECTION_GAP is reduced to SECTION_GAP, removing the
-  // wasted space while keeping sections visually separated. Uniform per-section shift, so relative
-  // geometry (and therefore every crossing/dogleg) is preserved.
+  // Collapse blank vertical bands between weakly-connected logic sections. A horizontal band that no
+  // node body, label, or wire *feature* occupies — where "feature" is a wire vertex (turn) or a
+  // horizontal run, but NOT the interior of a vertical run merely passing through — means the content
+  // above and below share no routing in that band. Pulling the lower section up therefore only shortens
+  // the vertical wires that thread the band (issue #17: an SR-latch cluster and an analog cluster that
+  // meet solely at a final gate, with the latch's Q wire dropping through the gap). Each such band wider
+  // than SECTION_GAP is reduced to SECTION_GAP. Uniform per-section shift, so every wire shape (and thus
+  // every crossing/dogleg) is preserved and the threaded verticals stay straight, just shorter.
   {
     const SECTION_GAP = 50;
     const occ = new Set<number>();
     const mark = (y0: number, y1: number) => { for (let y = Math.floor(Math.min(y0, y1) / GRID) * GRID; y <= Math.max(y0, y1) + 0.5; y += GRID) occ.add(y); };
     for (const n of layoutNodes) mark(n.absY, n.absY + n.height);
     for (const l of labels) mark(l.y, l.y + l.height);
-    for (const w of wires) for (let i = 0; i < w.points.length - 1; i++) mark(w.points[i].y, w.points[i + 1].y);
+    for (const w of wires) {
+      for (const p of w.points) mark(p.y, p.y);                     // vertices (turns/endpoints) pin their row
+      for (let i = 0; i < w.points.length - 1; i++)
+        if (Math.abs(w.points[i].y - w.points[i + 1].y) < 0.5) mark(w.points[i].y, w.points[i + 1].y); // horizontal runs occupy their row
+      // A vertical run's interior is deliberately NOT marked, so a band it only passes through stays
+      // collapsible (the uniform shift below just shortens it).
+    }
     const ys = [...occ].sort((a, b) => a - b);
     const shifts: { fromY: number; amount: number }[] = [];
     for (let k = 1; k < ys.length; k++) {
