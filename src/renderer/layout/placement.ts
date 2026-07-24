@@ -1096,11 +1096,16 @@ export function placeNodes(
     }
     const minGap = 40; // centre-to-centre clearance between stacked output labels
     for (const outs of cols.values()) {
-      // AUTO orders by source Y (deeper source wins a tie so its short wire stays straight); else
-      // declaration order.
+      // AUTO orders by source Y ascending; on a tie, the SHALLOWER source wins so its wire stays
+      // straight at the row the trunk already occupies, and any deeper consumer is pushed below
+      // to a stack position. Self-reference and feedback outputs share the source Y with their
+      // own driver gates; the shallow-wins rule keeps the direct/dogleg-free path clear when a
+      // straight peer shares the same source row (Shared Intermediates B output keeps y=100
+      // while ALARM — driven by a deeper rising — drops below it, eliminating the over-the-top
+      // B↔ALARM crossing instead of accepting it).
       outs.sort((a, b) =>
         opts.outputOrder === 'AUTO'
-          ? sourceY(a) - sourceY(b) || sourceDepth(b) - sourceDepth(a) || declIndex.get(a.id)! - declIndex.get(b.id)!
+          ? sourceY(a) - sourceY(b) || sourceDepth(a) - sourceDepth(b) || declIndex.get(a.id)! - declIndex.get(b.id)!
           : declIndex.get(a.id)! - declIndex.get(b.id)!);
       let prevCenter = -Infinity;
       for (const o of outs) {
