@@ -203,6 +203,7 @@ export function placeNodes(
   opts: RenderOptions,
   strategy: 'heuristic' | 'crossmin',
   laneTight: boolean,
+  outputTieDeep = false,   // OUTPUT_ORDER=AUTO tie-break axis (#36): deeper source wins when true
 ): { nodes: Map<string, FlatNode>; intermediateLabels: IntermediateLabel[]; layoutNodes: LayoutNode[]; nodeMap: Map<string, LayoutNode> } {
   const { nodes, intermediateLabels } = buildGraph(diagram, opts, uid);
 
@@ -1096,16 +1097,14 @@ export function placeNodes(
     }
     const minGap = 40; // centre-to-centre clearance between stacked output labels
     for (const outs of cols.values()) {
-      // AUTO orders by source Y ascending; on a tie, the SHALLOWER source wins so its wire stays
-      // straight at the row the trunk already occupies, and any deeper consumer is pushed below
-      // to a stack position. Self-reference and feedback outputs share the source Y with their
-      // own driver gates; the shallow-wins rule keeps the direct/dogleg-free path clear when a
-      // straight peer shares the same source row (Shared Intermediates B output keeps y=100
-      // while ALARM — driven by a deeper rising — drops below it, eliminating the over-the-top
-      // B↔ALARM crossing instead of accepting it).
+      // AUTO orders by source Y ascending; on a tie (two outputs sharing one source row), the tie is
+      // broken by source depth. Which direction wins is not universally best — shallow-wins fixes the
+      // Shared Intermediates B↔ALARM crossing but adds bends to Boolean Algebra — so the direction is a
+      // scored candidate axis (#36): layoutDiagram tries both and keeps whichever renders better.
+      const tie = outputTieDeep ? -1 : 1;
       outs.sort((a, b) =>
         opts.outputOrder === 'AUTO'
-          ? sourceY(a) - sourceY(b) || sourceDepth(a) - sourceDepth(b) || declIndex.get(a.id)! - declIndex.get(b.id)!
+          ? sourceY(a) - sourceY(b) || tie * (sourceDepth(a) - sourceDepth(b)) || declIndex.get(a.id)! - declIndex.get(b.id)!
           : declIndex.get(a.id)! - declIndex.get(b.id)!);
       let prevCenter = -Infinity;
       for (const o of outs) {

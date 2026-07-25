@@ -2,11 +2,11 @@
 
 exports[`Bend/crossing metrics > Boolean Algebra 1`] = `
 {
-  "H": 285,
-  "bends": 10,
-  "bent": 5,
+  "H": 290,
+  "bends": 8,
+  "bent": 4,
   "crossings": 1,
-  "straight": 5,
+  "straight": 6,
   "wires": 10,
 }
 `;
