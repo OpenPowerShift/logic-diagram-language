@@ -8,6 +8,7 @@ import type { RenderOptions } from '../../parser/ast.js';
 import { routeWireAStar, type GateObstacle, type RoutedSegment } from '../astar-router.js';
 import { uid } from './geometry.js';
 import { placeNetLabels } from './labels.js';
+import { estimateTextWidth } from '../math-renderer.js';
 import type { LayoutNode, LayoutPort, LayoutWire, LayoutJunction, LayoutLabel } from './types.js';
 import { GRID, MIN_DOGLEG, MIN_PORT_GAP, MIN_WIRE_SPACING, PAD_Y } from './types.js';
 
@@ -1155,6 +1156,39 @@ export function routeWires(
       for (const w of wires) for (const p of w.points) p.y -= shiftFor(p.y);
       for (const j of mergedJunctions) j.y -= shiftFor(j.y);
       for (const l of labels) { const dy = shiftFor(l.y); l.y -= dy; l.anchorY -= dy; }
+    }
+  }
+
+  // ═══ Off-page connector fan-out (#37, prototype · OPTION FANOUT_CONNECTORS) ════════════════════════
+  // A very-high-fan-out net that spans much of the page is drawn as one wire that crosses everything
+  // between its taps (e.g. a global "Fire Alarm" inhibit consumed by every output). Replace such nets
+  // with off-page CONNECTOR stubs: a short source stub tagged with the net name, and a short stub with
+  // the same tag at each consumer. The long crossing wire (and its junction dots) is removed; the
+  // reader matches source ↔ sinks by the shared name — the standard schematic idiom.
+  if (opts.fanoutConnectors) {
+    const FANOUT_MIN = 4, SPAN_MIN = 250, STUB = 22;
+    const bySrc = new Map<string, LayoutWire[]>();
+    for (const w of wires) { if (w.feedback) continue; (bySrc.get(w.fromId) ?? bySrc.set(w.fromId, []).get(w.fromId)!).push(w); }
+    for (const [id, ws] of bySrc) {
+      const ys = ws.flatMap(w => w.points.map(p => p.y));
+      if (ws.length < FANOUT_MIN || Math.max(...ys) - Math.min(...ys) < SPAN_MIN) continue;
+      const src = ws[0].points[0];                                   // shared source output point
+      const node = layoutNodes.find(x => x.id === id);
+      const name = node?.name || node?.label || id;
+      const nameW = estimateTextWidth(name, 10);
+      // Remove the net's long wires and any junction dot that sat on one of them.
+      const onNet = new Set(ws.flatMap(w => w.points.map(p => `${Math.round(p.x)},${Math.round(p.y)}`)));
+      for (let i = wires.length - 1; i >= 0; i--) if (!wires[i].feedback && wires[i].fromId === id) wires.splice(i, 1);
+      for (let i = mergedJunctions.length - 1; i >= 0; i--) if (onNet.has(`${Math.round(mergedJunctions[i].x)},${Math.round(mergedJunctions[i].y)}`)) mergedJunctions.splice(i, 1);
+      // Source stub + tag.
+      wires.push({ id: `conn_s_${id}`, points: [{ x: src.x, y: src.y }, { x: src.x + STUB, y: src.y }], fromId: id, toId: id });
+      labels.push({ x: src.x + STUB + 3, y: src.y - 5, width: nameW, height: 12, anchorX: src.x, anchorY: src.y, driverId: id, name, fixed: true, connector: 'source' });
+      // A stub + tag at each consumer input.
+      for (const w of ws) {
+        const dst = w.points[w.points.length - 1];
+        wires.push({ id: `conn_d_${w.id}`, points: [{ x: dst.x - STUB, y: dst.y }, { x: dst.x, y: dst.y }], fromId: id, toId: w.toId });
+        labels.push({ x: dst.x - STUB - 3 - nameW, y: dst.y - 5, width: nameW, height: 12, anchorX: dst.x, anchorY: dst.y, driverId: id, name, fixed: true, connector: 'sink' });
+      }
     }
   }
 

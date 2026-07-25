@@ -45,6 +45,9 @@ export interface RenderOptions {
   strokeWidth?: number;
   // Hide all junction dots (Item 11). Set via OPTION HIDE_JUNCTIONS = TRUE | FALSE.
   hideJunctions: boolean;
+  // Prototype (#37): draw very-high-fan-out, wide-span nets as off-page connector stubs instead of one
+  // snaking wire, to cut crossings on large diagrams. OPTION FANOUT_CONNECTORS = TRUE. Default off.
+  fanoutConnectors: boolean;
 }
 
 export const DEFAULT_OPTIONS: RenderOptions = {
@@ -64,6 +67,7 @@ export const DEFAULT_OPTIONS: RenderOptions = {
   showIds: false,
   wireLabelLeader: true,
   hideJunctions: false,
+  fanoutConnectors: false,
 };
 
 export interface Position {
@@ -209,6 +213,9 @@ export function resolveOptions(optionDecls: OptionDecl[]): RenderOptions {
     } else if (name === 'HIDE_JUNCTIONS') {
       if (/^(true|1|yes|on)$/i.test(value)) opts.hideJunctions = true;
       else if (/^(false|0|no|off)$/i.test(value)) opts.hideJunctions = false;
+    } else if (name === 'FANOUT_CONNECTORS') {
+      if (/^(true|1|yes|on)$/i.test(value)) opts.fanoutConnectors = true;
+      else if (/^(false|0|no|off)$/i.test(value)) opts.fanoutConnectors = false;
     } else if (name === 'COLUMN_SPACING' && (value === 'UNIFORM' || value === 'ADAPTIVE')) {
       opts.columnSpacing = value;
     } else if (name === 'SIZE' || name === 'COMPACTNESS') {
