@@ -53,6 +53,16 @@ the last occurrence wins.
 | --
 
 | LABEL_STYLE
+| BELOW
+| A gate/function-block `.Description` is stacked centred under its body
+| BELOW
+
+| LABEL_STYLE
+| SIDE
+| A gate/function-block `.Description` is placed in the upper-right beside its body (left-anchored, clear of the output wire), keeping it out of the horizontal routing channel beneath the body. Best when there is open space to the block's right
+| --
+
+| LABEL_STYLE
 | SIDE
 | Input labels appear to the left of the input port; output labels to the right (current behaviour)
 | SIDE

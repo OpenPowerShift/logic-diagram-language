@@ -89,6 +89,7 @@ Put `OPTION` lines at the top. Implemented options and defaults:
 | `INVERSION` | `GATES`, `BUBBLES` |
 | `PORT_STYLE` | `CIRCLE`, `SQUARE`, `NONE` (hide terminal dots; keep only junction/crossover dots) |
 | `GATE_INPUT_STYLE` | `EXPAND`, `BARS` |
+| `LABEL_STYLE` | `BELOW` (default), `SIDE` (block/gate description beside the body, not in the channel below) |
 | `INPUT_ORDER` | `AUTO`, `DECLARATION` |
 | `OUTPUT_ORDER` | `AUTO`, `DECLARATION` |
 | `COLUMN_SPACING` | `ADAPTIVE`, `UNIFORM` |

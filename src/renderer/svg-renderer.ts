@@ -54,7 +54,7 @@ export function renderDiagram(diagram: Diagram, options?: RenderOptions, diagram
   for (const node of layout.nodes) {
     renderNodeBody(node, svgBodies, layout.options, theme);
     renderNodePorts(node, svgPorts, layout.options, theme);
-    renderNodeLabels(node, showLabels, svgLabels, theme);
+    renderNodeLabels(node, showLabels, svgLabels, theme, opts.labelStyle);
     renderNodeIds(node, showIds, svgIds, theme);
   }
 
@@ -370,8 +370,25 @@ function centeredLabel(text: string, cx: number, y: number, fontSize: number, fi
   return `<text class="ldl-label ${cls}" x="${cx}" y="${y}" text-anchor="middle" fill="${fill}" font-size="${fontSize}" font-family="sans-serif"${w}>${esc(text)}</text>`;
 }
 
-function renderNodeLabels(node: LayoutNode, showLabels: boolean, labels: string[], theme: DiagramTheme): void {
+// A body-side label (LABEL_STYLE = SIDE): left-anchored text to the right of a block/gate body, used
+// for descriptions so they sit clear of the horizontal routing channel beneath the body. Math-aware.
+function sideLabel(text: string, x: number, y: number, fontSize: number, fill: string, isDescription: boolean): string {
+  if (hasMathContent(text)) {
+    return renderMixedLabelContent(splitIntoSegments(text), x, y, 'start', fontSize, fill, isDescription);
+  }
+  const cls = isDescription ? 'ldl-description' : 'ldl-name';
+  return `<text class="ldl-label ${cls}" x="${x}" y="${y}" text-anchor="start" fill="${fill}" font-size="${fontSize}" font-family="sans-serif">${esc(text)}</text>`;
+}
+
+function renderNodeLabels(node: LayoutNode, showLabels: boolean, labels: string[], theme: DiagramTheme, labelStyle: 'BELOW' | 'SIDE' = 'BELOW'): void {
   if (!showLabels) return;
+  // SIDE: description sits to the right of the body, just above the output wire, instead of below.
+  const descBelowY = node.absY + node.height + 15;
+  const descSideX = node.absX + node.width + 8;
+  // Seat it in the block's upper-right, clear above the output wire (which exits at the body centre)
+  // so a tall (math) description never sits on the wire. Falls back near the top for short bodies.
+  const outY = node.outputs[0]?.absY ?? node.absY + node.height / 2;
+  const descSideY = Math.min(outY - 16, node.absY + 14);
 
   if (node.gateType === 'INPUT') {
     const port = node.outputs[0];
@@ -405,7 +422,9 @@ function renderNodeLabels(node: LayoutNode, showLabels: boolean, labels: string[
       labels.push(centeredLabel(node.name, cx, node.absY - 7, 12, theme.nameFill, false, '600'));
     }
     if (node.description) {
-      labels.push(centeredLabel(node.description, cx, node.absY + node.height + 15, 9, theme.descFill, true, ''));
+      labels.push(labelStyle === 'SIDE'
+        ? sideLabel(node.description, descSideX, descSideY, 9, theme.descFill, true)
+        : centeredLabel(node.description, cx, descBelowY, 9, theme.descFill, true, ''));
     }
   } else if (!node.blockType && node.gateType !== 'INPUT' && node.gateType !== 'OUTPUT' && (node.name || node.description)) {
     // A named gate (AND#ID(...)) shows its instance name above and description below the body,
@@ -415,7 +434,9 @@ function renderNodeLabels(node: LayoutNode, showLabels: boolean, labels: string[
       labels.push(centeredLabel(node.name, cx, node.absY - 7, 12, theme.nameFill, false, '600'));
     }
     if (node.description) {
-      labels.push(centeredLabel(node.description, cx, node.absY + node.height + 15, 9, theme.descFill, true, ''));
+      labels.push(labelStyle === 'SIDE'
+        ? sideLabel(node.description, descSideX, descSideY, 9, theme.descFill, true)
+        : centeredLabel(node.description, cx, descBelowY, 9, theme.descFill, true, ''));
     }
   }
 }
