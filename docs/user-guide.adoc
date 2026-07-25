@@ -248,6 +248,11 @@ most once; place them before the logic. Combine freely.
 | `GATE_INPUT_STYLE` | `EXPAND` (default), `BARS`
 | Grow multi-input gates vertically, or keep them 2-input-sized with input bars.
 
+| `LABEL_STYLE` | `BELOW` (default), `SIDE`
+| Where a gate/function-block `.Description` is drawn. `BELOW` stacks it under the body;
+`SIDE` places it in the upper-right beside the body, clear of the routing channel beneath
+(best when there is open space to the block's right).
+
 | `PORT_STYLE` | `CIRCLE` (default), `SQUARE`, `NONE`
 | Port marker shape. `NONE` hides every terminal dot (boundary ports and gate/block
 pins) for a streamlined view, leaving only junction/crossover dots.

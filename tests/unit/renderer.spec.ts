@@ -142,3 +142,17 @@ describe('PORT_STYLE = NONE (streamlined view)', () => {
     expect(svg).toContain('class="ldl-port');
   });
 });
+
+// LABEL_STYLE = SIDE (issue #21): a block/gate description sits to the RIGHT of the body (left-
+// anchored) instead of centred below it, keeping it clear of the routing channel beneath.
+describe('LABEL_STYLE = SIDE', () => {
+  const src = (style: string) => `OPTION LABEL_STYLE = ${style}\nO = TIMER#T(A, 4cyc)\nT.Description = "4 cycle delay"`;
+  it('places a block description as a left-anchored side label', () => {
+    const svg = renderDiagram(parse(src('SIDE')).diagram, resolveOptions(parse(src('SIDE')).diagram.options));
+    expect(svg).toMatch(/class="ldl-label ldl-description"[^>]*text-anchor="start"[^>]*>4 cycle delay</);
+  });
+  it('defaults to a centred below label (BELOW)', () => {
+    const svg = renderDiagram(parse(src('BELOW')).diagram, resolveOptions(parse(src('BELOW')).diagram.options));
+    expect(svg).toMatch(/class="ldl-label ldl-description"[^>]*text-anchor="middle"[^>]*>4 cycle delay</);
+  });
+});

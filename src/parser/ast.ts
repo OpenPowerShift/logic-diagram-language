@@ -3,6 +3,9 @@ export type GateType = 'AND' | 'OR' | 'NOT' | 'NAND' | 'NOR' | 'XOR' | 'XNOR';
 export type InversionStyle = 'GATES' | 'BUBBLES';
 export type PortStyle = 'CIRCLE' | 'SQUARE' | 'NONE';
 export type GateInputStyle = 'EXPAND' | 'BARS';
+// BELOW (default) stacks a gate/block description under its body; SIDE places it to the right of the
+// body, clear of the horizontal routing channel beneath (which a below-label can land in).
+export type LabelStyle = 'BELOW' | 'SIDE';
 export type OutputOrder = 'DECLARATION' | 'AUTO';
 export type InputOrder = 'DECLARATION' | 'AUTO';
 // COMPACT_V tightens vertical (row) spacing, COMPACT_H tightens horizontal (column) spacing,
@@ -16,6 +19,7 @@ export interface RenderOptions {
   inversion: InversionStyle;
   portStyle: PortStyle;
   gateInputStyle: GateInputStyle;
+  labelStyle: LabelStyle;
   outputOrder: OutputOrder;
   inputOrder: InputOrder;
   compactness: Compactness;
@@ -47,6 +51,7 @@ export const DEFAULT_OPTIONS: RenderOptions = {
   inversion: 'GATES',
   portStyle: 'CIRCLE',
   gateInputStyle: 'EXPAND',
+  labelStyle: 'BELOW',
   // AUTO input/output ordering and ADAPTIVE column spacing are the defaults: they minimise wire
   // crossings and pack columns to their content (narrower diagrams) with no downside on the corpus.
   // Set the DECLARATION / UNIFORM values explicitly per diagram to opt back out.
@@ -186,6 +191,8 @@ export function resolveOptions(optionDecls: OptionDecl[]): RenderOptions {
       opts.portStyle = value;
     } else if (name === 'GATE_INPUT_STYLE' && (value === 'EXPAND' || value === 'BARS')) {
       opts.gateInputStyle = value;
+    } else if (name === 'LABEL_STYLE' && (value === 'BELOW' || value === 'SIDE')) {
+      opts.labelStyle = value;
     } else if (name === 'OUTPUT_ORDER' && (value === 'DECLARATION' || value === 'AUTO')) {
       opts.outputOrder = value;
     } else if (name === 'INPUT_ORDER' && (value === 'DECLARATION' || value === 'AUTO')) {
