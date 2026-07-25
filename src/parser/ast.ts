@@ -179,9 +179,20 @@ export interface ParseError {
   offset: number;
 }
 
+// A non-fatal advisory (e.g. a signal referenced but never assigned, which silently becomes a
+// boundary input). Same shape as ParseError but does not invalidate the diagram — consumers surface
+// them separately (lint-style) and rendering proceeds regardless.
+export interface ParseWarning {
+  message: string;
+  line: number;
+  column: number;
+  offset: number;
+}
+
 export interface ParseResult {
   diagram: Diagram;
   errors: ParseError[];
+  warnings: ParseWarning[];
 }
 
 export function resolveOptions(optionDecls: OptionDecl[]): RenderOptions {
