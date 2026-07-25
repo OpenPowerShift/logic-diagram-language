@@ -11316,12 +11316,8 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
   ],
   "junctions": [
     [
-      460,
-      90,
-    ],
-    [
-      480,
-      90,
+      505,
+      150,
     ],
     [
       505,
@@ -11744,16 +11740,16 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
           90,
         ],
         [
-          460,
+          505,
           90,
         ],
         [
-          460,
-          60,
+          505,
+          150,
         ],
         [
-          1015,
-          60,
+          703,
+          150,
         ],
       ],
     },
@@ -11765,11 +11761,11 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
           90,
         ],
         [
-          480,
+          505,
           90,
         ],
         [
-          480,
+          505,
           170,
         ],
         [
@@ -11791,11 +11787,11 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
         ],
         [
           505,
-          150,
+          60,
         ],
         [
-          703,
-          150,
+          1015,
+          60,
         ],
       ],
     },
