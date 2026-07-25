@@ -185,13 +185,17 @@ export function routeWires(
   // shared-trunk merge, output snap) validates its proposed geometry through this ONE contract
   // before committing, so no pass can silently override another's separation. (Gate-body clearance
   // is vGateClear/hGateClear.) Reads `wires` live, so it always reflects current geometry.
-  const segCrowds = (x0: number, y0: number, x1: number, y1: number, skip: (w: LayoutWire) => boolean): boolean => {
+  // `pool` lets a hot caller pass a pre-filtered subset of wires (those near a bounded search region) so
+  // the O(wires) scan shrinks to O(local) — safe because any wire outside the region ± MIN_WIRE_SPACING
+  // cannot be within spacing of a segment inside it. Defaults to all wires, so every other caller is
+  // unchanged. Reads current geometry either way.
+  const segCrowds = (x0: number, y0: number, x1: number, y1: number, skip: (w: LayoutWire) => boolean, pool: LayoutWire[] = wires): boolean => {
     const horiz = Math.abs(y0 - y1) < 0.5;
     if (!horiz && Math.abs(x0 - x1) >= 0.5) return false; // only axis-aligned segments participate
     const perp = horiz ? y0 : x0;
     const aMin = horiz ? Math.min(x0, x1) : Math.min(y0, y1);
     const aMax = horiz ? Math.max(x0, x1) : Math.max(y0, y1);
-    for (const w of wires) {
+    for (const w of pool) {
       if (skip(w)) continue;
       for (let i = 0; i < w.points.length - 1; i++) {
         const a = w.points[i], b = w.points[i + 1];
@@ -208,9 +212,9 @@ export function routeWires(
   };
   // A proposed wire (its point list) satisfies the contract iff none of its segments crowds another
   // net. `skip` excludes the wire being moved and any co-moved siblings (same source shares a trunk).
-  const wireClear = (pts: { x: number; y: number }[], skip: (w: LayoutWire) => boolean): boolean => {
+  const wireClear = (pts: { x: number; y: number }[], skip: (w: LayoutWire) => boolean, pool?: LayoutWire[]): boolean => {
     for (let i = 0; i < pts.length - 1; i++)
-      if (segCrowds(pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y, skip)) return false;
+      if (segCrowds(pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y, skip, pool)) return false;
     return true;
   };
 
@@ -403,10 +407,10 @@ export function routeWires(
   // Interior crossings of ONE wire against all other cross-net wires (same rule as nestCross). When a
   // reshape moves a single wire and nothing else, its own crossing count is the exact whole-diagram
   // delta — so this O(N) check replaces the O(N^2) nestCross() inside per-wire move searches.
-  const wireCross = (self: LayoutWire) => {
+  const wireCross = (self: LayoutWire, pool: LayoutWire[] = wires) => {
     if (self.feedback) return 0;
     let c = 0;
-    for (const o of wires) {
+    for (const o of pool) {
       if (o === self || o.fromId === self.fromId || o.feedback) continue;
       for (let s = 0; s < self.points.length - 1; s++)
         for (let t = 0; t < o.points.length - 1; t++)
@@ -602,6 +606,17 @@ export function routeWires(
       const sibClear = (sy: number) => layoutNodes.every(s => s === S || s.gateType !== 'INPUT' ||
         s.absX !== S.absX || Math.abs((s.absY + s.height / 2) - sy) >= MIN_PORT_GAP - 0.5);
       const savedPts = w.points, savedSY = S.absY, savedOutY = S.outputs[0].absY;
+      // Every candidate route below lives inside x∈[sx,px], y∈[py−500,py+500] (sy = py±d, d≤500; tapX
+      // ∈(sx,px]). So only wires whose bbox reaches that region ± MIN_WIRE_SPACING can crowd or cross any
+      // candidate — pre-filter to that local pool ONCE (O(wires)) and feed it to the O(wires) inner
+      // checks (wireClear/wireCross), which run tens of thousands of times per pass. Exact: a wire outside
+      // the region can neither cross a segment inside it nor sit within spacing of one (#23).
+      const rM = MIN_WIRE_SPACING, rx0 = sx - rM, rx1 = px + rM, ry0 = py - 500 - rM, ry1 = py + 500 + rM;
+      const localPool = wires.filter(o => {
+        let miX = Infinity, maX = -Infinity, miY = Infinity, maY = -Infinity;
+        for (const p of o.points) { if (p.x < miX) miX = p.x; if (p.x > maX) maX = p.x; if (p.y < miY) miY = p.y; if (p.y > maY) maY = p.y; }
+        return miX <= rx1 && maX >= rx0 && miY <= ry1 && maY >= ry0;
+      });
       // Search source Ys nearest the port outward; keep the FEWEST-crossing clean route (a partial
       // un-wrap that still clips a sibling wire, e.g. lands on the block's other input, is not the goal —
       // the fully-clear position just past that wire is). Only touch `w`, so wireCross is the exact delta.
@@ -617,9 +632,9 @@ export function routeWires(
               .filter((p, i, a) => i === 0 || Math.abs(p.x - a[i - 1].x) >= 0.5 || Math.abs(p.y - a[i - 1].y) >= 0.5);
             const skip = (o: LayoutWire) => o === w || o.fromId === w.fromId;
             if (!vGateClear(tapX, sy, py) || !hGateClear(sy, sx, tapX, w.fromId) ||
-                !hGateClear(py, tapX, px, w.toId) || !wireClear(route, skip)) continue;
+                !hGateClear(py, tapX, px, w.toId) || !wireClear(route, skip, localPool)) continue;
             w.points = route;
-            const c = wireCross(w);
+            const c = wireCross(w, localPool);
             w.points = savedPts;
             if (c < (best?.cross ?? before)) best = { pts: route, sy, cross: c };
             if (c === 0) { done = true; break; }                            // fully clean — take it (nearest wins)
