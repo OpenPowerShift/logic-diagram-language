@@ -1043,6 +1043,48 @@ export function routeWires(
     w.points = [{ x: sp.absX, y }, { x: dst.inputs[0].absX, y }];
   }
 
+  // ═══ PASS 10.5 · Terminal port-approach dogleg straighten (#33) ═══════════════════════════════════
+  // PASS 5 straightens sub-MIN_DOGLEG jogs between two horizontal runs, but deliberately leaves the jog
+  // whose far run is the FINAL horizontal into the port (sliding that run would move the port). Under
+  // congestion — where PASS 2's nested fan-in reverted to A*'s stair to avoid a crossing — such a jog can
+  // survive right at the port, violating the no-sub-min contract. Running here, AFTER the approach-shaping
+  // passes (gate-entrance, output snap) have settled each wire into its final stair, we straighten it the
+  // other way: slide the run BEFORE the jog onto the PORT's Y, extending its channel straight into the
+  // approach — the port never moves. Validated gate-clear AND strictly crossing-free (wireCross), so it
+  // can never worsen any diagram; the corpus (already jog-free) is untouched. A collinear-simplify
+  // collapses the now-straight run so the bend count drops with the jog.
+  const collinearSimplify = (pts: { x: number; y: number }[]) =>
+    pts.filter((pt, i, a) => i === 0 || i === a.length - 1
+        || !((Math.abs(pt.x - a[i - 1].x) < 0.5 && Math.abs(pt.x - a[i + 1].x) < 0.5)
+           || (Math.abs(pt.y - a[i - 1].y) < 0.5 && Math.abs(pt.y - a[i + 1].y) < 0.5)))
+      .filter((pt, i, a) => i === 0 || Math.abs(pt.x - a[i - 1].x) >= 0.5 || Math.abs(pt.y - a[i - 1].y) >= 0.5);
+  for (const w of wires) {
+    if (w.feedback) continue;
+    const p = w.points;
+    const n = p.length;
+    if (n < 5) continue;                                       // need an interior run BEFORE the jog to move (never the source point)
+    const k = n - 3;                                           // jog p[k]->p[k+1]; p[k+2] is the terminal port
+    if (Math.abs(p[k].x - p[k + 1].x) > 0.5) continue;         // jog vertical
+    const len = Math.abs(p[k].y - p[k + 1].y);
+    if (len < 0.5 || len >= MIN_DOGLEG) continue;              // small jog only
+    if (Math.abs(p[k - 1].y - p[k].y) > 0.5) continue;         // run A (p[k-1]->p[k]) horizontal
+    if (Math.abs(p[k + 1].y - p[k + 2].y) > 0.5) continue;     // final run into the port horizontal
+    if (Math.abs(p[k - 2].x - p[k - 1].x) > 0.5) continue;     // the run BEFORE run A must be the vertical channel — else sliding p[k-1].y bends it diagonally
+    const portY = p[k + 1].y, chanX = p[k - 1].x;             // p[k-2]->p[k-1] is the channel vertical; run A is p[k-1]->p[k] at p[k].y
+    // Validate only the NEW geometry: the channel EXTENSION (from run A's old Y down/up to the port row)
+    // and the moved run A. The pre-existing channel above run A was already placed clear, and checking it
+    // again would wrongly reject a channel that legitimately runs within GATE_CLEARANCE of the stacked
+    // consumer column it is entering (skipId = w.toId excludes the gate this wire actually enters).
+    if (!vGateClear(chanX, p[k].y, portY, w.toId)) continue;
+    if (!hGateClear(portY, chanX, p[k].x, w.toId) || !hGateClear(portY, chanX, p[k].x, w.fromId)) continue;
+    const saved = p.map(q => ({ x: q.x, y: q.y }));
+    const before = wireCross(w);
+    const np = p.map(q => ({ x: q.x, y: q.y }));
+    np[k - 1].y = portY; np[k].y = portY;                     // slide run A onto the port row
+    w.points = collinearSimplify(np);
+    if (wireCross(w) > before) w.points = saved;              // strictly crossing-free
+  }
+
   // ═══ PASS 11 · Junction-dot marking ══════════════════════════════════════════════════════════
   // Junction dots mark where a NET actually branches — a point where its wires' segments leave in
   // three or more distinct directions (a T or a cross). A point where two same-source wires merely
