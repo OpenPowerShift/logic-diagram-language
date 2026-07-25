@@ -57,6 +57,11 @@ the last occurrence wins.
 | A gate/function-block `.Description` is stacked centred under its body
 | BELOW
 
+| FANOUT_CONNECTORS
+| TRUE
+| A very-high-fan-out net that spans much of the page (fan-out >= 4, vertical span >= 250px) is drawn as off-page CONNECTOR stubs — a tagged source stub and a same-tagged stub at each consumer — instead of one wire that crosses everything between its taps. Offered as a scored candidate and kept only where it improves the layout on the full quality ranking, so it never regresses a diagram. Default FALSE
+| --
+
 | LABEL_STYLE
 | SIDE
 | A gate/function-block `.Description` is placed in the upper-right beside its body (left-anchored, clear of the output wire), keeping it out of the horizontal routing channel beneath the body. Best when there is open space to the block's right

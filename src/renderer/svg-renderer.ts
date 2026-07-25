@@ -69,6 +69,16 @@ export function renderDiagram(diagram: Diagram, options?: RenderOptions, diagram
     const cx = lbl.x + lbl.width / 2;
     let ty = lbl.y + 11;
     svgLabels.push(`<g class="ldl-net-label" id="netlabel_${li}">`);
+    // Off-page connector tag (#37): a left-anchored name at the stub, with a small flow-direction
+    // chevron at the stub end. Source tags name the outgoing net; sink tags name the incoming net.
+    if (lbl.connector) {
+      const cy = lbl.anchorY;
+      const mx = lbl.connector === 'source' ? lbl.x - 6 : lbl.x + lbl.width + 6;   // chevron at the stub side
+      svgLabels.push(`<path class="ldl-connector-mark ldl-connector-${lbl.connector}" d="M${mx - 3},${cy - 4} L${mx + 4},${cy} L${mx - 3},${cy + 4} Z" fill="${theme.nameFill}"/>`);
+      svgLabels.push(`<text class="ldl-label ldl-name" x="${lbl.x}" y="${cy + 3}" text-anchor="start" fill="${theme.nameFill}" font-size="10" font-family="sans-serif" font-weight="600">${esc(lbl.name ?? '')}</text>`);
+      svgLabels.push('</g>');
+      continue;
+    }
     // Optional leader line from the label to the wire it names (OPTION WIRE_LABEL_LEADER). Drawn only
     // when the label sits clear of its net (a real gap), from the box edge nearest the wire to the
     // wire point. Makes the label→net association explicit wherever the label had to be placed.
