@@ -822,6 +822,66 @@ export function routeWires(
         }
       }
     }
+
+    // Full fan-out BUS: the cluster merge above only unites peels already within FANIN_SPACING. When a
+    // source's take-offs are spread further along the trunk — and especially when they diverge up AND
+    // down — they leave several junction dots strung along the horizontal. Snap the WHOLE group onto a
+    // single vertical spine (one X) so the net reads as one bus with its dots spaced DOWN the vertical
+    // instead of bunched along the horizontal. Take the gate-most X every branch can share without
+    // backtracking (>= the source exit, <= every branch's post-peel target) and that keeps each branch
+    // clear. The move is kept ONLY if it strictly REDUCES the net's junction dots and adds no crossing —
+    // so it never churns geometry (or spreads a bus) where it wouldn't actually remove a dot.
+    // Net dot count under the PASS 11 rule (>=3 distinct directions at a net vertex), for one source.
+    const netDots = (fromId: string): number => {
+      const grp = wires.filter(w => w.fromId === fromId && !w.feedback);
+      if (grp.length < 2) return 0;
+      const dir = (ax: number, ay: number, bx: number, by: number) =>
+        Math.abs(ax - bx) >= 0.5 ? (bx > ax ? 'R' : 'L') : (by > ay ? 'D' : 'U');
+      const pts = new Map<string, { x: number; y: number }>();
+      for (const w of grp) for (const p of w.points) pts.set(`${Math.round(p.x)},${Math.round(p.y)}`, p);
+      let dots = 0;
+      for (const { x: px, y: py } of pts.values()) {
+        const set = new Set<string>();
+        for (const w of grp) { const pp = w.points;
+          for (let s = 0; s < pp.length - 1; s++) { const a = pp[s], b = pp[s + 1];
+            const atA = Math.abs(a.x - px) < 1 && Math.abs(a.y - py) < 1, atB = Math.abs(b.x - px) < 1 && Math.abs(b.y - py) < 1;
+            if (atA) set.add(dir(a.x, a.y, b.x, b.y));
+            else if (atB) set.add(dir(b.x, b.y, a.x, a.y));
+            else { const horiz = Math.abs(a.y - b.y) < 0.5;
+              const through = horiz ? Math.abs(py - a.y) < 1 && px > Math.min(a.x, b.x) + 0.5 && px < Math.max(a.x, b.x) - 0.5
+                                    : Math.abs(px - a.x) < 1 && py > Math.min(a.y, b.y) + 0.5 && py < Math.max(a.y, b.y) - 0.5;
+              if (through) { set.add(dir(px, py, a.x, a.y)); set.add(dir(px, py, b.x, b.y)); } }
+          }
+        }
+        if (set.size >= 3) dots++;
+      }
+      return dots;
+    };
+    for (const group of bySource.values()) {
+      if (group.length < 2) continue;
+      const xs = group.map(g => g.x);
+      if (Math.max(...xs) - Math.min(...xs) < 0.5) continue;            // already a single spine
+      const fromId = group[0].w.fromId;
+      const srcX = group[0].w.points[0].x;
+      const destX = Math.min(...group.map(g => g.w.points[3].x));       // nearest branch target — spine must stay left of it
+      const dotsBefore = netDots(fromId);
+      for (const sx of [...new Set(xs)].sort((a, b) => b - a)) {        // gate-most feasible X first
+        if (sx < srcX + 0.5 || sx > destX - 0.5) continue;             // would backtrack a peel or a branch run
+        // Every branch must be a clean peel (its post-vertical segment horizontal, so moving the corner X
+        // stays orthogonal) and land clear at the shared X.
+        if (!group.every(g => g.w.points.length >= 4
+            && Math.abs(g.w.points[2].y - g.w.points[3].y) < 0.5
+            && moveClear(g.w, sx))) continue;
+        const saved = group.map(g => g.w.points.map(p => ({ x: p.x, y: p.y })));
+        const crossBefore = nestCross();
+        for (const g of group) { g.w.points[1].x = sx; g.w.points[2].x = sx; }
+        if (nestCross() > crossBefore || netDots(fromId) >= dotsBefore) {
+          group.forEach((g, k) => { g.w.points = saved[k]; });         // keep only a strict dot reduction, crossing-free
+          continue;                                                    // a different shared X might still qualify
+        }
+        break;
+      }
+    }
   }
 
   // ═══ PASS 8 · Gate-entrance contract ══════════════════════════════════════════════════════════
