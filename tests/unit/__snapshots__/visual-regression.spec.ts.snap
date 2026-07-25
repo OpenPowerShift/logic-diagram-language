@@ -4,7 +4,7 @@ exports[`Visual regression (layout geometry) > Boolean Algebra 1`] = `
 {
   "canvas": [
     755,
-    285,
+    290,
   ],
   "junctions": [
     [
@@ -20,7 +20,7 @@ exports[`Visual regression (layout geometry) > Boolean Algebra 1`] = `
       70,
     ],
     [
-      455,
+      490,
       230,
     ],
   ],
@@ -231,30 +231,7 @@ exports[`Visual regression (layout geometry) > Boolean Algebra 1`] = `
       "block": null,
       "box": [
         655,
-        185,
-        100,
-        30,
-      ],
-      "desc": "Logical AND",
-      "inputs": [
-        [
-          655,
-          200,
-          "in",
-          null,
-          0,
-        ],
-      ],
-      "label": "O1",
-      "name": "$A \\cdot B$",
-      "outputs": [],
-      "type": "OUTPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        655,
-        255,
+        215,
         100,
         30,
       ],
@@ -262,7 +239,7 @@ exports[`Visual regression (layout geometry) > Boolean Algebra 1`] = `
       "inputs": [
         [
           655,
-          270,
+          230,
           "in",
           null,
           0,
@@ -270,6 +247,29 @@ exports[`Visual regression (layout geometry) > Boolean Algebra 1`] = `
       ],
       "label": "O4",
       "name": "$\\overline{A \\cdot B}$",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        655,
+        260,
+        100,
+        30,
+      ],
+      "desc": "Logical AND",
+      "inputs": [
+        [
+          655,
+          275,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "O1",
+      "name": "$A \\cdot B$",
       "outputs": [],
       "type": "OUTPUT",
     },
@@ -408,16 +408,16 @@ exports[`Visual regression (layout geometry) > Boolean Algebra 1`] = `
           230,
         ],
         [
-          455,
+          490,
           230,
         ],
         [
-          455,
-          200,
+          490,
+          275,
         ],
         [
           655,
-          200,
+          275,
         ],
       ],
     },
@@ -455,16 +455,8 @@ exports[`Visual regression (layout geometry) > Boolean Algebra 1`] = `
           230,
         ],
         [
-          615,
-          230,
-        ],
-        [
-          615,
-          270,
-        ],
-        [
           655,
-          270,
+          230,
         ],
       ],
     },

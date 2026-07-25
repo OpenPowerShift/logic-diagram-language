@@ -103,6 +103,21 @@ export function layoutDiagram(diagram: Diagram, options?: RenderOptions): Layout
     }
     return c;
   };
+  // True when two outputs in one column share a source row — the only case where the OUTPUT_ORDER=AUTO
+  // tie-break direction changes anything (#36). Source Y is the driving wire's start point.
+  const hasTiedOutputs = (l: LayoutResult): boolean => {
+    const byCol = new Map<number, Set<number>>();
+    for (const n of l.nodes) {
+      if (n.gateType !== 'OUTPUT') continue;
+      const w = l.wires.find(wr => wr.toId === n.id && !wr.feedback && wr.points.length > 0);
+      if (!w) continue;
+      const sy = Math.round(w.points[0].y);
+      const seen = byCol.get(n.absX) ?? new Set<number>();
+      if (seen.has(sy)) return true;
+      seen.add(sy); byCol.set(n.absX, seen);
+    }
+    return false;
+  };
   const score = (l: LayoutResult): number[] => [overlaps(l), bodyIntrusions(l), subMinDoglegs(l), cr(l), bends(l), l.height];
   const better = (l: LayoutResult, b: LayoutResult) => {
     const sl = score(l), sb = score(b);
@@ -114,16 +129,16 @@ export function layoutDiagram(diagram: Diagram, options?: RenderOptions): Layout
   // net-label placement, leader targets) runs the post-passes that move wires AFTER candidate scoring,
   // so we finalise before any cross-setting comparison — otherwise a post-pass could turn a winner into
   // a loser unseen.
-  const pick = (connectors: boolean): LayoutResult => {
-    let b = layoutOnce(diagram, options, 'heuristic', false, connectors);
+  const pick = (connectors: boolean, outputTieDeep: boolean): LayoutResult => {
+    let b = layoutOnce(diagram, options, 'heuristic', false, connectors, outputTieDeep);
     const take = (l: LayoutResult) => { if (better(l, b)) b = l; };
-    take(layoutOnce(diagram, options, 'heuristic', true, connectors));   // lane-tight (collapses voids)
+    take(layoutOnce(diagram, options, 'heuristic', true, connectors, outputTieDeep));   // lane-tight (collapses voids)
     // Reach for the crossmin candidates when the current best is not already clean. The connector axis
     // stays heuristic-only: connectorisation's benefit is largely orthogonal to crossmin ordering, and
     // its per-net O(E²) validation makes extra connector candidates expensive (see #23).
     if (!connectors && (cr(b) > 0 || overlaps(b) > 0 || bodyIntrusions(b) > 0)) {
-      take(layoutOnce(diagram, options, 'crossmin', false, connectors));
-      take(layoutOnce(diagram, options, 'crossmin', true, connectors));
+      take(layoutOnce(diagram, options, 'crossmin', false, connectors, outputTieDeep));
+      take(layoutOnce(diagram, options, 'crossmin', true, connectors, outputTieDeep));
     }
     symmetriseSmallGates(b);                                    // cosmetic, validated post-pass
     placeNetLabels(b.labels, b.wires, b.nodes, b.junctions, options ?? DEFAULT_OPTIONS); // FINAL geometry
@@ -131,13 +146,33 @@ export function layoutDiagram(diagram: Diagram, options?: RenderOptions): Layout
     return b;
   };
 
-  let best = pick(false);
+  // Crossing-aware OUTPUT_ORDER = AUTO (#36): the tie-break for two outputs sharing a source row has no
+  // universally-best direction, so try BOTH and keep whichever renders better on the full score —
+  // instead of a static heuristic that helps one diagram and regresses another. Only run the second
+  // layout when the diagram actually HAS tied outputs (else the tie-break is inert), so it costs
+  // nothing on the common case.
+  // Try the alternative tie-break only for smaller diagrams: it is a *second full layout*, and on large
+  // diagrams the tie-break never changed the outcome in testing (their crossings come from fan-out, not
+  // output stacking) — so gating on size keeps the second layout off the expensive path (see #23) while
+  // still fixing the small cases it helps (Boolean Algebra). A cheaper output-only re-place is a follow-up.
+  const auto = (options ?? DEFAULT_OPTIONS).outputOrder === 'AUTO';
+  const TIE_MAX_NODES = 28;
+  const pickBest = (connectors: boolean): LayoutResult => {
+    let b = pick(connectors, false);
+    if (auto && b.nodes.length <= TIE_MAX_NODES && hasTiedOutputs(b)) {
+      const alt = pick(connectors, true);
+      if (better(alt, b)) b = alt;
+    }
+    return b;
+  };
+
+  let best = pickBest(false);
   // Off-page connector fan-out (#37): when OPTION FANOUT_CONNECTORS is on, connectorising very-high-
   // fan-out nets is offered as an alternative and kept only if the FINALISED result wins on the full
   // score (overlaps ▸ intrusions ▸ sub-min doglegs ▸ crossings ▸ bends ▸ height). So it de-tangles the
   // diagrams it helps (Building 60→35, Reactor 50→25) and never regresses one it doesn't (Railway).
   if ((options ?? DEFAULT_OPTIONS).fanoutConnectors) {
-    const withConnectors = pick(true);
+    const withConnectors = pickBest(true);
     if (better(withConnectors, best)) best = withConnectors;
   }
   return best;
@@ -176,7 +211,7 @@ export function layoutDiagram(diagram: Diagram, options?: RenderOptions): Layout
 // if it renders fewer crossings than the heuristic — so the combinatorial count need not be perfect.
 
 
-function layoutOnce(diagram: Diagram, options: RenderOptions | undefined, strategy: 'heuristic' | 'crossmin', laneTight = false, connectors = false): LayoutResult {
+function layoutOnce(diagram: Diagram, options: RenderOptions | undefined, strategy: 'heuristic' | 'crossmin', laneTight = false, connectors = false, outputTieDeep = false): LayoutResult {
   resetId();
 
   // `connectors` is a per-candidate axis (like laneTight), NOT the global option: layoutDiagram tries
@@ -187,7 +222,7 @@ function layoutOnce(diagram: Diagram, options: RenderOptions | undefined, strate
     : { ...(options ?? DEFAULT_OPTIONS), fanoutConnectors: connectors };
 
   // Two phases: place every node (graph → sized gates → coordinates), then route + reshape the wires.
-  const { nodes, intermediateLabels, layoutNodes, nodeMap } = placeNodes(diagram, opts, strategy, laneTight);
+  const { nodes, intermediateLabels, layoutNodes, nodeMap } = placeNodes(diagram, opts, strategy, laneTight, outputTieDeep);
   const { wires, junctions: mergedJunctions, labels } = routeWires(nodes, layoutNodes, nodeMap, intermediateLabels, opts);
 
   const maxX = Math.max(...layoutNodes.map(n => n.absX + n.width), ...wires.flatMap(w => w.points.map(p => p.x)), ...labels.map(l => l.x + l.width));
