@@ -1,7 +1,7 @@
 import type {
   GateType, LogicNode, PortNode, GateNode, SymbolRefNode, BlockNode, BlockType,
   Diagram, DiagramOutput, ObjectDecl, AttributeDecl, ConnectDecl,
-  StyleDecl, ParseError, ParseResult, PortMeta, OptionDecl,
+  StyleDecl, ParseError, ParseResult, ParseWarning, PortMeta, OptionDecl,
 } from './ast.js';
 
 const BLOCK_TYPES = new Set<BlockType>(['TIMER', 'SR', 'RISING', 'FALLING', 'COMPARE', 'FB']);
@@ -489,12 +489,12 @@ class Parser {
       if (id !== undefined || portName !== undefined) {
         return { kind: 'symbolRef', symbolName, id, portName } as SymbolRefNode;
       }
-      return { kind: 'port', name: symbolName } as PortNode;
+      return { kind: 'port', name: symbolName, pos: { line: token.line, column: token.column, offset: token.offset } } as PortNode;
     }
 
     if (token.type === 'IDENT') {
       const name = this.advance()!.value;
-      return { kind: 'port', name } as PortNode;
+      return { kind: 'port', name, pos: { line: token.line, column: token.column, offset: token.offset } } as PortNode;
     }
 
     this.errors.push({
@@ -641,6 +641,75 @@ class Parser {
   }
 }
 
+// Bounded Levenshtein: returns the edit distance, or `max + 1` as soon as it is known to exceed `max`
+// (so callers only pay for near-misses). Case-insensitive callers should fold case first.
+function editDistanceWithin(a: string, b: string, max: number): number {
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  let prev = new Array<number>(b.length + 1);
+  let curr = new Array<number>(b.length + 1);
+  for (let j = 0; j <= b.length; j++) prev[j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    curr[0] = i;
+    let rowMin = curr[0];
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      curr[j] = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
+      if (curr[j] < rowMin) rowMin = curr[j];
+    }
+    if (rowMin > max) return max + 1;                    // whole row already over budget
+    [prev, curr] = [curr, prev];
+  }
+  return prev[b.length];
+}
+
+// Advisory pass: a bare name referenced in an expression but never assigned silently becomes a boundary
+// INPUT (see graph.ts makeInput). That is legal and common for real external signals, so warning on
+// EVERY bare input would be pure noise. The valuable case is a TYPO — a misspelt reference to a signal
+// the author really did define/declare (e.g. `RESET` mistyped `REST`), which becomes a disconnected
+// phantom input with no error. So we warn on an undefined reference only when it is a near-miss of a
+// KNOWN name — an assigned output/intermediate, or a name the author gave metadata / an object decl.
+//
+// Typo detection only applies to MEANINGFUL identifiers: short pin-style names (A, B, C, IA, A1, O50)
+// are conventionally distinct signals, and every 1–3 char name sits within one edit of another, so
+// they are excluded (>= MIN_TYPO_LEN on both names). The edit budget is 1, widening to 2 only for long
+// names (>= 8) where a two-character slip is still clearly a typo rather than a different signal. This
+// stays silent for genuine inputs and fires precisely on likely typos. #32. Permissive by design:
+// warnings never invalidate the diagram.
+const MIN_TYPO_LEN = 4;
+function collectUndefinedSignalWarnings(diagram: Diagram): ParseWarning[] {
+  const known = new Set<string>(diagram.outputs.map(o => o.name));
+  for (const m of diagram.portMeta) known.add(m.identifier);
+  for (const a of diagram.attributes) known.add(a.objectRef);
+  for (const o of diagram.objects) if (o.id) known.add(o.id);
+  const knownList = [...known].filter(k => k.length >= MIN_TYPO_LEN);
+  if (knownList.length === 0) return [];                 // nothing meaningful to be a typo OF
+
+  const seen = new Set<string>();
+  const warnings: ParseWarning[] = [];
+  const visit = (node: LogicNode): void => {
+    if (node.kind === 'port') {
+      const name = node.name;
+      if (name === '__error__' || known.has(name) || seen.has(name)) return;
+      seen.add(name);
+      if (name.length < MIN_TYPO_LEN) return;            // pin-style name → not a typo candidate
+      const budget = name.length >= 8 ? 2 : 1;
+      let near: string | undefined;
+      for (const k of knownList) {
+        if (Math.abs(k.length - name.length) > budget) continue;
+        if (editDistanceWithin(name.toUpperCase(), k.toUpperCase(), budget) <= budget) { near = k; break; }
+      }
+      if (near === undefined) return;                    // not close to any known name → a genuine input
+      const pos = node.pos ?? { line: 0, column: 0, offset: 0 };
+      warnings.push({ message: `Signal '${name}' is referenced but never assigned (did you mean '${near}'?); treated as an input`, line: pos.line, column: pos.column, offset: pos.offset });
+      return;
+    }
+    if (node.kind === 'gate' || node.kind === 'block') for (const inp of node.inputs) visit(inp);
+    // symbolRef resolves to a block/object, not a bare input — not in scope here.
+  };
+  for (const out of diagram.outputs) visit(out.expression);
+  return warnings;
+}
+
 export function parse(source: string): ParseResult {
   const { tokens, errors: lexErrors } = tokenize(source);
 
@@ -648,6 +717,7 @@ export function parse(source: string): ParseResult {
     return {
       diagram: { outputs: [], objects: [], portMeta: [], attributes: [], connections: [], styles: [], options: [] },
       errors: lexErrors,
+      warnings: [],
     };
   }
 
@@ -657,5 +727,6 @@ export function parse(source: string): ParseResult {
   return {
     diagram,
     errors: parser.errors,
+    warnings: collectUndefinedSignalWarnings(diagram),
   };
 }
