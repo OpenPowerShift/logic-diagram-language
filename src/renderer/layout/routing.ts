@@ -723,17 +723,23 @@ export function routeWires(
   }
 
   // ═══ PASS 7 · Shared fan-out trunk merge ══════════════════════════════════════════════════════════
-  // Shared fan-out trunk: when one source feeds several destinations and two of its wires
-  // turn vertically at nearly the same X, snap them to a single shared channel. Same-source
-  // overlap is intentional (it reads as one trunk) and it collapses the near-duplicate
-  // junction dots into one clean T-tap. Snapping toward the gate-most X only shortens the
-  // peel-off horizontals, so it cannot introduce a backtrack.
+  // Shared fan-out trunk: when one source feeds several destinations and two of its wires peel off
+  // the shared horizontal trunk at nearly the same X, snap those first verticals to a single shared
+  // channel. Same-source overlap is intentional (it reads as one trunk) and it collapses the near-
+  // duplicate junction dots into one clean T-tap — including the common case where one sibling is a
+  // clean H–V–H and another is a multi-bend A* route whose first corner is the peel (e.g. an output
+  // dogleg leaving the same trunk as a gate branch). Snapping toward the gate-most X only
+  // lengthens/shortens the peel-off horizontal, so it cannot introduce a backtrack.
   {
+    // Any wire that exits the source horizontally and then turns onto a first vertical is a peel
+    // candidate — not only clean 4-point H–V–H routes. Later bends (over-top detours, etc.) keep
+    // their geometry; only the trunk-exit corner moves onto the shared X.
     const bySource = new Map<string, { w: LayoutWire; x: number }[]>();
     for (const w of wires) {
-      if (w.points.length !== 4) continue;
-      if (Math.abs(w.points[1].x - w.points[2].x) >= 1) continue;       // middle segment vertical
+      if (w.feedback || w.points.length < 4) continue;
       if (Math.abs(w.points[0].y - w.points[1].y) >= 1) continue;       // exits horizontally
+      if (Math.abs(w.points[1].x - w.points[2].x) >= 1) continue;       // first turn is vertical
+      if (Math.abs(w.points[1].y - w.points[2].y) < 1) continue;        // degenerate (no peel)
       const arr = bySource.get(w.fromId) ?? [];
       arr.push({ w, x: w.points[1].x });
       bySource.set(w.fromId, arr);
@@ -770,8 +776,14 @@ export function routeWires(
       }
       return false;
     };
+    const withPeelX = (self: LayoutWire, sharedX: number) => {
+      const moved = self.points.map(p => ({ x: p.x, y: p.y }));
+      moved[1].x = sharedX;
+      moved[2].x = sharedX;
+      return moved;
+    };
     const moveClear = (self: LayoutWire, sharedX: number) => {
-      const moved = [self.points[0], { x: sharedX, y: self.points[1].y }, { x: sharedX, y: self.points[2].y }, self.points[3]];
+      const moved = withPeelX(self, sharedX);
       return wireClear(moved, o => o.fromId === self.fromId) && !collinearHitsOtherNet(moved, self.fromId);
     };
     for (const group of bySource.values()) {

@@ -4,7 +4,7 @@ exports[`Visual regression (layout geometry) > Boolean Algebra 1`] = `
 {
   "canvas": [
     755,
-    290,
+    285,
   ],
   "junctions": [
     [
@@ -20,7 +20,7 @@ exports[`Visual regression (layout geometry) > Boolean Algebra 1`] = `
       70,
     ],
     [
-      490,
+      455,
       230,
     ],
   ],
@@ -231,30 +231,7 @@ exports[`Visual regression (layout geometry) > Boolean Algebra 1`] = `
       "block": null,
       "box": [
         655,
-        215,
-        100,
-        30,
-      ],
-      "desc": "NAND: $\\overline{AB}$",
-      "inputs": [
-        [
-          655,
-          230,
-          "in",
-          null,
-          0,
-        ],
-      ],
-      "label": "O4",
-      "name": "$\\overline{A \\cdot B}$",
-      "outputs": [],
-      "type": "OUTPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        655,
-        260,
+        185,
         100,
         30,
       ],
@@ -262,7 +239,7 @@ exports[`Visual regression (layout geometry) > Boolean Algebra 1`] = `
       "inputs": [
         [
           655,
-          275,
+          200,
           "in",
           null,
           0,
@@ -270,6 +247,29 @@ exports[`Visual regression (layout geometry) > Boolean Algebra 1`] = `
       ],
       "label": "O1",
       "name": "$A \\cdot B$",
+      "outputs": [],
+      "type": "OUTPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        655,
+        255,
+        100,
+        30,
+      ],
+      "desc": "NAND: $\\overline{AB}$",
+      "inputs": [
+        [
+          655,
+          270,
+          "in",
+          null,
+          0,
+        ],
+      ],
+      "label": "O4",
+      "name": "$\\overline{A \\cdot B}$",
       "outputs": [],
       "type": "OUTPUT",
     },
@@ -408,16 +408,16 @@ exports[`Visual regression (layout geometry) > Boolean Algebra 1`] = `
           230,
         ],
         [
-          490,
+          455,
           230,
         ],
         [
-          490,
-          275,
+          455,
+          200,
         ],
         [
           655,
-          275,
+          200,
         ],
       ],
     },
@@ -455,8 +455,16 @@ exports[`Visual regression (layout geometry) > Boolean Algebra 1`] = `
           230,
         ],
         [
-          655,
+          615,
           230,
+        ],
+        [
+          615,
+          270,
+        ],
+        [
+          655,
+          270,
         ],
       ],
     },
@@ -11312,22 +11320,26 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
 {
   "canvas": [
     1115,
-    225,
+    220,
   ],
   "junctions": [
     [
-      480,
-      95,
+      460,
+      90,
     ],
     [
-      510,
-      95,
+      480,
+      90,
+    ],
+    [
+      505,
+      90,
     ],
   ],
   "labels": [
     [
       770,
-      110,
+      105,
       85,
       35,
       "Trip Permit",
@@ -11339,7 +11351,7 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "block": "COMPARE",
       "box": [
         365,
-        65,
+        60,
         65,
         60,
       ],
@@ -11347,14 +11359,14 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "inputs": [
         [
           365,
-          110,
+          105,
           "-",
           null,
           0,
         ],
         [
           365,
-          80,
+          75,
           "+",
           null,
           0,
@@ -11365,7 +11377,7 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "outputs": [
         [
           430,
-          95,
+          90,
           "OUT",
           0,
         ],
@@ -11376,29 +11388,7 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "block": null,
       "box": [
         170,
-        100,
-        100,
-        20,
-      ],
-      "desc": null,
-      "inputs": [],
-      "label": "IPICKUP",
-      "name": null,
-      "outputs": [
-        [
-          270,
-          110,
-          "out",
-          0,
-        ],
-      ],
-      "type": "INPUT",
-    },
-    {
-      "block": null,
-      "box": [
-        170,
-        180,
+        175,
         100,
         20,
       ],
@@ -11409,7 +11399,7 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "outputs": [
         [
           270,
-          190,
+          185,
           "out",
           0,
         ],
@@ -11420,7 +11410,7 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "block": null,
       "box": [
         170,
-        205,
+        200,
         100,
         20,
       ],
@@ -11431,7 +11421,7 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "outputs": [
         [
           270,
-          215,
+          210,
           "out",
           0,
         ],
@@ -11442,7 +11432,7 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "block": null,
       "box": [
         170,
-        70,
+        65,
         100,
         20,
       ],
@@ -11453,7 +11443,29 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "outputs": [
         [
           270,
-          80,
+          75,
+          "out",
+          0,
+        ],
+      ],
+      "type": "INPUT",
+    },
+    {
+      "block": null,
+      "box": [
+        170,
+        95,
+        100,
+        20,
+      ],
+      "desc": null,
+      "inputs": [],
+      "label": "IPICKUP",
+      "name": null,
+      "outputs": [
+        [
+          270,
+          105,
           "out",
           0,
         ],
@@ -11464,7 +11476,7 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "block": null,
       "box": [
         695,
-        140,
+        135,
         75,
         60,
       ],
@@ -11472,21 +11484,21 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "inputs": [
         [
           703,
-          155,
+          150,
           "in_0",
           null,
           0,
         ],
         [
           703,
-          185,
+          180,
           "in_2",
           null,
           0,
         ],
         [
           705,
-          170,
+          165,
           "in_1",
           null,
           0,
@@ -11497,7 +11509,7 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "outputs": [
         [
           770,
-          170,
+          165,
           "out",
           0,
         ],
@@ -11508,7 +11520,7 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "block": null,
       "box": [
         1015,
-        125,
+        120,
         100,
         20,
       ],
@@ -11516,13 +11528,13 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "inputs": [
         [
           1015,
-          135,
+          130,
           "in",
           null,
           0,
         ],
       ],
-      "label": "B",
+      "label": "ALARM",
       "name": null,
       "outputs": [],
       "type": "OUTPUT",
@@ -11531,7 +11543,7 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "block": null,
       "box": [
         1015,
-        190,
+        185,
         100,
         20,
       ],
@@ -11539,7 +11551,7 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "inputs": [
         [
           1015,
-          200,
+          195,
           "in",
           null,
           0,
@@ -11554,7 +11566,7 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "block": null,
       "box": [
         1015,
-        85,
+        50,
         100,
         20,
       ],
@@ -11562,13 +11574,13 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "inputs": [
         [
           1015,
-          95,
+          60,
           "in",
           null,
           0,
         ],
       ],
-      "label": "ALARM",
+      "label": "B",
       "name": null,
       "outputs": [],
       "type": "OUTPUT",
@@ -11577,7 +11589,7 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "block": "RISING",
       "box": [
         525,
-        75,
+        70,
         50,
         40,
       ],
@@ -11585,7 +11597,7 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "inputs": [
         [
           525,
-          95,
+          90,
           "in",
           null,
           0,
@@ -11596,7 +11608,7 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "outputs": [
         [
           575,
-          95,
+          90,
           "OUT",
           0,
         ],
@@ -11607,7 +11619,7 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "block": "SR",
       "box": [
         525,
-        160,
+        155,
         60,
         50,
       ],
@@ -11615,14 +11627,14 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "inputs": [
         [
           525,
-          175,
+          170,
           "S",
           null,
           0,
         ],
         [
           525,
-          190,
+          185,
           "R",
           null,
           0,
@@ -11633,7 +11645,7 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "outputs": [
         [
           585,
-          185,
+          180,
           "Q",
           0,
         ],
@@ -11644,7 +11656,7 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "block": "TIMER",
       "box": [
         850,
-        145,
+        140,
         85,
         50,
       ],
@@ -11652,7 +11664,7 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "inputs": [
         [
           850,
-          170,
+          165,
           "in",
           null,
           0,
@@ -11663,7 +11675,7 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "outputs": [
         [
           935,
-          170,
+          165,
           "OUT",
           0,
         ],
@@ -11677,11 +11689,11 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "points": [
         [
           270,
-          110,
+          105,
         ],
         [
           365,
-          110,
+          105,
         ],
       ],
     },
@@ -11690,11 +11702,11 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "points": [
         [
           270,
-          190,
+          185,
         ],
         [
           525,
-          190,
+          185,
         ],
       ],
     },
@@ -11703,19 +11715,19 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "points": [
         [
           270,
-          215,
+          210,
         ],
         [
           675,
-          215,
+          210,
         ],
         [
           675,
-          170,
+          165,
         ],
         [
           705,
-          170,
+          165,
         ],
       ],
     },
@@ -11724,11 +11736,11 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "points": [
         [
           270,
-          80,
+          75,
         ],
         [
           365,
-          80,
+          75,
         ],
       ],
     },
@@ -11737,69 +11749,19 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "points": [
         [
           430,
-          95,
+          90,
         ],
         [
-          480,
-          95,
+          460,
+          90,
         ],
         [
-          480,
-          175,
-        ],
-        [
-          525,
-          175,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          430,
-          95,
-        ],
-        [
-          505,
-          95,
-        ],
-        [
-          505,
-          155,
-        ],
-        [
-          703,
-          155,
-        ],
-      ],
-    },
-    {
-      "feedback": 0,
-      "points": [
-        [
-          430,
-          95,
-        ],
-        [
-          510,
-          95,
-        ],
-        [
-          510,
-          50,
-        ],
-        [
-          990,
-          50,
-        ],
-        [
-          990,
-          135,
+          460,
+          60,
         ],
         [
           1015,
-          135,
+          60,
         ],
       ],
     },
@@ -11808,11 +11770,53 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "points": [
         [
           430,
-          95,
+          90,
+        ],
+        [
+          480,
+          90,
+        ],
+        [
+          480,
+          170,
         ],
         [
           525,
-          95,
+          170,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          430,
+          90,
+        ],
+        [
+          505,
+          90,
+        ],
+        [
+          505,
+          150,
+        ],
+        [
+          703,
+          150,
+        ],
+      ],
+    },
+    {
+      "feedback": 0,
+      "points": [
+        [
+          430,
+          90,
+        ],
+        [
+          525,
+          90,
         ],
       ],
     },
@@ -11821,11 +11825,19 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "points": [
         [
           575,
-          95,
+          90,
+        ],
+        [
+          990,
+          90,
+        ],
+        [
+          990,
+          130,
         ],
         [
           1015,
-          95,
+          130,
         ],
       ],
     },
@@ -11834,11 +11846,11 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "points": [
         [
           585,
-          185,
+          180,
         ],
         [
           703,
-          185,
+          180,
         ],
       ],
     },
@@ -11847,11 +11859,11 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "points": [
         [
           770,
-          170,
+          165,
         ],
         [
           850,
-          170,
+          165,
         ],
       ],
     },
@@ -11860,19 +11872,19 @@ exports[`Visual regression (layout geometry) > Shared Intermediates 1`] = `
       "points": [
         [
           935,
-          170,
+          165,
         ],
         [
           975,
-          170,
+          165,
         ],
         [
           975,
-          200,
+          195,
         ],
         [
           1015,
-          200,
+          195,
         ],
       ],
     },
