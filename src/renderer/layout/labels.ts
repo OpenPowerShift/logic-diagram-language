@@ -65,6 +65,7 @@ export function placeNetLabels(labels: LayoutLabel[], wires: LayoutWire[], nodes
       return Math.hypot(dx, dy);
     };
     for (const lb of labels) {
+      if (lb.fixed) continue;                                        // connector tags sit at their stub
       const { width: w, height: h, anchorX: ax, anchorY: ay } = lb;
       // The label NAMES its driver's output net, so it should sit RIGHT NEXT TO that net's wire.
       // Primary objective: clear of wires (the bug) and bodies; among clear spots, MINIMISE the

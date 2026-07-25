@@ -98,6 +98,7 @@ Put `OPTION` lines at the top. Implemented options and defaults:
 | `WIRE_LABEL_LEADER` | `TRUE` (default), `FALSE` |
 | `STROKE_WIDTH` | number px (default `2.5`) |
 | `HIDE_JUNCTIONS` | `TRUE`, `FALSE` |
+| `FANOUT_CONNECTORS` | `TRUE`, `FALSE` (default) — draw a very-high-fan-out net as off-page connector tags instead of one crossing wire; kept only where it reduces crossings |
 
 ```ldl
 OPTION INVERSION = BUBBLES

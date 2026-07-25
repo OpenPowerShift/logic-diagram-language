@@ -110,19 +110,36 @@ export function layoutDiagram(diagram: Diagram, options?: RenderOptions): Layout
     return false;                                                 // tie → keep the earlier candidate
   };
 
-  let best = layoutOnce(diagram, options, 'heuristic', false);
-  const consider = (l: LayoutResult) => { if (better(l, best)) best = l; };
-  consider(layoutOnce(diagram, options, 'heuristic', true));   // lane-tight variant (collapses voids)
-  // Reach for the crossmin candidates when the current best is not already clean — it still has
-  // crossings, or (rarer) carries a cross-net overlap or a gate-body intrusion a different ordering
-  // may avoid.
-  if (cr(best) > 0 || overlaps(best) > 0 || bodyIntrusions(best) > 0) {
-    consider(layoutOnce(diagram, options, 'crossmin', false));
-    consider(layoutOnce(diagram, options, 'crossmin', true));
+  // Select + FINALISE the best candidate for a given connector setting. Finalisation (symmetry,
+  // net-label placement, leader targets) runs the post-passes that move wires AFTER candidate scoring,
+  // so we finalise before any cross-setting comparison — otherwise a post-pass could turn a winner into
+  // a loser unseen.
+  const pick = (connectors: boolean): LayoutResult => {
+    let b = layoutOnce(diagram, options, 'heuristic', false, connectors);
+    const take = (l: LayoutResult) => { if (better(l, b)) b = l; };
+    take(layoutOnce(diagram, options, 'heuristic', true, connectors));   // lane-tight (collapses voids)
+    // Reach for the crossmin candidates when the current best is not already clean. The connector axis
+    // stays heuristic-only: connectorisation's benefit is largely orthogonal to crossmin ordering, and
+    // its per-net O(E²) validation makes extra connector candidates expensive (see #23).
+    if (!connectors && (cr(b) > 0 || overlaps(b) > 0 || bodyIntrusions(b) > 0)) {
+      take(layoutOnce(diagram, options, 'crossmin', false, connectors));
+      take(layoutOnce(diagram, options, 'crossmin', true, connectors));
+    }
+    symmetriseSmallGates(b);                                    // cosmetic, validated post-pass
+    placeNetLabels(b.labels, b.wires, b.nodes, b.junctions, options ?? DEFAULT_OPTIONS); // FINAL geometry
+    assignLeaderTargets(b);                                     // net-label leader targets on FINAL geometry
+    return b;
+  };
+
+  let best = pick(false);
+  // Off-page connector fan-out (#37): when OPTION FANOUT_CONNECTORS is on, connectorising very-high-
+  // fan-out nets is offered as an alternative and kept only if the FINALISED result wins on the full
+  // score (overlaps ▸ intrusions ▸ sub-min doglegs ▸ crossings ▸ bends ▸ height). So it de-tangles the
+  // diagrams it helps (Building 60→35, Reactor 50→25) and never regresses one it doesn't (Railway).
+  if ((options ?? DEFAULT_OPTIONS).fanoutConnectors) {
+    const withConnectors = pick(true);
+    if (better(withConnectors, best)) best = withConnectors;
   }
-  symmetriseSmallGates(best);                                    // cosmetic, validated post-pass
-  placeNetLabels(best.labels, best.wires, best.nodes, best.junctions, options ?? DEFAULT_OPTIONS); // on FINAL geometry
-  assignLeaderTargets(best);                                     // net-label leader targets on FINAL geometry
   return best;
 }
 
@@ -159,10 +176,15 @@ export function layoutDiagram(diagram: Diagram, options?: RenderOptions): Layout
 // if it renders fewer crossings than the heuristic — so the combinatorial count need not be perfect.
 
 
-function layoutOnce(diagram: Diagram, options: RenderOptions | undefined, strategy: 'heuristic' | 'crossmin', laneTight = false): LayoutResult {
+function layoutOnce(diagram: Diagram, options: RenderOptions | undefined, strategy: 'heuristic' | 'crossmin', laneTight = false, connectors = false): LayoutResult {
   resetId();
 
-  const opts = options ?? DEFAULT_OPTIONS;
+  // `connectors` is a per-candidate axis (like laneTight), NOT the global option: layoutDiagram tries
+  // both off and on and keeps the best on the full score, so off-page connectors can never regress a
+  // diagram. Override the flag routeWires reads with this candidate's value.
+  const opts = connectors === (options ?? DEFAULT_OPTIONS).fanoutConnectors
+    ? (options ?? DEFAULT_OPTIONS)
+    : { ...(options ?? DEFAULT_OPTIONS), fanoutConnectors: connectors };
 
   // Two phases: place every node (graph → sized gates → coordinates), then route + reshape the wires.
   const { nodes, intermediateLabels, layoutNodes, nodeMap } = placeNodes(diagram, opts, strategy, laneTight);

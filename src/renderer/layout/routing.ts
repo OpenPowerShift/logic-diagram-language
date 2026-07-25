@@ -8,6 +8,8 @@ import type { RenderOptions } from '../../parser/ast.js';
 import { routeWireAStar, type GateObstacle, type RoutedSegment } from '../astar-router.js';
 import { uid } from './geometry.js';
 import { placeNetLabels } from './labels.js';
+import { findWireCrossings } from './crossings.js';
+import { estimateTextWidth } from '../math-renderer.js';
 import type { LayoutNode, LayoutPort, LayoutWire, LayoutJunction, LayoutLabel } from './types.js';
 import { GRID, MIN_DOGLEG, MIN_PORT_GAP, MIN_WIRE_SPACING, PAD_Y } from './types.js';
 
@@ -1155,6 +1157,59 @@ export function routeWires(
       for (const w of wires) for (const p of w.points) p.y -= shiftFor(p.y);
       for (const j of mergedJunctions) j.y -= shiftFor(j.y);
       for (const l of labels) { const dy = shiftFor(l.y); l.y -= dy; l.anchorY -= dy; }
+    }
+  }
+
+  // ═══ Off-page connector fan-out (#37 · OPTION FANOUT_CONNECTORS) ═══════════════════════════════════
+  // A very-high-fan-out net that spans much of the page is drawn as one wire that crosses everything
+  // between its taps (e.g. a global "Fire Alarm" inhibit consumed by every output). Replace such nets
+  // with off-page CONNECTOR stubs: a short source stub tagged with the net name, and a short stub with
+  // the same tag at each consumer. The long crossing wire (and its junction dots) is removed; the
+  // reader matches source ↔ sinks by the shared name — the standard schematic idiom.
+  //
+  // SELECTIVE: connectorising only *removes* the net's own crossings, but the short consumer stubs can
+  // themselves cross wires that pass close to the ports — net-negative when the net was already well
+  // routed. So each candidate is validated: build the connectorised wire set, count real crossings, and
+  // keep it only if it strictly reduces the total. Greedy, most-fanned-out first, re-checked after each
+  // (same accept-only-if-better principle as the candidate scorer). The O(E²) recount runs once per
+  // candidate, and candidates are few (only very-high-fan-out nets qualify).
+  if (opts.fanoutConnectors) {
+    const FANOUT_MIN = 4, SPAN_MIN = 250, STUB = 22;
+    const bySrc = new Map<string, LayoutWire[]>();
+    for (const w of wires) { if (w.feedback) continue; (bySrc.get(w.fromId) ?? bySrc.set(w.fromId, []).get(w.fromId)!).push(w); }
+    const candidates = [...bySrc.entries()]
+      .filter(([, ws]) => { const ys = ws.flatMap(w => w.points.map(p => p.y)); return ws.length >= FANOUT_MIN && Math.max(...ys) - Math.min(...ys) >= SPAN_MIN; })
+      .sort((a, b) => b[1].length - a[1].length)
+      .map(([id]) => id);
+    // Build the connectorised {wires, junctions, labels} for one net, off the CURRENT state.
+    const build = (id: string) => {
+      const ws = wires.filter(w => !w.feedback && w.fromId === id);
+      const src = ws[0].points[0];
+      const node = layoutNodes.find(x => x.id === id);
+      const name = node?.name || node?.label || id;
+      const nameW = estimateTextWidth(name, 10);
+      const onNet = new Set(ws.flatMap(w => w.points.map(p => `${Math.round(p.x)},${Math.round(p.y)}`)));
+      const tw = wires.filter(w => w.feedback || w.fromId !== id);
+      const tj = mergedJunctions.filter(j => !onNet.has(`${Math.round(j.x)},${Math.round(j.y)}`));
+      const tl: LayoutLabel[] = [
+        { x: src.x + STUB + 3, y: src.y - 5, width: nameW, height: 12, anchorX: src.x, anchorY: src.y, driverId: id, name, fixed: true, connector: 'source' },
+      ];
+      tw.push({ id: `conn_s_${id}`, points: [{ x: src.x, y: src.y }, { x: src.x + STUB, y: src.y }], fromId: id, toId: id });
+      for (const w of ws) {
+        const dst = w.points[w.points.length - 1];
+        tw.push({ id: `conn_d_${w.id}`, points: [{ x: dst.x - STUB, y: dst.y }, { x: dst.x, y: dst.y }], fromId: id, toId: w.toId });
+        tl.push({ x: dst.x - STUB - 3 - nameW, y: dst.y - 5, width: nameW, height: 12, anchorX: dst.x, anchorY: dst.y, driverId: id, name, fixed: true, connector: 'sink' });
+      }
+      return { wires: tw, junctions: tj, labels: tl };
+    };
+    for (const id of candidates) {
+      const before = findWireCrossings(wires, mergedJunctions).length;
+      const t = build(id);
+      if (findWireCrossings(t.wires, t.junctions).length < before) {       // keep only if it helps
+        wires.length = 0; wires.push(...t.wires);
+        mergedJunctions.length = 0; mergedJunctions.push(...t.junctions);
+        labels.push(...t.labels);
+      }
     }
   }
 

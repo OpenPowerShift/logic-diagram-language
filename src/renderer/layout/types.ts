@@ -56,6 +56,8 @@ export interface LayoutLabel {
   leaderY?: number;
   name?: string;
   description?: string;
+  fixed?: boolean;   // a connector tag placed at a fixed stub position; not relocated by placeNetLabels
+  connector?: 'source' | 'sink'; // off-page connector tag (issue #37) — rendered with a direction marker
 }
 
 export interface LayoutResult {
