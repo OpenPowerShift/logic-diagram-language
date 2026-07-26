@@ -68,11 +68,11 @@ exports[`Bend/crossing metrics > Complex Protection 1`] = `
 
 exports[`Bend/crossing metrics > Differential Protection 1`] = `
 {
-  "H": 250,
-  "bends": 4,
-  "bent": 2,
+  "H": 255,
+  "bends": 2,
+  "bent": 1,
   "crossings": 0,
-  "straight": 5,
+  "straight": 6,
   "wires": 7,
 }
 `;
@@ -90,7 +90,7 @@ exports[`Bend/crossing metrics > Generic Block (FB) 1`] = `
 
 exports[`Bend/crossing metrics > Hidden Dots 1`] = `
 {
-  "H": 290,
+  "H": 390,
   "bends": 4,
   "bent": 2,
   "crossings": 0,
@@ -112,18 +112,18 @@ exports[`Bend/crossing metrics > Input Bars 1`] = `
 
 exports[`Bend/crossing metrics > Inversion Bubbles 1`] = `
 {
-  "H": 280,
-  "bends": 18,
-  "bent": 8,
-  "crossings": 5,
-  "straight": 1,
+  "H": 305,
+  "bends": 14,
+  "bent": 7,
+  "crossings": 4,
+  "straight": 2,
   "wires": 9,
 }
 `;
 
 exports[`Bend/crossing metrics > Labelled Gates 1`] = `
 {
-  "H": 560,
+  "H": 565,
   "bends": 8,
   "bent": 4,
   "crossings": 0,
@@ -134,18 +134,18 @@ exports[`Bend/crossing metrics > Labelled Gates 1`] = `
 
 exports[`Bend/crossing metrics > Launch Interlock 1`] = `
 {
-  "H": 630,
-  "bends": 14,
-  "bent": 7,
+  "H": 540,
+  "bends": 12,
+  "bent": 6,
   "crossings": 0,
-  "straight": 8,
+  "straight": 9,
   "wires": 15,
 }
 `;
 
 exports[`Bend/crossing metrics > Layout Options 1`] = `
 {
-  "H": 315,
+  "H": 255,
   "bends": 6,
   "bent": 3,
   "crossings": 0,
@@ -167,7 +167,7 @@ exports[`Bend/crossing metrics > Mixed Logic 1`] = `
 
 exports[`Bend/crossing metrics > Motor Control Circuit 1`] = `
 {
-  "H": 340,
+  "H": 380,
   "bends": 10,
   "bent": 5,
   "crossings": 1,
@@ -211,7 +211,7 @@ exports[`Bend/crossing metrics > Nested NOT 1`] = `
 
 exports[`Bend/crossing metrics > Overcurrent Protection 1`] = `
 {
-  "H": 225,
+  "H": 265,
   "bends": 2,
   "bent": 1,
   "crossings": 0,
@@ -222,11 +222,11 @@ exports[`Bend/crossing metrics > Overcurrent Protection 1`] = `
 
 exports[`Bend/crossing metrics > Reactor Scram Matrix 1`] = `
 {
-  "H": 900,
-  "bends": 22,
-  "bent": 11,
+  "H": 875,
+  "bends": 20,
+  "bent": 10,
   "crossings": 0,
-  "straight": 22,
+  "straight": 23,
   "wires": 33,
 }
 `;
@@ -255,11 +255,11 @@ exports[`Bend/crossing metrics > SR Latch (Q and NQ) 1`] = `
 
 exports[`Bend/crossing metrics > Shared Intermediates 1`] = `
 {
-  "H": 220,
-  "bends": 12,
-  "bent": 6,
-  "crossings": 1,
-  "straight": 6,
+  "H": 245,
+  "bends": 8,
+  "bent": 4,
+  "crossings": 0,
+  "straight": 8,
   "wires": 12,
 }
 `;
@@ -310,11 +310,11 @@ exports[`Bend/crossing metrics > Streamlined Ports 1`] = `
 
 exports[`Bend/crossing metrics > Styled by ID 1`] = `
 {
-  "H": 340,
-  "bends": 4,
-  "bent": 2,
+  "H": 315,
+  "bends": 2,
+  "bent": 1,
   "crossings": 0,
-  "straight": 6,
+  "straight": 7,
   "wires": 8,
 }
 `;

@@ -502,7 +502,34 @@ export function placeNodes(
   // Each node's vertical centre is aligned to the median of its neighbours on BOTH sides
   // (sources and consumers), keeping the per-column barycentre order. Replaces the old global
   // row-rank mapping, which spread nodes apart and ignored the consumer side.
-  const assignedY = assignCoordinates(nodes, depthGroups, rowMap, maxDepth, rowSpacing, laneTight);
+  let assignedY = assignCoordinates(nodes, depthGroups, rowMap, maxDepth, rowSpacing, laneTight);
+
+  // Adaptive fan-in-aware port spacing. A gate's input ports default to the tight PORT_SPACING, but a
+  // gate whose fan-in arrives on rows spread WIDER than that can't seat every wire straight — the
+  // compressed ports force a sub-MIN dogleg or a crossover (a lower source assigned a higher port).
+  // Using the FIRST assignment's arrival rows (a long edge's inputId is its last dummy, i.e. the row the
+  // wire reaches the gate on — so bus/dogleg inputs count where they actually arrive, not their far
+  // source centre), size each AND/OR gate's port gap to the median arrival spacing of its fan-in, then
+  // re-assign so the widened ports and their sources co-settle and the wires enter straight. Capped at
+  // 2×MIN_PORT_GAP so a wide fan-in never balloons, and only ever WIDENS (never below an existing gap).
+  const isFb = (id: string) => nodes.get(id)?.kind === 'output';
+  let widened = false;
+  for (const n of nodes.values()) {
+    // Only 3+ input gates benefit: a 2-input gate can always order its two inputs without a crossing, so
+    // widening its ports just spreads the fan-in and adds bends. The box-in (a middle source forced to a
+    // non-adjacent port) needs at least three inputs.
+    if (n.kind !== 'gate' || (n.gateType !== 'AND' && n.gateType !== 'OR') || n.inputIds.length < 3) continue;
+    if (opts.gateInputStyle === 'BARS') continue;                               // BARS gates own their port layout
+    const rows = n.inputIds.filter(id => !isFb(id)).map(id => assignedY.get(id)).filter((y): y is number => y !== undefined).sort((a, b) => a - b);
+    if (rows.length < 2) continue;
+    const gaps: number[] = [];
+    for (let i = 1; i < rows.length; i++) gaps.push(rows[i] - rows[i - 1]);
+    gaps.sort((a, b) => a - b);
+    const med = gaps[gaps.length >> 1];                                          // median adjacent arrival gap
+    const desired = Math.round(Math.min(2 * MIN_PORT_GAP, Math.max(MIN_PORT_GAP, med)) / GRID) * GRID;
+    if (desired > (n.portGap ?? PORT_SPACING) + 0.5) { n.portGap = desired; widened = true; }
+  }
+  if (widened) assignedY = assignCoordinates(nodes, depthGroups, rowMap, maxDepth, rowSpacing, laneTight);
 
   // Dummies have done their job (reserving lanes) — restore the original edges and drop them so
   // geometry and routing see only real nodes, now placed clear of the long-edge lanes.
